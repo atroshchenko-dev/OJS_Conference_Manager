@@ -4,18 +4,12 @@ declare(strict_types=1);
 
 namespace APP\plugins\generic\conferenceManager\classes\Api;
 
-use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
 use APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory;
-use APP\plugins\generic\conferenceManager\classes\Domain\Shared\ValidationErrors;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
-use PKP\core\PKPBaseController;
-use PKP\core\PKPRequest;
-use PKP\security\authorization\ContextAccessPolicy;
-use PKP\security\Role;
 
 /**
  * /{context}/api/v1/conference/institution
@@ -26,29 +20,13 @@ use PKP\security\Role;
  * POST   institution/import   import portable JSON
  * GET    jurisdictions        available jurisdiction profiles and their fields
  */
-class InstitutionController extends PKPBaseController
+final class InstitutionRoutes implements RouteModule
 {
-    public function getHandlerPath(): string
+    public function __construct(private readonly ConferenceApiController $api)
     {
-        return 'conference';
     }
 
-    public function getRouteGroupMiddleware(): array
-    {
-        return [
-            'has.user',
-            'has.context',
-            self::roleAuthorizer([Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER]),
-        ];
-    }
-
-    public function authorize(PKPRequest $request, array &$args, array $roleAssignments): bool
-    {
-        $this->addPolicy(new ContextAccessPolicy($request, $roleAssignments));
-        return parent::authorize($request, $args, $roleAssignments);
-    }
-
-    public function getGroupRoutes(): void
+    public function routes(): void
     {
         Route::get('institution', $this->get(...))->name('conference.institution.get');
         Route::put('institution', $this->put(...))->name('conference.institution.put');
@@ -59,15 +37,14 @@ class InstitutionController extends PKPBaseController
 
     public function get(Request $illuminateRequest): JsonResponse
     {
-        $context = ContextGateway::fromContext($this->getRequest()->getContext());
+        $context = $this->api->contextInfo();
         $profile = ServiceFactory::institutionProfiles()->getOrDraft($context);
         return response()->json($profile->toArray(), Response::HTTP_OK);
     }
 
     public function put(Request $illuminateRequest): JsonResponse
     {
-        $request = $this->getRequest();
-        $context = ContextGateway::fromContext($request->getContext());
+        $context = $this->api->contextInfo();
         $service = ServiceFactory::institutionProfiles();
         $input = $illuminateRequest->input();
         // Files are uploaded separately; the JSON body cannot change them.
@@ -75,17 +52,17 @@ class InstitutionController extends PKPBaseController
         $input['logoPath'] = $current->logoPath;
         $input['sealPath'] = $current->sealPath;
 
-        [$saved, $errors] = $service->save($context, $input, $request->getUser()?->getId(), $request->getRemoteAddr());
+        [$saved, $errors] = $service->save($context, $input, $this->api->actorId(), $this->api->remoteAddr());
         if ($saved === null) {
-            return self::errorResponse($errors);
+            return ConferenceApiController::errorResponse($errors);
         }
         return response()->json($saved->toArray(), Response::HTTP_OK);
     }
 
     public function export(Request $illuminateRequest): JsonResponse
     {
-        $request = $this->getRequest();
-        $context = ContextGateway::fromContext($request->getContext());
+        $request = $this->api->getRequest();
+        $context = $this->api->contextInfo();
         $data = ServiceFactory::institutionProfiles()->export($context);
         $filename = 'institution-' . $request->getContext()->getPath() . '.json';
         return response()
@@ -95,13 +72,12 @@ class InstitutionController extends PKPBaseController
 
     public function import(Request $illuminateRequest): JsonResponse
     {
-        $request = $this->getRequest();
-        $context = ContextGateway::fromContext($request->getContext());
+        $context = $this->api->contextInfo();
         $json = (string) $illuminateRequest->getContent();
         [$saved, $errors] = ServiceFactory::institutionProfiles()
-            ->import($context, $json, $request->getUser()?->getId(), $request->getRemoteAddr());
+            ->import($context, $json, $this->api->actorId(), $this->api->remoteAddr());
         if ($saved === null) {
-            return self::errorResponse($errors);
+            return ConferenceApiController::errorResponse($errors);
         }
         return response()->json($saved->toArray(), Response::HTTP_OK);
     }
@@ -124,17 +100,5 @@ class InstitutionController extends PKPBaseController
             ], $p->getInstitutionExtraFields()),
         ], array_values(ServiceFactory::jurisdictions()->all()));
         return response()->json(['items' => $items, 'itemsMax' => count($items)], Response::HTTP_OK);
-    }
-
-    /**
-     * Errors in the PKP format: field => list of translated messages.
-     */
-    private static function errorResponse(ValidationErrors $errors): JsonResponse
-    {
-        $out = [];
-        foreach ($errors->toArray() as $field => $keys) {
-            $out[$field] = array_map(static fn (string $k): string => __($k), $keys);
-        }
-        return response()->json($out, Response::HTTP_BAD_REQUEST);
     }
 }

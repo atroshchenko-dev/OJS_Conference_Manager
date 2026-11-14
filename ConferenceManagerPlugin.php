@@ -17,9 +17,10 @@ declare(strict_types=1);
 namespace APP\plugins\generic\conferenceManager;
 
 use APP\core\Application;
-use APP\plugins\generic\conferenceManager\classes\Api\InstitutionController;
+use APP\plugins\generic\conferenceManager\classes\Api\ConferenceApiController;
 use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
 use APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory;
+use APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway;
 use APP\plugins\generic\conferenceManager\classes\Forms\InstitutionSettingsForm;
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
 use APP\template\TemplateManager;
@@ -53,6 +54,7 @@ class ConferenceManagerPlugin extends GenericPlugin
         }
 
         Hook::add('APIHandler::endpoints::plugin', $this->registerApiControllers(...));
+        Hook::add('Schema::get::publication', $this->addPublicationProperties(...));
 
         return true;
     }
@@ -81,13 +83,72 @@ class ConferenceManagerPlugin extends GenericPlugin
     }
 
     /**
+     * OJS 3.5: setEnabled() has no context parameter and works on the
+     * current context. Enabling also creates the plugin's user groups (REG-01).
+     *
+     * @param bool $enabled
+     */
+    public function setEnabled($enabled)
+    {
+        parent::setEnabled($enabled);
+        $contextId = $this->getCurrentContextId();
+        if ($enabled && is_numeric($contextId) && (int) $contextId > 0) {
+            $this->ensureUserGroups((int) $contextId);
+        }
+    }
+
+    /**
+     * Idempotent; also run lazily, because the plugin may have been enabled
+     * by an older version or directly in the database.
+     *
+     * @return array<string, int>
+     */
+    public function ensureUserGroups(int $contextId): array
+    {
+        try {
+            return (new UserGroupGateway($this))->ensure($contextId);
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: user groups for context ' . $contextId . ': ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Publication properties of the plugin (plan 8.3). Schema::get::*
+     * is run with Hook::call(), so the schema arrives as the first item
+     * of one array, by reference.
+     *
+     * @param array{0: \stdClass} $args
+     */
+    public function addPublicationProperties(string $hookName, array $args): bool
+    {
+        $schema = &$args[0];
+        $schema->properties->conferenceEditionId = (object) [
+            'type' => 'integer',
+            'apiSummary' => true,
+            'validation' => ['nullable', 'min:1'],
+        ];
+        $schema->properties->presentationType = (object) [
+            'type' => 'string',
+            'apiSummary' => true,
+            'validation' => ['nullable', 'in:oral,poster,online,absentee'],
+        ];
+        $schema->properties->pageCount = (object) [
+            'type' => 'integer',
+            'validation' => ['nullable', 'min:0'],
+        ];
+        return Hook::CONTINUE;
+    }
+
+    /**
      * Hook::run() passes its arguments spread, not as one array.
      */
     public function registerApiControllers(string $hookName, APIRouter $router): bool
     {
         $contextId = Application::get()->getRequest()->getContext()?->getId();
         if ($this->isEnabledFor($contextId === null ? null : (int) $contextId)) {
-            $router->registerPluginApiControllers([new InstitutionController()]);
+            $this->ensureUserGroups((int) $contextId);
+            $router->registerPluginApiControllers([new ConferenceApiController()]);
         }
         return Hook::CONTINUE;
     }

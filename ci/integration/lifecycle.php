@@ -12,6 +12,8 @@
  *   php lifecycle.php assert-tables <table>[,<table>…]
  *   php lifecycle.php assert-column <table> <column>
  *   php lifecycle.php steps
+ *   php lifecycle.php user-groups <contextPath>             REG-01, idempotent
+ *   php lifecycle.php publication-schema <contextPath>      plan 8.3 properties
  *
  * install / upgrade call the same PluginHelper methods as the upload form
  * of the plugin grid. upgrade loads the plugin first, exactly like the
@@ -42,6 +44,8 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'assert-tables' => $this->assertTables(explode(',', $this->argv[1])),
                 'assert-column' => $this->assertColumn($this->argv[1], $this->argv[2]),
                 'steps' => $this->steps(),
+                'user-groups' => $this->userGroups($this->argv[1]),
+                'publication-schema' => $this->publicationSchema($this->argv[1]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
         } catch (Throwable $e) {
@@ -129,6 +133,45 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
     {
         DB::getSchemaBuilder()->hasColumn($table, $column) || throw new RuntimeException("missing column {$table}.{$column}");
         echo "OK column {$table}.{$column}\n";
+    }
+
+    private function userGroups(string $path): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $contextId = (int) $context->getId();
+        $plugin = PluginRegistry::loadPlugin('generic', 'conferenceManager', $contextId)
+            ?? throw new RuntimeException('plugin not found');
+        $first = $plugin->ensureUserGroups($contextId);
+        $second = $plugin->ensureUserGroups($contextId);
+        count($first) === 2 || throw new RuntimeException('groups not created');
+        $first === $second || throw new RuntimeException('ensure is not idempotent');
+        foreach (['participant' => \PKP\security\Role::ROLE_ID_READER, 'registrationManager' => \PKP\security\Role::ROLE_ID_ASSISTANT] as $key => $role) {
+            $n = DB::table('user_groups as g')
+                ->join('user_group_settings as s', 's.user_group_id', '=', 'g.user_group_id')
+                ->where('g.context_id', $contextId)->where('g.role_id', $role)
+                ->where('s.setting_name', 'nameLocaleKey')
+                ->where('s.setting_value', "plugins.generic.conferenceManager.userGroup.{$key}")
+                ->count();
+            $n === 1 || throw new RuntimeException("{$key}: {$n} groups");
+        }
+        $group = \APP\facades\Repo::userGroup()->get($first['participantUserGroupId'], $contextId);
+        ($group && $group->permitSelfRegistration) || throw new RuntimeException('participant group must allow self-registration');
+        echo 'OK user groups in ', $path, ': ', json_encode($first), ' ', json_encode($group->name, JSON_UNESCAPED_UNICODE), "\n";
+    }
+
+    private function publicationSchema(string $path): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        PluginRegistry::loadCategory('generic', true, (int) $context->getId());
+        $schema = app()->get('schema')->get(\PKP\services\PKPSchemaService::SCHEMA_PUBLICATION, true);
+        foreach (['conferenceEditionId' => 'integer', 'presentationType' => 'string', 'pageCount' => 'integer'] as $prop => $type) {
+            ($schema->properties->{$prop}->type ?? null) === $type || throw new RuntimeException("publication.{$prop} missing");
+        }
+        // Stored and read back through the OJS repository.
+        $publication = \APP\facades\Repo::publication()->newDataObject(['presentationType' => 'poster', 'pageCount' => 6]);
+        in_array('in:oral,poster,online,absentee', (array) $schema->properties->presentationType->validation, true)
+            || throw new RuntimeException('presentationType must be validated');
+        echo 'OK publication schema: conferenceEditionId, presentationType (', $publication->getData('presentationType'), "), pageCount\n";
     }
 
     private function steps(): void

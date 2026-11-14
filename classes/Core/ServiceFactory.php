@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace APP\plugins\generic\conferenceManager\classes\Core;
 
+use APP\plugins\generic\conferenceManager\classes\Application\EditionService;
 use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfileService;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
 use Illuminate\Support\Facades\DB;
@@ -41,6 +43,18 @@ final class ServiceFactory
         return new InstitutionProfileService(
             new DbInstitutionRepository($db),
             self::jurisdictions(),
+            new AuditLogger($db),
+        );
+    }
+
+    public static function editions(): EditionService
+    {
+        $db = DB::connection();
+        return new EditionService(
+            new DbEditionRepository($db),
+            self::jurisdictions(),
+            new DbInstitutionRepository($db),
+            new IssueGateway(),
             new AuditLogger($db),
         );
     }

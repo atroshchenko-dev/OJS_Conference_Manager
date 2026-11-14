@@ -257,3 +257,123 @@ msgstr "This is not an institution profile file of the conference plugin."
 
 msgid "plugins.generic.conferenceManager.validation.importVersion"
 msgstr "The file was created by a newer plugin version. Upgrade the plugin."
+
+msgid "plugins.generic.conferenceManager.edition.status.draft"
+msgstr "Draft"
+
+msgid "plugins.generic.conferenceManager.edition.status.cfp_open"
+msgstr "Call open"
+
+msgid "plugins.generic.conferenceManager.edition.status.cfp_closed"
+msgstr "Call closed"
+
+msgid "plugins.generic.conferenceManager.edition.status.held"
+msgstr "Held"
+
+msgid "plugins.generic.conferenceManager.edition.status.published"
+msgstr "Proceedings published"
+
+msgid "plugins.generic.conferenceManager.edition.status.archived"
+msgstr "Archived"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.conference"
+msgstr "Conference"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.seminar"
+msgstr "Seminar"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.webinar"
+msgstr "Webinar"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.school"
+msgstr "School / course"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.round_table"
+msgstr "Round table"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.contest"
+msgstr "Contest"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.other"
+msgstr "Other event"
+
+msgid "plugins.generic.conferenceManager.edition.submissionMode.none"
+msgstr "No submissions (attendees only)"
+
+msgid "plugins.generic.conferenceManager.edition.submissionMode.abstracts"
+msgstr "Abstracts"
+
+msgid "plugins.generic.conferenceManager.edition.submissionMode.abstracts_and_papers"
+msgstr "Abstracts, then full papers"
+
+msgid "plugins.generic.conferenceManager.edition.publicationMode.none"
+msgstr "No proceedings"
+
+msgid "plugins.generic.conferenceManager.edition.publicationMode.ojs_issue"
+msgstr "Issue in this journal"
+
+msgid "plugins.generic.conferenceManager.edition.publicationMode.external"
+msgstr "External proceedings (link)"
+
+msgid "plugins.generic.conferenceManager.edition.format.in_person"
+msgstr "In person"
+
+msgid "plugins.generic.conferenceManager.edition.format.online"
+msgstr "Online"
+
+msgid "plugins.generic.conferenceManager.edition.format.hybrid"
+msgstr "Hybrid"
+
+msgid "plugins.generic.conferenceManager.edition.reviewMode.light"
+msgstr "Light (decision at submission stage)"
+
+msgid "plugins.generic.conferenceManager.edition.reviewMode.two_phase"
+msgstr "Two-phase (abstracts, then papers)"
+
+msgid "plugins.generic.conferenceManager.edition.reviewMode.standard"
+msgstr "Standard OJS review"
+
+msgid "plugins.generic.conferenceManager.userGroup.participant"
+msgstr "Participant"
+
+msgid "plugins.generic.conferenceManager.userGroup.participant.abbrev"
+msgstr "PART"
+
+msgid "plugins.generic.conferenceManager.userGroup.registrationManager"
+msgstr "Registration manager"
+
+msgid "plugins.generic.conferenceManager.userGroup.registrationManager.abbrev"
+msgstr "RM"
+
+msgid "plugins.generic.conferenceManager.validation.timezone"
+msgstr "Unknown time zone."
+
+msgid "plugins.generic.conferenceManager.validation.date"
+msgstr "Invalid date. Use YYYY-MM-DD HH:MM."
+
+msgid "plugins.generic.conferenceManager.validation.integer"
+msgstr "A whole non-negative number is required."
+
+msgid "plugins.generic.conferenceManager.validation.range"
+msgstr "Value is out of range."
+
+msgid "plugins.generic.conferenceManager.validation.path"
+msgstr "Only lowercase Latin letters, digits, hyphens and underscores, up to 64 characters."
+
+msgid "plugins.generic.conferenceManager.validation.pathTaken"
+msgstr "This path is already used in this journal."
+
+msgid "plugins.generic.conferenceManager.validation.dateOrder"
+msgstr "This date is earlier than the previous one in the sequence."
+
+msgid "plugins.generic.conferenceManager.validation.paperDeadlineMode"
+msgstr "A paper deadline applies only in the \"Abstracts, then full papers\" mode."
+
+msgid "plugins.generic.conferenceManager.validation.isbn"
+msgstr "Invalid ISBN-13 (check digit does not match)."
+
+msgid "plugins.generic.conferenceManager.validation.statusTransition"
+msgstr "This status change is not allowed."
+
+msgid "plugins.generic.conferenceManager.validation.editionInUse"
+msgstr "The edition has participants, invoices or submissions. It can only be archived."

@@ -35,6 +35,7 @@ final class ContextGateway
             $formLocales,
             $name,
             (string) $context->getData('contactEmail'),
+            date_default_timezone_get(),
         );
     }
 }

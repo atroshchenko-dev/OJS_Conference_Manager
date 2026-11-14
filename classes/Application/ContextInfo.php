@@ -20,6 +20,7 @@ final class ContextInfo
         public readonly array $formLocales,
         public readonly array $name = [],
         public readonly string $contactEmail = '',
+        public readonly string $serverTimezone = 'UTC',
     ) {
     }
 }

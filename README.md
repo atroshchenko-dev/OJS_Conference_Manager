@@ -4,7 +4,7 @@
 
 Нічого в коді не прив'язано до конкретного закладу. Усе, що стосується організатора, налаштовується в **профілі закладу** кожного контексту, а національні норми (ЄДРПОУ, казначейські рахунки, сертифікати підвищення кваліфікації, «Вектор») вмикаються **профілем юрисдикції** `UA`. Профіль `generic` вимикає їх для організаторів з інших країн.
 
-> Статус: **0.1 (фундамент, спринт 1)**. Готові каркас плагіна, міграції з перевіркою оновлення, профіль закладу з підписантами й платіжними реквізитами, профілі юрисдикції, REST API та CI. Видання, реєстрація, оргвнески, програма й сертифікати — у наступних спринтах (див. план розробки v2, розділ 18).
+> Статус: **0.2 (спринт 2)**. Готові каркас плагіна, міграції з перевіркою оновлення, профіль закладу з підписантами й платіжними реквізитами, профілі юрисдикції, видання з типами подій і вікнами прийому, схема даних усіх модулів, групи користувачів, REST API та CI. Інтерфейс видань, реєстрація, оргвнески, програма й сертифікати — у наступних спринтах (див. план розробки v2, розділ 18).
 
 ## Встановлення
 
@@ -24,7 +24,7 @@
 - **Профілі юрисдикції** (INS-06, розд. 7.8): `generic` і `UA` (ЄДРПОУ з контрольним розрядом, український IBAN, казначейство, код ЄДЕБО). Інші плагіни можуть додати свій профіль через хук `ConferenceManager::jurisdictions`.
 - **Імпорт і експорт профілю** у JSON (INS-07) для швидкого налаштування нових контекстів.
 - **Журнал аудиту** змін профілю.
-- **REST API**: `/{context}/api/v1/conference/institution` (GET, PUT), `…/institution/export`, `…/institution/import`, `…/jurisdictions`. Доступ: менеджер контексту й адміністратор сайту.
+- **REST API**: `/{context}/api/v1/conference/institution` (GET, PUT), `…/institution/export`, `…/institution/import`, `…/jurisdictions`; `…/editions` (GET, POST), `…/editions/{id}` (GET, PUT, DELETE), `…/editions/{id}/copy`, `…/editions/options`. Дати видань приймаються як місцевий час видання (`2027-05-20 09:00`) або з зсувом (`…Z`, `+02:00`), повертаються в UTC і окремо в місцевому часі (`local`). Доступ: менеджер контексту й адміністратор сайту.
 
 ## Розробка
 
@@ -51,4 +51,4 @@ GNU GPL v3, див. [LICENSE](LICENSE).
 
 ## English
 
-**Conference Manager** turns OJS 3.5 into a platform for conferences, schools and seminars for any organizing institution. Organizer details live in a per-context **institution profile**; national rules are a switchable **jurisdiction profile** (`UA` built in, `generic` for everyone else, more via the `ConferenceManager::jurisdictions` hook). Version 0.1 contains the foundation: plugin skeleton, idempotent migrations that also run on upgrade (`upgrade.xml`), the institution profile with signers and payment accounts, REST API, CI with install/upgrade tests against real OJS 3.5 on MariaDB and PostgreSQL.
+**Conference Manager** turns OJS 3.5 into a platform for conferences, schools and seminars for any organizing institution. Organizer details live in a per-context **institution profile**; national rules are a switchable **jurisdiction profile** (`UA` built in, `generic` for everyone else, more via the `ConferenceManager::jurisdictions` hook). Version 0.2 adds editions (event types, submission and publication modes, time-zone aware windows, optional OJS issue), the schema of all modules, the Participant and Registration manager user groups and the editions REST API. Version 0.1 contained the foundation: plugin skeleton, idempotent migrations that also run on upgrade (`upgrade.xml`), the institution profile with signers and payment accounts, REST API, CI with install/upgrade tests against real OJS 3.5 on MariaDB and PostgreSQL.

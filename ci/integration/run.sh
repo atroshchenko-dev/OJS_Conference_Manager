@@ -16,10 +16,13 @@ docker cp "$pkg" "$ojs:/tmp/cm-v1.tar.gz"
 run context confa uk
 run context confb en
 run install /tmp/cm-v1.tar.gz
-run assert-tables conf_schema_steps,conf_institutions,conf_institution_settings,conf_signers,conf_signer_settings,conf_payment_accounts,conf_audit_log
+run assert-tables conf_schema_steps,conf_institutions,conf_institution_settings,conf_signers,conf_signer_settings,conf_payment_accounts,conf_audit_log,conf_editions,conf_edition_settings,conf_participants,conf_participations,conf_fee_categories,conf_tariffs,conf_invoices,conf_invoice_items,conf_payment_proofs,conf_payment_events,conf_rooms,conf_sessions,conf_certificate_templates,conf_certificates,conf_counters,conf_mail_campaigns,conf_mail_log,conf_legacy_urls,conf_edition_partners,conf_payment_rules
 run migrate-twice
 run enable confa
 run enable confb
+run user-groups confa
+run user-groups confb
+run publication-schema confa
 
 # 2. A synthetic next release: bumped version + one extra schema step.
 #    Proves that upgrade.xml runs NEW steps even though the old migration

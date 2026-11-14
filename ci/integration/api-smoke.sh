@@ -40,6 +40,34 @@ ok "save, reload, isolation"
 curl -s -b "$jar" "$api/institution/export" | j 'd["format"]' | grep -q ojs-conferenceManager-institution || fail export
 ok export
 
+# Editions (EDN-01…05, 09; EVT-01).
+post() { curl -s -b "$jar" -X POST -H "X-Csrf-Token: $csrf" -H 'Content-Type: application/json' "$1" -d "$2" -w '\n%{http_code}'; }
+del() { curl -s -b "$jar" -X DELETE -H "X-Csrf-Token: $csrf" "$1" -w '\n%{http_code}'; }
+[ "$(curl -s -b "$jar" "$api/editions/options" | j 'len(d["eventTypes"]), d["defaultTimezone"]')" = "(7, 'Europe/Kyiv')" ] || fail "edition options"
+bad="$(post "$api/editions" '{"path":"Bad Path","name":{"en":"x"},"startsAt":"2027-05-20 09:00","endsAt":"2027-05-19 09:00","cfpOpensAt":"2027-03-01","abstractDeadline":"2027-01-01","isbn":"9780306406158"}')"
+[ "$(tail -1 <<<"$bad")" = 400 ] || fail "invalid edition must get 400: $bad"
+head -1 <<<"$bad" | j '",".join(sorted(d))' | grep -q 'abstractDeadline,endsAt,isbn,name,path' || fail "edition validation fields: $bad"
+ed="$(post "$api/editions" '{"path":"conf-2027","eventType":"conference","submissionMode":"abstracts","format":"hybrid","name":{"uk":"Конференція 2027","en":"Conference 2027"},"startsAt":"2027-05-20 09:00","endsAt":"2027-05-21 18:00","cfpOpensAt":"2027-01-15","abstractDeadline":"2027-03-01"}')"
+[ "$(tail -1 <<<"$ed")" = 200 ] || fail "create edition: $ed"
+eid="$(head -1 <<<"$ed" | j 'd["id"]')"
+[ "$(head -1 <<<"$ed" | j 'd["startsAt"], d["timezone"], d["publicationMode"], d["issueId"] is not None')" = "('2027-05-20T06:00:00Z', 'Europe/Kyiv', 'ojs_issue', True)" ] || fail "edition dates/issue: $ed"
+issue="$(head -1 <<<"$ed" | j 'd["issueId"]')"
+[ "$(curl -s -b "$jar" "$B/confa/api/v1/issues/$issue" | j 'd["published"]')" = False ] || fail "EDN-04: unpublished OJS issue"
+ok "edition create, UTC dates, OJS issue"
+[ "$(put "$api/editions/$eid" "$(curl -s -b "$jar" "$api/editions/$eid" | j 'json.dumps({**d, "status": "cfp_open"})')" | tail -1)" = 200 ] || fail "status change"
+[ "$(curl -s -b "$jar" "$api/editions?status=cfp_open" | j 'd["itemsMax"]')" = 1 ] || fail "list by status"
+[ "$(curl -s -b "$jar" "$B/confb/api/v1/conference/editions/$eid" -o /dev/null -w '%{http_code}')" = 404 ] || fail "edition context isolation"
+[ "$(post "$api/editions" '{"path":"conf-2027","name":{"uk":"x"},"eventType":"webinar","startsAt":"2027-01-01 10:00","endsAt":"2027-01-01 11:00"}' | head -1 | j 'd["path"][0] != ""')" = True ] || fail "path unique"
+ok "edition update, list, isolation, unique path"
+cp="$(post "$api/editions/$eid/copy" '{"path":"conf-2028","startsAt":"2028-05-18 09:00","endsAt":"2028-05-19 18:00","cfpOpensAt":"2028-01-15","abstractDeadline":"2028-03-01"}')"
+[ "$(tail -1 <<<"$cp")" = 200 ] || fail "copy: $cp"
+cid="$(head -1 <<<"$cp" | j 'd["id"]')"
+[ "$(del "$api/editions/$cid" | tail -1)" = 200 ] || fail "delete unused edition"
+[ "$(curl -s -b "$jar" "$api/editions/$cid" -o /dev/null -w '%{http_code}')" = 404 ] || fail "deleted edition is gone"
+web="$(post "$B/confb/api/v1/conference/editions" '{"path":"webinar-1","eventType":"webinar","name":{"en":"Webinar"},"startsAt":"2027-02-01 15:00","endsAt":"2027-02-01 16:30"}')"
+[ "$(head -1 <<<"$web" | j 'd["submissionMode"], d["publicationMode"], d["issueId"]')" = "('none', 'none', None)" ] || fail "EVT-01 webinar defaults: $web"
+ok "edition copy, delete, webinar defaults"
+
 modal="$B/confa/\$\$\$call\$\$\$/grid/settings/plugins/settings-plugin-grid/manage?verb=institution&plugin=conferencemanagerplugin&category=generic"
 curl -s -b "$jar" "$modal" | j 'd["status"] and "paymentAccounts[0][iban]" in d["content"]' | grep -q True || fail "settings modal"
 ok "settings modal"

@@ -257,3 +257,123 @@ msgstr "Це не файл профілю закладу плагіна конф
 
 msgid "plugins.generic.conferenceManager.validation.importVersion"
 msgstr "Файл створено новішою версією плагіна. Оновіть плагін."
+
+msgid "plugins.generic.conferenceManager.edition.status.draft"
+msgstr "Чернетка"
+
+msgid "plugins.generic.conferenceManager.edition.status.cfp_open"
+msgstr "Прийом заявок відкрито"
+
+msgid "plugins.generic.conferenceManager.edition.status.cfp_closed"
+msgstr "Прийом заявок закрито"
+
+msgid "plugins.generic.conferenceManager.edition.status.held"
+msgstr "Проведено"
+
+msgid "plugins.generic.conferenceManager.edition.status.published"
+msgstr "Матеріали опубліковано"
+
+msgid "plugins.generic.conferenceManager.edition.status.archived"
+msgstr "В архіві"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.conference"
+msgstr "Конференція"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.seminar"
+msgstr "Семінар"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.webinar"
+msgstr "Вебінар"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.school"
+msgstr "Школа / курс"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.round_table"
+msgstr "Круглий стіл"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.contest"
+msgstr "Конкурс"
+
+msgid "plugins.generic.conferenceManager.edition.eventType.other"
+msgstr "Інший захід"
+
+msgid "plugins.generic.conferenceManager.edition.submissionMode.none"
+msgstr "Без подань (лише слухачі)"
+
+msgid "plugins.generic.conferenceManager.edition.submissionMode.abstracts"
+msgstr "Тези"
+
+msgid "plugins.generic.conferenceManager.edition.submissionMode.abstracts_and_papers"
+msgstr "Тези, потім повні тексти"
+
+msgid "plugins.generic.conferenceManager.edition.publicationMode.none"
+msgstr "Без збірника"
+
+msgid "plugins.generic.conferenceManager.edition.publicationMode.ojs_issue"
+msgstr "Випуск у цьому журналі"
+
+msgid "plugins.generic.conferenceManager.edition.publicationMode.external"
+msgstr "Зовнішній збірник (посилання)"
+
+msgid "plugins.generic.conferenceManager.edition.format.in_person"
+msgstr "Очно"
+
+msgid "plugins.generic.conferenceManager.edition.format.online"
+msgstr "Онлайн"
+
+msgid "plugins.generic.conferenceManager.edition.format.hybrid"
+msgstr "Змішаний"
+
+msgid "plugins.generic.conferenceManager.edition.reviewMode.light"
+msgstr "Спрощене (рішення на етапі подання)"
+
+msgid "plugins.generic.conferenceManager.edition.reviewMode.two_phase"
+msgstr "Двоетапне (тези, потім тексти)"
+
+msgid "plugins.generic.conferenceManager.edition.reviewMode.standard"
+msgstr "Стандартне рецензування OJS"
+
+msgid "plugins.generic.conferenceManager.userGroup.participant"
+msgstr "Учасник"
+
+msgid "plugins.generic.conferenceManager.userGroup.participant.abbrev"
+msgstr "УЧ"
+
+msgid "plugins.generic.conferenceManager.userGroup.registrationManager"
+msgstr "Реєстраційний менеджер"
+
+msgid "plugins.generic.conferenceManager.userGroup.registrationManager.abbrev"
+msgstr "РМ"
+
+msgid "plugins.generic.conferenceManager.validation.timezone"
+msgstr "Невідомий часовий пояс."
+
+msgid "plugins.generic.conferenceManager.validation.date"
+msgstr "Неправильна дата. Формат: РРРР-ММ-ДД ГГ:ХХ."
+
+msgid "plugins.generic.conferenceManager.validation.integer"
+msgstr "Потрібне ціле невід’ємне число."
+
+msgid "plugins.generic.conferenceManager.validation.range"
+msgstr "Значення поза допустимими межами."
+
+msgid "plugins.generic.conferenceManager.validation.path"
+msgstr "Лише малі латинські літери, цифри, дефіс і підкреслення, до 64 символів."
+
+msgid "plugins.generic.conferenceManager.validation.pathTaken"
+msgstr "Така адреса вже є в цьому журналі."
+
+msgid "plugins.generic.conferenceManager.validation.dateOrder"
+msgstr "Дата раніша за попередню у послідовності."
+
+msgid "plugins.generic.conferenceManager.validation.paperDeadlineMode"
+msgstr "Дедлайн повних текстів можливий лише в режимі «Тези, потім повні тексти»."
+
+msgid "plugins.generic.conferenceManager.validation.isbn"
+msgstr "Неправильний ISBN-13 (перевірте контрольну цифру)."
+
+msgid "plugins.generic.conferenceManager.validation.statusTransition"
+msgstr "Такий перехід статусу неможливий."
+
+msgid "plugins.generic.conferenceManager.validation.editionInUse"
+msgstr "Видання має учасників, рахунки або подання. Його можна лише архівувати."

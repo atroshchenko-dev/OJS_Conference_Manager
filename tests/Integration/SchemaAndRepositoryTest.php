@@ -12,7 +12,6 @@ use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegis
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Connection;
-use Illuminate\Database\Schema\Blueprint;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -29,15 +28,7 @@ final class SchemaAndRepositoryTest extends TestCase
         if (!class_exists(Capsule::class)) {
             self::markTestSkipped('illuminate/database is not available');
         }
-        $capsule = new Capsule();
-        $capsule->addConnection(['driver' => 'sqlite', 'database' => ':memory:', 'foreign_key_constraints' => true]);
-        $this->db = $capsule->getConnection();
-        // Minimal stand-in for the OJS contexts table.
-        $this->db->getSchemaBuilder()->create('journals', function (Blueprint $t) {
-            $t->bigInteger('journal_id')->autoIncrement();
-            $t->string('path', 32);
-        });
-        $this->db->table('journals')->insert([['path' => 'a'], ['path' => 'b']]);
+        $this->db = OjsStandIns::connection();
     }
 
     private function migrate(): void
