@@ -9,10 +9,10 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 ok() { echo "OK $*"; }
 j() { python3 -c "import json,sys; d=json.load(sys.stdin); print(eval(sys.argv[1]))" "$1"; }
 
-tok="$(curl -s -c "$jar" -b "$jar" "$B/index/en/login" | sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' | head -1)"
+tok="$(curl -s -L -c "$jar" -b "$jar" "$B/index/en/login" | sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' | head -1)"
 curl -s -c "$jar" -b "$jar" -o /dev/null "$B/index/en/login/signIn" --data "csrfToken=$tok&username=admin&password=admin12345"
-csrf="$(curl -s -b "$jar" "$B/confa/en/management/settings/context" | grep -o '"csrfToken":"[^"]*"' | head -1 | cut -d'"' -f4)"
-[ -n "$csrf" ] || fail "login"
+csrf="$(curl -s -L -c "$jar" -b "$jar" "$B/confa/en/management/settings/context" | { grep -o '"csrfToken":"[^"]*"' || true; } | head -1 | cut -d'"' -f4)"
+[ -n "$csrf" ] || fail "login (no CSRF token on the management page)"
 ok login
 
 api="$B/confa/api/v1/conference"
