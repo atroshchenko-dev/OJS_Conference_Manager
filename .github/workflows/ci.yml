@@ -4,6 +4,7 @@ on:
     branches: [develop, main]
     tags: ['v*']
   pull_request:
+  workflow_dispatch:
   schedule:
     - cron: '30 2 * * *'   # nightly matrix (plan 16.4)
 
