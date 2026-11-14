@@ -1,0 +1,259 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: conferenceManager\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "plugins.generic.conferenceManager.displayName"
+msgstr "Менеджер конференцій"
+
+msgid "plugins.generic.conferenceManager.description"
+msgstr "Конференції, школи, семінари й інші наукові та освітні заходи на базі OJS 3.5 для будь-якого закладу-організатора: реєстрація, оргвнески, програма, сертифікати, збірники."
+
+msgid "plugins.generic.conferenceManager.institution.title"
+msgstr "Профіль закладу-організатора"
+
+msgid "plugins.generic.conferenceManager.institution.intro"
+msgstr "Ці дані використовуються в рахунках, сертифікатах і на публічних сторінках заходів цього контексту. Кожен контекст має власний профіль, тому одна інсталяція OJS може обслуговувати кілька закладів."
+
+msgid "plugins.generic.conferenceManager.institution.section.main"
+msgstr "Заклад"
+
+msgid "plugins.generic.conferenceManager.institution.section.privacy"
+msgstr "Персональні дані"
+
+msgid "plugins.generic.conferenceManager.institution.section.importExport"
+msgstr "Імпорт і експорт профілю"
+
+msgid "plugins.generic.conferenceManager.institution.jurisdiction.description"
+msgstr "Профіль юрисдикції вмикає національні поля й документи. «Україна» додає ЄДРПОУ, казначейські рахунки, сертифікати підвищення кваліфікації та експорт для «Вектора». Після зміни збережіть форму й відкрийте її знову, щоб побачити поля нового профілю."
+
+msgid "plugins.generic.conferenceManager.institution.privacyNotice.description"
+msgstr "Повідомлення про обробку персональних даних, яке бачать учасники під час реєстрації."
+
+msgid "plugins.generic.conferenceManager.institution.export"
+msgstr "Завантажити профіль у форматі JSON"
+
+msgid "plugins.generic.conferenceManager.institution.import"
+msgstr "Імпорт профілю (JSON)"
+
+msgid "plugins.generic.conferenceManager.institution.import.description"
+msgstr "Вставте JSON, експортований з іншого контексту, і збережіть форму. Підписанти й рахунки з файлу замінять поточні; логотип і печатка не змінюються. Інші поля форми при імпорті ігноруються."
+
+msgid "plugins.generic.conferenceManager.institution.legalId"
+msgstr "Ідентифікатор юридичної особи"
+
+msgid "plugins.generic.conferenceManager.institution.type.university"
+msgstr "Заклад вищої освіти"
+
+msgid "plugins.generic.conferenceManager.institution.type.college"
+msgstr "Фаховий коледж / заклад фахової передвищої освіти"
+
+msgid "plugins.generic.conferenceManager.institution.type.ippo"
+msgstr "Інститут післядипломної педагогічної освіти"
+
+msgid "plugins.generic.conferenceManager.institution.type.research_institute"
+msgstr "Наукова установа"
+
+msgid "plugins.generic.conferenceManager.institution.type.man"
+msgstr "Мала академія наук"
+
+msgid "plugins.generic.conferenceManager.institution.type.ngo"
+msgstr "Громадська організація"
+
+msgid "plugins.generic.conferenceManager.institution.type.other"
+msgstr "Інше"
+
+msgid "plugins.generic.conferenceManager.institution.ownership.state"
+msgstr "Державна"
+
+msgid "plugins.generic.conferenceManager.institution.ownership.communal"
+msgstr "Комунальна"
+
+msgid "plugins.generic.conferenceManager.institution.ownership.private"
+msgstr "Приватна"
+
+msgid "plugins.generic.conferenceManager.institution.ownership.corporate"
+msgstr "Корпоративна"
+
+msgid "plugins.generic.conferenceManager.documentType.invoice"
+msgstr "Рахунок"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_participation"
+msgstr "Сертифікат учасника"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_speaker"
+msgstr "Сертифікат доповідача"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_listener"
+msgstr "Сертифікат слухача"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_organizer"
+msgstr "Подяка організатору"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_reviewer"
+msgstr "Сертифікат рецензента"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_pk"
+msgstr "Сертифікат підвищення кваліфікації"
+
+msgid "plugins.generic.conferenceManager.paymentAccount.kind.bank"
+msgstr "Банківський рахунок"
+
+msgid "plugins.generic.conferenceManager.paymentAccount.kind.treasury"
+msgstr "Казначейський рахунок"
+
+msgid "plugins.generic.conferenceManager.paymentAccount.kind.partner"
+msgstr "Рахунок співорганізатора"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.generic"
+msgstr "Без національних правил"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua"
+msgstr "Україна"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.edrpou"
+msgstr "Код ЄДРПОУ"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.edeboId"
+msgstr "Код закладу в ЄДЕБО"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.edeboId.description"
+msgstr "Необов'язково. Лише цифри."
+
+msgid "plugins.generic.conferenceManager.signers"
+msgstr "Підписанти"
+
+msgid "plugins.generic.conferenceManager.signers.description"
+msgstr "Особи, чиї ПІБ і посади друкуються в рахунках і сертифікатах. Для кожного документа використовується перший підписант, якому його призначено."
+
+msgid "plugins.generic.conferenceManager.signers.add"
+msgstr "Новий підписант"
+
+msgid "plugins.generic.conferenceManager.paymentAccounts"
+msgstr "Платіжні реквізити"
+
+msgid "plugins.generic.conferenceManager.paymentAccounts.description"
+msgstr "Рахунки, на які учасники сплачують оргвнески. Шаблон призначення платежу може містити змінні: {$variables}."
+
+msgid "plugins.generic.conferenceManager.paymentAccounts.add"
+msgstr "Новий рахунок"
+
+msgid "plugins.generic.conferenceManager.remove"
+msgstr "Видалити"
+
+msgid "plugins.generic.conferenceManager.field.jurisdiction"
+msgstr "Профіль юрисдикції"
+
+msgid "plugins.generic.conferenceManager.field.institutionType"
+msgstr "Тип закладу"
+
+msgid "plugins.generic.conferenceManager.field.ownership"
+msgstr "Форма власності"
+
+msgid "plugins.generic.conferenceManager.field.name"
+msgstr "Повна назва"
+
+msgid "plugins.generic.conferenceManager.field.shortName"
+msgstr "Скорочена назва"
+
+msgid "plugins.generic.conferenceManager.field.legalId"
+msgstr "Ідентифікатор юридичної особи"
+
+msgid "plugins.generic.conferenceManager.field.address"
+msgstr "Адреса"
+
+msgid "plugins.generic.conferenceManager.field.contactEmail"
+msgstr "Контактний email"
+
+msgid "plugins.generic.conferenceManager.field.website"
+msgstr "Вебсайт"
+
+msgid "plugins.generic.conferenceManager.field.privacyNotice"
+msgstr "Повідомлення про обробку персональних даних"
+
+msgid "plugins.generic.conferenceManager.field.privacyContact"
+msgstr "Відповідальний за персональні дані (контакт)"
+
+msgid "plugins.generic.conferenceManager.field.retentionNotice"
+msgstr "Строки зберігання даних"
+
+msgid "plugins.generic.conferenceManager.field.fullName"
+msgstr "ПІБ"
+
+msgid "plugins.generic.conferenceManager.field.position"
+msgstr "Посада"
+
+msgid "plugins.generic.conferenceManager.field.documentTypes"
+msgstr "Підписує документи"
+
+msgid "plugins.generic.conferenceManager.field.kind"
+msgstr "Вид рахунку"
+
+msgid "plugins.generic.conferenceManager.field.label"
+msgstr "Назва для оргкомітету"
+
+msgid "plugins.generic.conferenceManager.field.recipientName"
+msgstr "Отримувач"
+
+msgid "plugins.generic.conferenceManager.field.iban"
+msgstr "IBAN"
+
+msgid "plugins.generic.conferenceManager.field.bankName"
+msgstr "Банк"
+
+msgid "plugins.generic.conferenceManager.field.purposeTemplate"
+msgstr "Шаблон призначення платежу"
+
+msgid "plugins.generic.conferenceManager.field.isActive"
+msgstr "Активний"
+
+msgid "plugins.generic.conferenceManager.field.import"
+msgstr "Імпорт"
+
+msgid "plugins.generic.conferenceManager.validation.jurisdictionUnknown"
+msgstr "Невідомий профіль юрисдикції."
+
+msgid "plugins.generic.conferenceManager.validation.invalidChoice"
+msgstr "Оберіть значення зі списку."
+
+msgid "plugins.generic.conferenceManager.validation.requiredInPrimaryLocale"
+msgstr "Заповніть поле основною мовою контексту."
+
+msgid "plugins.generic.conferenceManager.validation.tooLong"
+msgstr "Текст задовгий."
+
+msgid "plugins.generic.conferenceManager.validation.required"
+msgstr "Обов'язкове поле."
+
+msgid "plugins.generic.conferenceManager.validation.email"
+msgstr "Некоректна адреса email."
+
+msgid "plugins.generic.conferenceManager.validation.url"
+msgstr "Адреса має починатися з http:// або https://."
+
+msgid "plugins.generic.conferenceManager.validation.accountKindNotAllowed"
+msgstr "Цей вид рахунку недоступний в обраному профілі юрисдикції."
+
+msgid "plugins.generic.conferenceManager.validation.unknownTemplateVariable"
+msgstr "Шаблон містить невідому змінну."
+
+msgid "plugins.generic.conferenceManager.validation.iban"
+msgstr "Некоректний IBAN (не збігається контрольна сума)."
+
+msgid "plugins.generic.conferenceManager.validation.ibanUa"
+msgstr "Український IBAN має починатися з UA і містити 29 символів."
+
+msgid "plugins.generic.conferenceManager.validation.edrpou"
+msgstr "Некоректний код ЄДРПОУ: потрібно 8 цифр із правильним контрольним розрядом."
+
+msgid "plugins.generic.conferenceManager.validation.digits"
+msgstr "Дозволено лише цифри."
+
+msgid "plugins.generic.conferenceManager.validation.importFormat"
+msgstr "Це не файл профілю закладу плагіна конференцій."
+
+msgid "plugins.generic.conferenceManager.validation.importVersion"
+msgstr "Файл створено новішою версією плагіна. Оновіть плагін."

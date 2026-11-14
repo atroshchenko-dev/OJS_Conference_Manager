@@ -1,0 +1,14 @@
+# Strict analysis of the layers that do not depend on OJS (plan 16.3:
+# domain at level 8). The OJS-facing layers are analysed in CI against an
+# OJS checkout (see .github/workflows/ci.yml, job "stan-ojs").
+parameters:
+    level: 8
+    paths:
+        - classes/Domain
+        - classes/Jurisdiction
+        - classes/Application
+    bootstrapFiles:
+        - tests/bootstrap.php
+    excludePaths:
+        analyseAndScan:
+            - vendor

@@ -1,0 +1,15 @@
+# Analysis of the OJS-facing layers against a real OJS 3.5 tree.
+# Usage: OJS_ROOT=/path/to/ojs php phpstan.phar analyse -c ci/phpstan-ojs.neon
+parameters:
+    level: 5
+    paths:
+        - ../ConferenceManagerPlugin.php
+        - ../classes
+    bootstrapFiles:
+        - phpstan-ojs-bootstrap.php
+    scanDirectories:
+        - %env.OJS_ROOT%/classes
+        - %env.OJS_ROOT%/lib/pkp/classes
+    excludePaths:
+        analyseAndScan:
+            - ../vendor

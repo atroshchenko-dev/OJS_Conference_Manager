@@ -1,0 +1,88 @@
+name: ci
+on:
+  push:
+    branches: [develop, main]
+    tags: ['v*']
+  pull_request:
+  schedule:
+    - cron: '30 2 * * *'   # nightly matrix (plan 16.4)
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.2', tools: composer }
+      - run: composer install --no-interaction --no-progress
+      - name: PHP syntax
+        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l > /dev/null
+      - run: php ci/check-locales.php
+      - run: php ci/check-layers.php
+      - run: vendor/bin/php-cs-fixer fix --dry-run --diff
+      - run: vendor/bin/phpstan analyse --no-progress -c phpstan.neon.dist
+
+  unit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { php: ['8.2', '8.3', '8.4'] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '${{ matrix.php }}', extensions: pdo_sqlite, tools: composer }
+      - run: composer install --no-interaction --no-progress
+      - run: vendor/bin/phpunit
+
+  stan-ojs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.3', extensions: bcmath, tools: composer }
+      - run: composer install --no-interaction --no-progress
+      - name: OJS 3.5.0-6 source from the official image
+        run: |
+          docker create --name ojsref pkpofficial/ojs:3_5_0-6
+          docker cp ojsref:/var/www/html "$RUNNER_TEMP/ojs"
+          docker rm ojsref
+      - run: OJS_ROOT="$RUNNER_TEMP/ojs" vendor/bin/phpstan analyse --no-progress --memory-limit=2G -c ci/phpstan-ojs.neon
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/package.sh dist
+      - uses: actions/upload-artifact@v4
+        with: { name: package, path: dist/ }
+
+  upgrade:
+    # Install → migrate twice → upgrade with a new schema step → API smoke test,
+    # in a real OJS for each database (audit З1, NFR "upgrade without shell").
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [mariadb, postgres]
+        ojs: ['3_5_0-6']
+        include:
+          - { db: mariadb, ojs: '3_5_0-5' }
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/integration/start-ojs.sh ${{ matrix.db }} ${{ matrix.ojs }}
+      - run: ci/integration/run.sh
+      - run: ci/integration/api-smoke.sh
+      - if: failure()
+        run: docker logs ojs 2>&1 | tail -200
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [lint, unit, stan-ojs, build, upgrade]
+    runs-on: ubuntu-latest
+    permissions: { contents: write }
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/package.sh dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

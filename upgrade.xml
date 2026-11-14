@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE install SYSTEM "../../../lib/pkp/dtd/install.dtd">
+<!--
+  * upgrade.xml
+  *
+  * Run by OJS when a newer package of this plugin is uploaded
+  * (PluginHelper::upgradePlugin). Without this file OJS copies the files
+  * and skips every migration (audit З1). The migration is idempotent, so
+  * running it again from Installer::postInstall is harmless.
+  -->
+<install>
+	<migration class="APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration" />
+</install>

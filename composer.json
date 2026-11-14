@@ -1,0 +1,32 @@
+{
+    "name": "ua-conference-plugin/conference-manager",
+    "description": "Conference management plugin for OJS 3.5 (development tooling only; the plugin ships without vendor/)",
+    "type": "project",
+    "license": "GPL-3.0-or-later",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6 || ^11.5",
+        "illuminate/database": "^12.0",
+        "phpstan/phpstan": "^2.1",
+        "friendsofphp/php-cs-fixer": "^3.64"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "APP\\plugins\\generic\\conferenceManager\\": "",
+            "APP\\plugins\\generic\\conferenceManager\\tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "platform": { "php": "8.2.0" }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "stan": "phpstan analyse --memory-limit=512M",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "locales": "php ci/check-locales.php",
+        "layers": "php ci/check-layers.php"
+    }
+}

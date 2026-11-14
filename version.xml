@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE version SYSTEM "../../../lib/pkp/dtd/pluginVersion.dtd">
+<!--
+  * version.xml
+  *
+  * Distributed under the GNU GPL v3. For full terms see the file LICENSE.
+  *
+  * Plugin version information. Bump <release> in every release and keep
+  * upgrade.xml: without it OJS does not run migrations on upgrade.
+  -->
+<version>
+	<application>conferenceManager</application>
+	<type>plugins.generic</type>
+	<release>0.1.0.0</release>
+	<date>2026-11-14</date>
+	<lazy-load>1</lazy-load>
+	<class>ConferenceManagerPlugin</class>
+</version>

@@ -1,0 +1,259 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: conferenceManager\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "plugins.generic.conferenceManager.displayName"
+msgstr "Conference Manager"
+
+msgid "plugins.generic.conferenceManager.description"
+msgstr "Conferences, schools, seminars and other scholarly and educational events on top of OJS 3.5 for any organizing institution: registration, fees, programme, certificates, proceedings."
+
+msgid "plugins.generic.conferenceManager.institution.title"
+msgstr "Organizing institution profile"
+
+msgid "plugins.generic.conferenceManager.institution.intro"
+msgstr "These details are used in invoices, certificates and public event pages of this context. Every context has its own profile, so one OJS installation can serve several institutions."
+
+msgid "plugins.generic.conferenceManager.institution.section.main"
+msgstr "Institution"
+
+msgid "plugins.generic.conferenceManager.institution.section.privacy"
+msgstr "Personal data"
+
+msgid "plugins.generic.conferenceManager.institution.section.importExport"
+msgstr "Profile import and export"
+
+msgid "plugins.generic.conferenceManager.institution.jurisdiction.description"
+msgstr "The jurisdiction profile switches national fields and documents on. \"Ukraine\" adds the EDRPOU code, treasury accounts, professional development certificates and export for the Vector platform. After changing it, save the form and open it again to see the fields of the new profile."
+
+msgid "plugins.generic.conferenceManager.institution.privacyNotice.description"
+msgstr "Privacy notice participants see when they register."
+
+msgid "plugins.generic.conferenceManager.institution.export"
+msgstr "Download the profile as JSON"
+
+msgid "plugins.generic.conferenceManager.institution.import"
+msgstr "Import a profile (JSON)"
+
+msgid "plugins.generic.conferenceManager.institution.import.description"
+msgstr "Paste JSON exported from another context and save the form. Signers and accounts from the file replace the current ones; the logo and seal stay unchanged. Other fields of the form are ignored on import."
+
+msgid "plugins.generic.conferenceManager.institution.legalId"
+msgstr "Legal entity identifier"
+
+msgid "plugins.generic.conferenceManager.institution.type.university"
+msgstr "Higher education institution"
+
+msgid "plugins.generic.conferenceManager.institution.type.college"
+msgstr "College"
+
+msgid "plugins.generic.conferenceManager.institution.type.ippo"
+msgstr "In-service teacher training institute"
+
+msgid "plugins.generic.conferenceManager.institution.type.research_institute"
+msgstr "Research institute"
+
+msgid "plugins.generic.conferenceManager.institution.type.man"
+msgstr "Junior academy of sciences"
+
+msgid "plugins.generic.conferenceManager.institution.type.ngo"
+msgstr "Non-governmental organization"
+
+msgid "plugins.generic.conferenceManager.institution.type.other"
+msgstr "Other"
+
+msgid "plugins.generic.conferenceManager.institution.ownership.state"
+msgstr "State"
+
+msgid "plugins.generic.conferenceManager.institution.ownership.communal"
+msgstr "Communal"
+
+msgid "plugins.generic.conferenceManager.institution.ownership.private"
+msgstr "Private"
+
+msgid "plugins.generic.conferenceManager.institution.ownership.corporate"
+msgstr "Corporate"
+
+msgid "plugins.generic.conferenceManager.documentType.invoice"
+msgstr "Invoice"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_participation"
+msgstr "Participation certificate"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_speaker"
+msgstr "Speaker certificate"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_listener"
+msgstr "Listener certificate"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_organizer"
+msgstr "Organizer certificate"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_reviewer"
+msgstr "Reviewer certificate"
+
+msgid "plugins.generic.conferenceManager.documentType.certificate_pk"
+msgstr "Professional development certificate"
+
+msgid "plugins.generic.conferenceManager.paymentAccount.kind.bank"
+msgstr "Bank account"
+
+msgid "plugins.generic.conferenceManager.paymentAccount.kind.treasury"
+msgstr "Treasury account"
+
+msgid "plugins.generic.conferenceManager.paymentAccount.kind.partner"
+msgstr "Co-organizer account"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.generic"
+msgstr "Generic (no national rules)"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua"
+msgstr "Ukraine"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.edrpou"
+msgstr "EDRPOU code"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.edeboId"
+msgstr "EDEBO institution code"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.edeboId.description"
+msgstr "Optional. Digits only."
+
+msgid "plugins.generic.conferenceManager.signers"
+msgstr "Signers"
+
+msgid "plugins.generic.conferenceManager.signers.description"
+msgstr "People whose names and positions are printed on invoices and certificates. Each document uses the first signer assigned to it."
+
+msgid "plugins.generic.conferenceManager.signers.add"
+msgstr "New signer"
+
+msgid "plugins.generic.conferenceManager.paymentAccounts"
+msgstr "Payment accounts"
+
+msgid "plugins.generic.conferenceManager.paymentAccounts.description"
+msgstr "Accounts participants pay fees to. The payment purpose template may contain variables: {$variables}."
+
+msgid "plugins.generic.conferenceManager.paymentAccounts.add"
+msgstr "New account"
+
+msgid "plugins.generic.conferenceManager.remove"
+msgstr "Remove"
+
+msgid "plugins.generic.conferenceManager.field.jurisdiction"
+msgstr "Jurisdiction profile"
+
+msgid "plugins.generic.conferenceManager.field.institutionType"
+msgstr "Institution type"
+
+msgid "plugins.generic.conferenceManager.field.ownership"
+msgstr "Ownership"
+
+msgid "plugins.generic.conferenceManager.field.name"
+msgstr "Full name"
+
+msgid "plugins.generic.conferenceManager.field.shortName"
+msgstr "Short name"
+
+msgid "plugins.generic.conferenceManager.field.legalId"
+msgstr "Legal entity identifier"
+
+msgid "plugins.generic.conferenceManager.field.address"
+msgstr "Address"
+
+msgid "plugins.generic.conferenceManager.field.contactEmail"
+msgstr "Contact email"
+
+msgid "plugins.generic.conferenceManager.field.website"
+msgstr "Website"
+
+msgid "plugins.generic.conferenceManager.field.privacyNotice"
+msgstr "Privacy notice"
+
+msgid "plugins.generic.conferenceManager.field.privacyContact"
+msgstr "Data protection contact"
+
+msgid "plugins.generic.conferenceManager.field.retentionNotice"
+msgstr "Data retention periods"
+
+msgid "plugins.generic.conferenceManager.field.fullName"
+msgstr "Full name"
+
+msgid "plugins.generic.conferenceManager.field.position"
+msgstr "Position"
+
+msgid "plugins.generic.conferenceManager.field.documentTypes"
+msgstr "Signs documents"
+
+msgid "plugins.generic.conferenceManager.field.kind"
+msgstr "Account type"
+
+msgid "plugins.generic.conferenceManager.field.label"
+msgstr "Internal label"
+
+msgid "plugins.generic.conferenceManager.field.recipientName"
+msgstr "Recipient"
+
+msgid "plugins.generic.conferenceManager.field.iban"
+msgstr "IBAN"
+
+msgid "plugins.generic.conferenceManager.field.bankName"
+msgstr "Bank"
+
+msgid "plugins.generic.conferenceManager.field.purposeTemplate"
+msgstr "Payment purpose template"
+
+msgid "plugins.generic.conferenceManager.field.isActive"
+msgstr "Active"
+
+msgid "plugins.generic.conferenceManager.field.import"
+msgstr "Import"
+
+msgid "plugins.generic.conferenceManager.validation.jurisdictionUnknown"
+msgstr "Unknown jurisdiction profile."
+
+msgid "plugins.generic.conferenceManager.validation.invalidChoice"
+msgstr "Choose a value from the list."
+
+msgid "plugins.generic.conferenceManager.validation.requiredInPrimaryLocale"
+msgstr "Fill in this field in the primary language of the context."
+
+msgid "plugins.generic.conferenceManager.validation.tooLong"
+msgstr "The text is too long."
+
+msgid "plugins.generic.conferenceManager.validation.required"
+msgstr "This field is required."
+
+msgid "plugins.generic.conferenceManager.validation.email"
+msgstr "Invalid email address."
+
+msgid "plugins.generic.conferenceManager.validation.url"
+msgstr "The address must start with http:// or https://."
+
+msgid "plugins.generic.conferenceManager.validation.accountKindNotAllowed"
+msgstr "This account type is not available in the selected jurisdiction profile."
+
+msgid "plugins.generic.conferenceManager.validation.unknownTemplateVariable"
+msgstr "The template contains an unknown variable."
+
+msgid "plugins.generic.conferenceManager.validation.iban"
+msgstr "Invalid IBAN (checksum mismatch)."
+
+msgid "plugins.generic.conferenceManager.validation.ibanUa"
+msgstr "A Ukrainian IBAN starts with UA and has 29 characters."
+
+msgid "plugins.generic.conferenceManager.validation.edrpou"
+msgstr "Invalid EDRPOU code: 8 digits with a valid check digit are required."
+
+msgid "plugins.generic.conferenceManager.validation.digits"
+msgstr "Digits only."
+
+msgid "plugins.generic.conferenceManager.validation.importFormat"
+msgstr "This is not an institution profile file of the conference plugin."
+
+msgid "plugins.generic.conferenceManager.validation.importVersion"
+msgstr "The file was created by a newer plugin version. Upgrade the plugin."
