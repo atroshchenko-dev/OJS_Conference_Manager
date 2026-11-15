@@ -446,7 +446,7 @@ ok "type change after the decision: new invoice, letter; panel"
 
 decsub poster
 s2="$sid"
-first="$(lc clone-abstracts confa "$s2" 3 "$auid" | tail -1)"
+first="$(lc clone-abstracts confa "$s2" 3 "$auid" | grep -E "^[0-9,]+$" | tail -1)"
 bulk_ids="$s2,$first"
 cand="$(curl -s -b "$jar" "$api/editions/$did/decision-candidates")"
 [ "$(j 'sorted(i["submissionId"] for i in d["items"]) == sorted(['"$bulk_ids"']) and len(d["decisions"]) == 5' <<<"$cand")" = True ] || fail "DEC-03 candidates: $cand"
@@ -476,6 +476,106 @@ done
 [ "$(curl -s -b "$jar" "$api/editions/$did/decision-candidates" | j 'd["itemsMax"]')" = 0 ] || fail "nothing waits for a decision"
 echo "bulk run of 4 decisions took $(( $(date +%s) - t0 )) s"
 ok "bulk decisions through the queue, one letter each, bulk decline"
+
+# Sprint 9: reissue, publishing waits for payment, accounting export,
+# reminders, mailings, summary, audit log (FEE-08, 11, 12; COM-01…03; RPT-01; DAT-01, 05).
+for key in CONF_PARTICIPATION_CONFIRM CONF_INVOICE_ISSUED CONF_REMINDER_PAYMENT CONF_REMINDER_PAPER CONF_REMINDER_EVENT; do
+  [ "$(curl -s -b "$jar" "$B/confa/api/v1/emailTemplates/$key" | j 'd["key"], bool(d["body"]["uk"]), bool(d["body"]["en"])')" = "('$key', True, True)" ] || fail "COM-01 letter $key"
+done
+ok "COM-01: participant letters are editable templates"
+
+i1="$(curl -s -b "$jar" "$api/editions/$did/invoices" | j '[i["id"] for i in d["items"] if i["status"] == "issued" and i["total"]["minor"] == 30000][0]')"
+[ "$(post "$api/invoices/$i1/reissue" '{}' | tail -1)" = 400 ] || fail "FEE-08: nothing to reissue"
+[ "$(post "$api/invoices/$i1/paid" '{"amount":"100"}' | head -1 | j 'd["paid"]["minor"]')" = 10000 ] || fail "part payment of $i1"
+pubid="${p1##*/}"
+pb="$(curl -s -b "$jar" -X PUT -H "X-Csrf-Token: $csrf" "$p1/publish" -w '\n%{http_code}')"
+[ "$(tail -1 <<<"$pb")" = 400 ] && grep -q conferencePayment <<<"$pb" || fail "FEE-11: publishing must wait for the payment: $pb"
+ct="$(put "$api/submissions/$s1/presentation-type" '{"presentationType":"poster"}')"
+[ "$(tail -1 <<<"$ct")" = 200 ] || fail "type change with a part payment: $ct"
+ri="$(curl -s -b "$jar" "$api/editions/$did/invoices" | j 'json.dumps([[i["id"], i["paid"]["minor"], i["supersedesId"]] for i in d["items"] if i["status"] == "issued" and i["total"]["minor"] == 25000])')"
+[ "$(j 'd[0][1], d[0][2]' <<<"$ri")" = "(10000, $i1)" ] || fail "FEE-08: paid amount carried to the new invoice: $ri"
+i2="$(j 'd[0][0]' <<<"$ri")"
+[ "$(curl -s -b "$jar" "$api/invoices/$i2" | j 'len(d["history"]) >= 2')" = True ] || fail "invoice chain"
+[ "$(post "$api/invoices/$i2/paid" '{}' | head -1 | j 'd["status"]')" = paid ] || fail "rest paid"
+pb="$(curl -s -b "$jar" -X PUT -H "X-Csrf-Token: $csrf" "$p1/publish" -w '\n%{http_code}')"
+! grep -q conferencePayment <<<"$pb" || fail "FEE-11: paid, no more block: $pb"
+ok "FEE-08 reissue with the paid part carried over; FEE-11 publishing after payment (publication $pubid)"
+
+hd="$(mktemp)"; body="$(mktemp)"
+curl -s -b "$jar" -D "$hd" -o "$body" "$api/exports/accounting?format=csv&editionId=$did"
+grep -qi 'content-type: text/csv' "$hd" && [ "$(head -c 3 "$body" | od -An -tx1 | tr -d ' ')" = efbbbf ] || fail "FEE-12 CSV: $(cat "$hd")"
+rows="$(grep -i '^x-rows:' "$hd" | tr -dc 0-9)"
+[ "$rows" -ge 4 ] && grep -q "$(curl -s -b "$jar" "$api/invoices/$i2" | j 'd["number"]')" "$body" || fail "CSV rows: $rows"
+curl -s -b "$jar" -o "$body" "$api/exports/accounting?format=xlsx&editionId=$did&withReplaced=1"
+python3 -c "import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); assert 'xl/worksheets/sheet1.xml' in z.namelist(); print('xlsx', len(z.read('xl/worksheets/sheet1.xml')))" "$body" || fail "FEE-12 XLSX"
+[ "$(curl -s -b "$jar" "$api/exports/accounting?format=csv&from=2026-13-01" -o /dev/null -w '%{http_code}')" = 400 ] || fail "bad export date"
+[ "$(put "$api/exports/accounting/columns" '{"columns":["number","payerName","total"]}' | head -1 | j 'd["selected"]')" = "['number', 'payerName', 'total']" ] || fail "export columns"
+curl -s -b "$jar" -o "$body" "$api/exports/accounting?format=csv&editionId=$did"
+[ "$(sed -n 1p "$body" | tr -d '\r\357\273\277' | awk -F';' '{print NF}')" = 3 ] || fail "chosen columns in the file: $(head -1 "$body")"
+[ "$(put "$api/exports/accounting/columns" '{"columns":[]}' | tail -1)" = 400 ] || fail "no columns"
+[ "$(curl -s -b "$pj1" "$api/exports/accounting?format=csv" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no export"
+rm -f "$hd" "$body"
+ok "FEE-12 export to CSV and XLSX with chosen columns"
+
+soon="$(date -u -d '+5 days' +%F)"; start="$(date -u -d '+20 days' +%F)"
+re="$(post "$api/editions" '{"path":"remind","status":"cfp_open","eventType":"conference","submissionMode":"none","publicationMode":"none","format":"online","name":{"uk":"Захід із нагадуваннями","en":"Event with reminders"},"startsAt":"'"$start"' 10:00","endsAt":"'"$start"' 18:00","paymentDeadline":"'"$soon"'"}')"
+[ "$(tail -1 <<<"$re")" = 200 ] || fail "edition with reminders: $re"
+rid="$(head -1 <<<"$re" | j 'd["id"]')"
+rother="$(post "$api/editions/$rid/fees/presets" '{"institutionType":"university"}' | head -1 | j '[c["id"] for c in d["categories"] if c["code"] == "other_faculty"][0]')"
+post "$api/editions/$rid/fees/tariffs" "{\"categoryId\":$rother,\"material\":\"listener\",\"pricing\":\"flat\",\"amount\":\"100\",\"currency\":\"UAH\"}" >/dev/null
+post "$api/editions/$rid/payment-rules" '{"mode":"treasury_transfer","paymentAccountId":'"$acc"'}' >/dev/null
+rregp="$B/confa/uk/conference/remind/register"
+lc new-user confa payer4 payer4@example.org >/dev/null
+pj4="$(mktemp)"; login "$pj4" payer4
+rtok="$(curl -s -L -c "$pj4" -b "$pj4" "$rregp" | sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' | head -1)"
+rcab="$(curl -s -L -c "$pj4" -b "$pj4" "$rregp" --data "csrfToken=$rtok&categoryId=$rother&participationForm=online&consent=1")"
+grep -q '100.00 UAH' <<<"$rcab" || fail "listener of the reminder edition: $(sed 's/<[^>]*>/ /g' <<<"$rcab" | tr -s ' \n' | grep -iE 'помил|error|обов' | head -3)"
+[ "$(curl -s -b "$jar" "$api/reminders" | j 'd["settings"]["payment"]["enabled"]')" = False ] || fail "COM-03: off by default"
+[ "$(put "$api/reminders" '{"payment":{"enabled":true,"days":99}}' | tail -1)" = 400 ] || fail "days out of range"
+[ "$(curl -s -b "$pj1" -X PUT -H "X-Csrf-Token: $csrf" -H 'Content-Type: application/json' "$api/reminders" -d '{}' -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader cannot change reminders"
+[ "$(put "$api/reminders" '{"payment":{"enabled":true,"days":7}}' | head -1 | j 'd["settings"]["payment"]')" = "{'enabled': True, 'days': 7}" ] || fail "save reminders"
+rout="$(lc run-reminders-task)"
+grep -q 'OK reminders task' <<<"$rout" || fail "reminders task: $rout"
+lc run-reminders-task >/dev/null
+[ "$(curl -s -b "$jar" "$api/editions/$rid/dashboard" | j 'd["reminders"]["payment"]')" = 1 ] || fail "COM-03: one payment reminder, once"
+if [ "$maillog" = 1 ]; then
+  grep -q 'payer4@example.org' <<<"$rout" || fail "reminder letter: $(head -c 600 <<<"$rout")"
+fi
+sch="$(docker exec -w /var/www/html "${OJS_CONTAINER:-ojs}" php lib/pkp/tools/scheduler.php list 2>&1 || true)"
+grep -q 'ReminderTask' <<<"$sch" || echo "note: scheduler list did not show ReminderTask: $(head -c 300 <<<"$sch")"
+ok "COM-03 payment reminder once, in the window, off by default"
+
+pv="$(post "$api/editions/$did/campaigns/preview" '{}')"
+cnt="$(head -1 <<<"$pv" | j 'd["count"]')"
+[ "$cnt" -ge 2 ] || fail "COM-02 preview: $pv"
+[ "$(post "$api/editions/$did/campaigns/test" '{"subject":"Програма","body":"Шановні {$unknown}"}' | tail -1)" = 400 ] || fail "unknown variable"
+[ "$(post "$api/editions/$did/campaigns/test" '{"subject":"Програма {$conferenceName}","body":"Шановні {$recipientName}, програма в кабінеті: {$cabinetUrl}"}' | tail -1)" = 200 ] || fail "test letter"
+cs="$(post "$api/editions/$did/campaigns" '{"subject":"Програма {$conferenceName}","body":"Шановні {$recipientName}, програма в кабінеті: {$cabinetUrl}"}')"
+[ "$(tail -1 <<<"$cs")" = 202 ] || fail "COM-02 start: $cs"
+cid="$(head -1 <<<"$cs" | j 'd["id"]')"
+jout=""
+for k in 1 2 3; do jout+="$(docker exec -w /var/www/html "${OJS_CONTAINER:-ojs}" php lib/pkp/tools/jobs.php run 2>&1 || true)"; done
+cst="$(curl -s -b "$jar" "$api/campaigns/$cid")"
+[ "$(j 'd["finished"], d["counts"]["sent"], d["total"]' <<<"$cst")" = "(True, $cnt, $cnt)" ] || fail "COM-02 delivery: $cst"
+[ "$(curl -s -b "$jar" "$api/editions/$did/campaigns" | j 'len(d["items"])')" = 1 ] || fail "mailings of the edition"
+if [ "$maillog" = 1 ]; then
+  for e in admin@example.org olena@example.org; do grep -q "$e" <<<"$jout" || fail "mailing letter to $e: $(head -c 600 <<<"$jout")"; done
+fi
+ok "COM-02 mailing of $cnt letters through the queue, test letter, variables"
+
+db="$(curl -s -b "$jar" "$api/editions/$did/dashboard")"
+[ "$(j 'd["submissions"]["total"], d["submissions"]["accepted"], d["submissions"]["declined"], d["submissions"]["waiting"]' <<<"$db")" = "(5, 4, 1, 0)" ] || fail "RPT-01 submissions: $db"
+[ "$(j '[p for p in d["payments"] if p["currency"] == "UAH"][0]["paid"]["count"] >= 1' <<<"$db")" = True ] || fail "RPT-01 payments: $db"
+[ "$(curl -s -b "$pj1" "$api/editions/$did/dashboard" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no summary"
+ok "RPT-01 summary of the edition"
+
+al="$(curl -s -b "$jar" "$api/audit-log?count=200")"
+[ "$(j 'all(e in d["entities"] for e in ["campaign", "reminders", "export", "invoice", "edition"]) and d["itemsMax"] > 10' <<<"$al")" = True ] || fail "DAT-05 audit log: $(head -c 400 <<<"$al")"
+[ "$(curl -s -b "$jar" "$api/audit-log?entity=campaign" | j 'd["items"][0]["action"], d["items"][0]["actor"]')" = "('started', 'admin')" ] || fail "audit filter"
+[ "$(curl -s -b "$pj1" "$api/audit-log" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no audit log"
+cv="$(curl -s -b "$jar" "$api/consent-versions")"
+[ "$(j 'len(d["items"]) >= 1 and sum(v["agreements"] for v in d["items"]) >= 3 and all(v["texts"] for v in d["items"])' <<<"$cv")" = True ] || fail "DAT-01 consent versions: $(head -c 400 <<<"$cv")"
+ok "DAT-05 audit log; DAT-01 consent versions with their texts"
 
 # FEE-05: parallel numbering gives 1…100 with no gaps or repeats.
 for k in $(seq 1 10); do lc next-numbers confa 2099 10 > "/tmp/cm-num-$k.txt" & done

@@ -8,8 +8,6 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Communication\Participa
 use PKP\context\Context;
 use PKP\mail\Mailable;
 use PKP\mail\traits\Configurable;
-use PKP\mail\traits\Recipient;
-use PKP\mail\traits\Sender;
 use PKP\security\Role;
 
 /**
@@ -19,8 +17,6 @@ use PKP\security\Role;
 abstract class ConferenceParticipantMailable extends Mailable
 {
     use Configurable;
-    use Recipient;
-    use Sender;
 
     /** @phpstan-ignore property.defaultValue (OJS declares the groups as int but uses strings) */
     protected static array $groupIds = [self::GROUP_OTHER];

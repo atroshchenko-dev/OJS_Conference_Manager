@@ -16,6 +16,7 @@
  *   php lifecycle.php publication-schema <contextPath>      plan 8.3 properties
  *   php lifecycle.php enable-site                           site level ("Upcoming events", EDN-08)
  *   php lifecycle.php run-windows-task                      EDN-03 scheduled task, once
+ *   php lifecycle.php run-reminders-task                    COM-03 scheduled task, once
  *   php lifecycle.php next-numbers <contextPath> <year> <n> FEE-05: n invoice numbers, one transaction each
  *   php lifecycle.php clone-abstracts <contextPath> <submissionId> <n> <authorUserId>  DEC-03: n submitted copies of an abstract
  *   php lifecycle.php assign-author <contextPath> <submissionId> <userId>
@@ -54,6 +55,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'publication-schema' => $this->publicationSchema($this->argv[1]),
                 'enable-site' => $this->enableSite(),
                 'run-windows-task' => $this->runWindowsTask(),
+                'run-reminders-task' => $this->runRemindersTask(),
                 'author-group' => $this->authorGroup($this->argv[1]),
                 'new-token' => $this->newToken($this->argv[1], $this->argv[2]),
                 'new-user' => $this->newUser($this->argv[1], $this->argv[2], $this->argv[3]),
@@ -204,6 +206,14 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
         $task = new \APP\plugins\generic\conferenceManager\classes\Tasks\EditionWindowsTask();
         $task->execute() || throw new RuntimeException('task failed');
         echo "OK edition windows task\n";
+    }
+
+    private function runRemindersTask(): void
+    {
+        PluginRegistry::loadCategory('generic', true);
+        $task = new \APP\plugins\generic\conferenceManager\classes\Tasks\ReminderTask();
+        $task->execute() || throw new RuntimeException('task failed');
+        echo "OK reminders task\n";
     }
 
     /** Prints the id of the first author group of the context (for the API smoke test). */

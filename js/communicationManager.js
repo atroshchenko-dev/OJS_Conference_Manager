@@ -141,9 +141,9 @@
 		<section class="cmDashboard__card">\
 			<h3>{{ t(\'dashboard.reminders\') }}</h3>\
 			<dl class="cmDashboard__list">\
-				<dt>{{ t(\'reminders.payment\') }}</dt><dd>{{ data.reminders.payment }}</dd>\
-				<dt>{{ t(\'reminders.paper\') }}</dt><dd>{{ data.reminders.paper }}</dd>\
-				<dt>{{ t(\'reminders.event\') }}</dt><dd>{{ data.reminders.event }}</dd>\
+				<dt>{{ t(\'reminders.payment\') }}</dt><dd>{{ data.reminders.payment || 0 }}</dd>\
+				<dt>{{ t(\'reminders.paper\') }}</dt><dd>{{ data.reminders.paper || 0 }}</dd>\
+				<dt>{{ t(\'reminders.event\') }}</dt><dd>{{ data.reminders.event || 0 }}</dd>\
 			</dl>\
 		</section>\
 	</div>\
