@@ -20,6 +20,7 @@ use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfile
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceService;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantMailer;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
+use APP\plugins\generic\conferenceManager\classes\Application\ProgramService;
 use APP\plugins\generic\conferenceManager\classes\Application\ReminderService;
 use APP\plugins\generic\conferenceManager\classes\Application\SettingsStore;
 use APP\plugins\generic\conferenceManager\classes\Application\SubmissionInfo;
@@ -29,6 +30,8 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Communication\Participa
 use APP\plugins\generic\conferenceManager\classes\Domain\Decision\AcceptanceDecision;
 use APP\plugins\generic\conferenceManager\classes\Domain\Decision\BulkDecision;
 use APP\plugins\generic\conferenceManager\classes\Domain\Decision\DecisionMailTexts;
+use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
+use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Institution\InstitutionType;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\AccountingColumn;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceStatus;
@@ -595,6 +598,41 @@ final class DecisionFlowTest extends TestCase
         self::assertCount(2, $versions, 'a version is kept once');
         self::assertSame(6, $versions[0]['agreements'], 'four submissions, the presenter and the listener');
         self::assertSame('{"uk":"Згода"}', $versions[1]['texts']);
+    }
+
+    /** PRG-01: accepted papers by section and presentation type; publishing the program. */
+    public function testProgram(): void
+    {
+        [$edition, $cat] = $this->edition();
+        foreach ([1 => 'oral', 2 => 'poster', 3 => 'oral', 4 => 'online'] as $sid => $type) {
+            $this->submit($sid, $edition, $cat, $type);
+        }
+        $this->decisions->onDecision($this->ctx, 1, AcceptanceDecision::Oral->value, 1, $this->now);
+        $this->decisions->onDecision($this->ctx, 2, AcceptanceDecision::Poster->value, 1, $this->now);
+        $this->decisions->onDecision($this->ctx, 4, AcceptanceDecision::Online->value, 1, $this->now);
+        $this->editorial->stage = [1 => EditorialDirectory::STAGE_EDITING, 2 => EditorialDirectory::STAGE_PRODUCTION, 3 => EditorialDirectory::STAGE_SUBMISSION, 4 => EditorialDirectory::STAGE_EDITING];
+        $this->editorial->declined = [4];
+        $service = new ProgramService(new DbEditionRepository($this->db), new DbRegistrationRepository($this->db), $this->editorial);
+
+        $p = $service->program($this->ctx, $edition, 'uk');
+        self::assertSame(2, $p['count'] ?? null, 'waiting and declined papers are not in the program');
+        self::assertSame(['Секція 1'], array_column($p['sections'], 'title'));
+        self::assertSame(['oral', 'poster'], array_column($p['sections'][0]['groups'], 'type'), 'oral before posters');
+        self::assertSame('Тези 1', $p['sections'][0]['groups'][0]['items'][0]['title']);
+        self::assertSame('plugins.generic.conferenceManager.program.group.poster', $p['sections'][0]['groups'][1]['labelKey']);
+        self::assertNull($service->program(new ContextInfo(2, 'uk', ['uk']), $edition, 'uk'), 'another journal');
+
+        $repo = new DbEditionRepository($this->db);
+        $e = $repo->find(1, $edition);
+        self::assertFalse($e?->programPublished);
+        self::assertFalse(ProgramService::isPublic($e));
+        $published = Edition::fromArray(1, array_merge($e->toArray(), $e->toArray()['local'], ['programPublished' => true, 'programText' => ['uk' => 'Пленарне засідання о 10:00']]), $edition, 'Europe/Kyiv', new ValidationErrors());
+        $repo->save($published);
+        $e = $repo->find(1, $edition);
+        self::assertTrue($e?->programPublished);
+        self::assertSame('Пленарне засідання о 10:00', $e->text('programText')->resolve('uk', 'uk'));
+        self::assertSame(ProgramService::isPublic($e), $e->status !== EditionStatus::Draft);
+        self::assertArrayNotHasKey('programPublished', $e->toCopyInput(), 'a copy starts unpublished');
     }
 
     public function testCommunicationStepInstallsLetters(): void

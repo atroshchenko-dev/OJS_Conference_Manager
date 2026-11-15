@@ -38,7 +38,7 @@ class SiteOverviewHandler extends Handler
      */
     public function authorize($request, &$args, $roleAssignments)
     {
-        $this->addPolicy(new PKPSiteAccessPolicy($request, null, $roleAssignments));
+        $this->addPolicy(new PKPSiteAccessPolicy($request, ['index'], $roleAssignments));
         return $request->getContext() === null && parent::authorize($request, $args, $roleAssignments);
     }
 

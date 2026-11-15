@@ -4,7 +4,7 @@
  *}
 {include file="frontend/components/header.tpl" pageTitleTranslated=$edition.name}
 
-<div class="page page_conference_edition cmEdition">
+<div class="container page page_conference_edition cmEdition">
 	{if $edition.isDraft}
 		<p class="cmEdition__draft">{translate key="plugins.generic.conferenceManager.public.draftNotice"}</p>
 	{/if}
@@ -87,6 +87,12 @@
 		<section class="cmEdition__section">
 			<h2>{translate key="plugins.generic.conferenceManager.editions.field.learningOutcomes"}</h2>
 			{$edition.learningOutcomesHtml}
+		</section>
+	{/if}
+	{if $edition.programUrl}
+		<section class="cmEdition__section">
+			<h2>{translate key="plugins.generic.conferenceManager.program.title"}</h2>
+			<p><a class="cmEdition__programLink" href="{$edition.programUrl|escape}">{translate key="plugins.generic.conferenceManager.program.link"}</a></p>
 		</section>
 	{/if}
 	{if $edition.proceedingsUrl}

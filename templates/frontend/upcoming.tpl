@@ -3,7 +3,7 @@
  *}
 {include file="frontend/components/header.tpl" pageTitle="plugins.generic.conferenceManager.upcoming.title"}
 
-<div class="page page_conference_upcoming cmUpcoming">
+<div class="container page page_conference_upcoming cmUpcoming">
 	<h1 class="page_title">{translate key="plugins.generic.conferenceManager.upcoming.title"}</h1>
 
 	<form class="cmUpcoming__filters" method="get" action="">

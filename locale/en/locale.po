@@ -3215,3 +3215,45 @@ msgstr "Load profile"
 
 msgid "plugins.generic.conferenceManager.site.saved"
 msgstr "Saved."
+
+msgid "plugins.generic.conferenceManager.editions.section.program"
+msgstr "Program of the event"
+
+msgid "plugins.generic.conferenceManager.editions.program.help"
+msgstr "The program is built from the accepted papers of the event: by journal section, and within a section by presentation type. Until it is published only managers see it."
+
+msgid "plugins.generic.conferenceManager.editions.program.open"
+msgstr "View the program"
+
+msgid "plugins.generic.conferenceManager.editions.field.programPublished"
+msgstr "Publish the program on the event page"
+
+msgid "plugins.generic.conferenceManager.editions.field.programText"
+msgstr "Introduction to the program (schedule, rules, links)"
+
+msgid "plugins.generic.conferenceManager.program.title"
+msgstr "Program"
+
+msgid "plugins.generic.conferenceManager.program.link"
+msgstr "Program of the event: papers by section"
+
+msgid "plugins.generic.conferenceManager.program.preview"
+msgstr "Preview: the program is not published yet, visitors do not see it."
+
+msgid "plugins.generic.conferenceManager.program.sections"
+msgstr "Sections"
+
+msgid "plugins.generic.conferenceManager.program.empty"
+msgstr "No accepted papers in the program yet."
+
+msgid "plugins.generic.conferenceManager.program.group.oral"
+msgstr "Oral presentations"
+
+msgid "plugins.generic.conferenceManager.program.group.online"
+msgstr "Online presentations"
+
+msgid "plugins.generic.conferenceManager.program.group.poster"
+msgstr "Posters"
+
+msgid "plugins.generic.conferenceManager.program.group.absentee"
+msgstr "Papers without presentation"

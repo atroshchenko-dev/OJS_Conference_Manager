@@ -3,7 +3,7 @@
  *}
 {include file="frontend/components/header.tpl" pageTitle="plugins.generic.conferenceManager.documents.title"}
 
-<div class="page page_conference_documents cmEdition">
+<div class="container page page_conference_documents cmEdition">
 	<h1 class="page_title">{translate key="plugins.generic.conferenceManager.documents.title"}</h1>
 	<p>{translate key="plugins.generic.conferenceManager.documents.intro"}</p>
 

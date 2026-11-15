@@ -3215,3 +3215,45 @@ msgstr "Профіль навантаження"
 
 msgid "plugins.generic.conferenceManager.site.saved"
 msgstr "Збережено."
+
+msgid "plugins.generic.conferenceManager.editions.section.program"
+msgstr "Програма заходу"
+
+msgid "plugins.generic.conferenceManager.editions.program.help"
+msgstr "Програма складається сама з прийнятих доповідей заходу: за розділами журналу, а в розділі за формою доповіді. Поки програму не опубліковано, її бачать лише менеджери."
+
+msgid "plugins.generic.conferenceManager.editions.program.open"
+msgstr "Переглянути програму"
+
+msgid "plugins.generic.conferenceManager.editions.field.programPublished"
+msgstr "Опублікувати програму на сторінці заходу"
+
+msgid "plugins.generic.conferenceManager.editions.field.programText"
+msgstr "Вступ до програми (розклад, регламент, посилання)"
+
+msgid "plugins.generic.conferenceManager.program.title"
+msgstr "Програма"
+
+msgid "plugins.generic.conferenceManager.program.link"
+msgstr "Програма заходу: доповіді за секціями"
+
+msgid "plugins.generic.conferenceManager.program.preview"
+msgstr "Попередній перегляд: програму ще не опубліковано, відвідувачі її не бачать."
+
+msgid "plugins.generic.conferenceManager.program.sections"
+msgstr "Секції"
+
+msgid "plugins.generic.conferenceManager.program.empty"
+msgstr "До програми ще не потрапила жодна прийнята доповідь."
+
+msgid "plugins.generic.conferenceManager.program.group.oral"
+msgstr "Усні доповіді"
+
+msgid "plugins.generic.conferenceManager.program.group.online"
+msgstr "Онлайн-доповіді"
+
+msgid "plugins.generic.conferenceManager.program.group.poster"
+msgstr "Стендові доповіді"
+
+msgid "plugins.generic.conferenceManager.program.group.absentee"
+msgstr "Заочні доповіді"

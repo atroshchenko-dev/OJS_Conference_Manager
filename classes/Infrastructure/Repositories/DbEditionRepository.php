@@ -79,6 +79,7 @@ final class DbEditionRepository implements EditionRepository
             foreach (Edition::DATE_FIELDS as $field => $column) {
                 $row[$column] = DateInput::toStorage($edition->date($field));
             }
+            $row['program_published'] = $edition->programPublished ? 1 : 0;
 
             $id = $edition->id;
             if ($id !== null && $this->query($edition->contextId)->where('id', $id)->exists()) {
@@ -186,6 +187,7 @@ final class DbEditionRepository implements EditionRepository
             foreach (Edition::LOCALIZED_FIELDS as $field) {
                 $data[$field] = $texts[(int) $r->id][$field] ?? [];
             }
+            $data['programPublished'] = (bool) (int) ($r->program_published ?? 0);
             foreach (['hours', 'ectsX100'] as $int) {
                 $data[$int] = $data[$int] === null ? null : (string) $data[$int];
             }

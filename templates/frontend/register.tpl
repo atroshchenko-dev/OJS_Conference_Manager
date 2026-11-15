@@ -3,7 +3,7 @@
  *}
 {include file="frontend/components/header.tpl" pageTitleTranslated=$pageTitleTranslated}
 
-<div class="page page_conference_register cmEdition">
+<div class="container page page_conference_register cmEdition">
 	<h1 class="page_title">{translate key="plugins.generic.conferenceManager.listener.title"}</h1>
 	<p class="cmEdition__meta"><a href="{$edition.url|escape}">{$edition.name|escape}</a></p>
 

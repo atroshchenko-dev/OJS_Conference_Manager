@@ -216,6 +216,7 @@
 					hours: '',
 					ects: '',
 					issueId: null,
+					programPublished: false,
 					local: {},
 				};
 				self.localizedFields.forEach(function (f) { form[f] = emptyLocalized(self.locales); });
@@ -312,6 +313,7 @@
 					vectorProgramId: f.vectorProgramId,
 					hours: f.hours === '' ? null : String(f.hours).trim(),
 					ectsX100: f.ects === '' ? null : String(Math.round(parseFloat(String(f.ects).replace(',', '.')) * 100)),
+					programPublished: !!f.programPublished,
 				};
 				if (body.ectsX100 === 'NaN') {
 					body.ectsX100 = f.ects;
@@ -537,6 +539,14 @@
 				<textarea class="pkpFormField__input" rows="4" v-model="form.learningOutcomes[formLocale]"></textarea></label>\
 			<label class="cmEditions__field"><span>{{ t(\'field.partialQualifications\') }} ({{ formLocale }})</span>\
 				<textarea class="pkpFormField__input" rows="2" v-model="form.partialQualifications[formLocale]"></textarea></label>\
+		</fieldset>\
+		<fieldset class="cmEditions__section">\
+			<legend>{{ t(\'section.program\') }}</legend>\
+			<p class="cmEditions__help">{{ t(\'program.help\') }}</p>\
+			<label class="cmEditions__check"><input type="checkbox" v-model="form.programPublished"> {{ t(\'field.programPublished\') }}</label>\
+			<label class="cmEditions__field"><span>{{ t(\'field.programText\') }} ({{ formLocale }})</span>\
+				<textarea class="pkpFormField__input" rows="4" v-model="form.programText[formLocale]"></textarea></label>\
+			<p v-if="editingId !== null && form.path"><a :href="publicUrl.replace(\'__path__\', encodeURIComponent(form.path)) + \'/program\'" target="_blank" rel="noopener">{{ t(\'program.open\') }}</a></p>\
 		</fieldset>\
 		<fieldset class="cmEditions__section">\
 			<legend>{{ t(\'section.details\') }}</legend>\

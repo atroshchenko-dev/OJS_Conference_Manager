@@ -204,6 +204,16 @@ final class ServiceFactory
         );
     }
 
+    public static function program(): \APP\plugins\generic\conferenceManager\classes\Application\ProgramService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\ProgramService(
+            new DbEditionRepository($db),
+            new DbRegistrationRepository($db),
+            new EditorialGateway(),
+        );
+    }
+
     /** Plan, section 15.2: the load profile of the installation. */
     public static function loadPolicy(): \APP\plugins\generic\conferenceManager\classes\Application\LoadPolicy
     {

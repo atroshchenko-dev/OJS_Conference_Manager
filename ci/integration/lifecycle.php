@@ -60,6 +60,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'new-token' => $this->newToken($this->argv[1], $this->argv[2]),
                 'new-user' => $this->newUser($this->argv[1], $this->argv[2], $this->argv[3], $this->argv[4] ?? 'reader'),
                 'ids' => $this->ids($this->argv[1]),
+                'theme' => $this->theme($this->argv[1], $this->argv[2]),
                 'next-numbers' => $this->nextNumbers($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 'assign-author' => $this->assignAuthor($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 'email-log' => $this->emailLog((int) $this->argv[1], $this->argv[2]),
@@ -124,6 +125,20 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
             ?? throw new RuntimeException('plugin not found');
         $plugin->updateSetting($context->getId(), 'enabled', true, 'bool');
         echo 'OK enabled in ', $path, "\n";
+    }
+
+    /**
+     * DST-05: switches the journal to a theme from plugins/themes/{dir}
+     * (default, defaultManuscript, healthSciences).
+     */
+    private function theme(string $path, string $dir): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $plugin = PluginRegistry::loadPlugin('themes', $dir, $context->getId()) ?? throw new RuntimeException('theme not found');
+        $plugin->updateSetting($context->getId(), 'enabled', true, 'bool');
+        $context->setData('themePluginPath', $dir);
+        Application::getContextDAO()->updateObject($context);
+        echo 'OK theme ', $dir, ' in ', $path, "\n";
     }
 
     private function migrateTwice(): void

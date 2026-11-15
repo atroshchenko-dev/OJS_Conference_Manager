@@ -6,7 +6,9 @@ namespace APP\plugins\generic\conferenceManager\classes\Pages;
 
 use APP\core\Application;
 use APP\handler\Handler;
+use APP\plugins\generic\conferenceManager\classes\Application\ContextInfo;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
+use APP\plugins\generic\conferenceManager\classes\Application\ProgramService;
 use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
 use APP\plugins\generic\conferenceManager\classes\Core\IssueGateway;
 use APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory;
@@ -62,6 +64,9 @@ class ConferencePageHandler extends Handler
         }
         if (($args[0] ?? null) === 'register') {
             return $this->register($edition, $info, $request);
+        }
+        if (($args[0] ?? null) === 'program' && !isset($args[1])) {
+            return $this->program($edition, $info, $request);
         }
         if (isset($args[0])) {
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
@@ -603,6 +608,49 @@ class ConferencePageHandler extends Handler
     }
 
     /**
+     * PRG-01: `/{journal}/conference/{edition}/program`. Public once the
+     * journal publishes the program; managers see a preview before that.
+     */
+    private function program(Edition $edition, ContextInfo $info, \APP\core\Request $request): mixed
+    {
+        $public = ProgramService::isPublic($edition);
+        if (!$public && !$this->canManage($request)) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $locale = Locale::getLocale();
+        $program = ServiceFactory::program()->program($info, (int) $edition->id, $locale) ?? ['sections' => [], 'count' => 0];
+        $dispatcher = $request->getDispatcher();
+        $contextPath = (string) $request->getContext()?->getPath();
+        foreach ($program['sections'] as &$section) {
+            foreach ($section['groups'] as &$group) {
+                $group['label'] = __($group['labelKey']);
+                foreach ($group['items'] as &$item) {
+                    $item['url'] = $item['published'] ? $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, 'article', 'view', [$item['submissionId']]) : null;
+                }
+                unset($item);
+            }
+            unset($group);
+        }
+        unset($section);
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        if (!$public) {
+            $templateMgr->addHeader('conferenceEditionNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
+        }
+        $vm = $this->viewModel($edition, $locale, $info->primaryLocale, $request);
+        $templateMgr->assign([
+            'edition' => $vm,
+            'program' => $program,
+            'programIntro' => (string) $edition->text('programText')->resolve($locale, $info->primaryLocale),
+            'programPreview' => !$public,
+            'editionUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path),
+            'pageTitleTranslated' => __('plugins.generic.conferenceManager.program.title') . ': ' . $vm['name'],
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/program.tpl'));
+    }
+
+    /**
      * The status of a page response. OJS sends its cookies with the status
      * of the Laravel response object, so both are set.
      */
@@ -665,6 +713,7 @@ class ConferencePageHandler extends Handler
             'id' => $edition->id,
             'path' => $edition->path,
             'url' => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path),
+            'programUrl' => ProgramService::isPublic($edition) ? $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program']) : null,
             'name' => $text('name'),
             'description' => $text('description'),
             'venue' => $text('venue'),

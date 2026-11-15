@@ -16,7 +16,7 @@ use DateTimeImmutable;
  */
 final class Edition
 {
-    public const LOCALIZED_FIELDS = ['name', 'description', 'venue', 'learningOutcomes', 'cfpText', 'partialQualifications'];
+    public const LOCALIZED_FIELDS = ['name', 'description', 'venue', 'learningOutcomes', 'cfpText', 'partialQualifications', 'programText'];
 
     /** API field => database column, for every date of the edition. */
     public const DATE_FIELDS = [
@@ -55,6 +55,8 @@ final class Edition
         public readonly ?int $ectsX100 = null,
         public readonly ?int $issueId = null,
         private readonly array $texts = [],
+        /** PRG-01: the program page is public. */
+        public readonly bool $programPublished = false,
     ) {
     }
 
@@ -151,6 +153,7 @@ final class Edition
             self::nullableInt($data, 'ectsX100', $errors),
             isset($data['issueId']) && is_numeric($data['issueId']) ? (int) $data['issueId'] : null,
             $texts,
+            filter_var($data['programPublished'] ?? false, FILTER_VALIDATE_BOOLEAN),
         );
     }
 
@@ -177,6 +180,7 @@ final class Edition
             'hours' => $this->hours,
             'ectsX100' => $this->ectsX100,
             'issueId' => $this->issueId,
+            'programPublished' => $this->programPublished,
         ];
         foreach (array_keys(self::DATE_FIELDS) as $field) {
             $out[$field] = DateInput::toIsoUtc($this->date($field));
@@ -201,7 +205,7 @@ final class Edition
     public function toCopyInput(): array
     {
         $data = $this->toArray();
-        unset($data['id'], $data['issueId'], $data['local'], $data['isbn']);
+        unset($data['id'], $data['issueId'], $data['local'], $data['isbn'], $data['programPublished']);
         foreach (array_keys(self::DATE_FIELDS) as $field) {
             unset($data[$field]);
         }
@@ -235,6 +239,7 @@ final class Edition
             $this->ectsX100,
             array_key_exists('issueId', $changes) ? $changes['issueId'] : $this->issueId,
             $this->texts,
+            $this->programPublished,
         );
     }
 

@@ -3,7 +3,7 @@
  *}
 {include file="frontend/components/header.tpl" pageTitle="plugins.generic.conferenceManager.verify.title"}
 
-<div class="page page_conference_verify cmEdition">
+<div class="container page page_conference_verify cmEdition">
 	<h1 class="page_title">{translate key="plugins.generic.conferenceManager.verify.title"}</h1>
 
 	{if $verifyLimited}

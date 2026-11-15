@@ -1,3 +1,23 @@
+/*
+ * Public pages of the plugin (DST-05). Colours are CSS variables, so a theme
+ * or a child theme can match them to its palette by setting --cm-* on :root
+ * or on .cmEdition. Tested with the Default, Manuscript and Health Sciences
+ * themes of OJS 3.5.
+ */
+:root {
+  --cm-accent: #1a7f37;
+  --cm-on-accent: #fff;
+  --cm-accent-surface: #f4faf4;
+  --cm-danger: #b00020;
+  --cm-danger-surface: #fdf3f3;
+  --cm-warning: #8a6100;
+  --cm-warning-surface: #fff4ce;
+  --cm-muted: #555;
+  --cm-border: #ddd;
+  --cm-border-strong: #999;
+  --cm-surface: #f5f5f5;
+}
+
 /* Public pages of the Conference Manager plugin; neutral, inherits the theme. */
 .cmEdition__meta { display: flex; flex-wrap: wrap; gap: .5rem; margin: .25rem 0 1rem; }
 .cmEdition__meta span { border: 1px solid currentColor; border-radius: 1rem; padding: .125rem .625rem; font-size: .8125rem; opacity: .85; }
@@ -5,17 +25,17 @@
 .cmEdition__facts dt { font-weight: 700; }
 .cmEdition__facts dd { margin: 0; }
 .cmEdition__tz { opacity: .7; font-size: .875em; }
-.cmEdition__call { border-inline-start: 4px solid #999; padding: .75rem 1rem; margin: 1rem 0 1.5rem; background: rgba(0,0,0,.03); }
-.cmEdition__call--open { border-color: #1a7f37; }
-.cmEdition__button { display: inline-block; padding: .5rem 1rem; border-radius: 3px; background: #1a7f37; color: #fff !important; text-decoration: none; font-weight: 700; }
-.cmEdition__draft { background: #fff4ce; border: 1px solid #e0c200; padding: .5rem .75rem; }
+.cmEdition__call { border-inline-start: 4px solid var(--cm-border-strong); padding: .75rem 1rem; margin: 1rem 0 1.5rem; background: rgba(0,0,0,.03); }
+.cmEdition__call--open { border-color: var(--cm-accent); }
+.cmEdition__button { display: inline-block; padding: .5rem 1rem; border-radius: 3px; background: var(--cm-accent); color: var(--cm-on-accent) !important; text-decoration: none; font-weight: 700; }
+.cmEdition__draft { background: var(--cm-warning-surface); border: 1px solid var(--cm-warning); padding: .5rem .75rem; }
 .cmEdition__section { margin: 1.5rem 0; }
 .cmUpcoming__filters { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end; margin: 1rem 0 1.5rem; }
 .cmUpcoming__filters label { display: flex; flex-direction: column; gap: .25rem; font-size: .875rem; font-weight: 700; }
 .cmUpcoming__list { list-style: none; padding: 0; margin: 0; }
 .cmUpcoming__item { border-bottom: 1px solid rgba(0,0,0,.12); padding: 1rem 0; }
 .cmUpcoming__item h2 { margin: 0 0 .25rem; font-size: 1.25rem; }
-.cmUpcoming__open { color: #1a7f37; }
+.cmUpcoming__open { color: var(--cm-accent); }
 .cmUpcoming__pages { display: flex; gap: 1rem; margin-top: 1rem; }
 @media (max-width: 600px) { .cmEdition__facts { grid-template-columns: 1fr; } .cmEdition__facts dd { margin-bottom: .5rem; } }
 
@@ -48,9 +68,9 @@
 .cmRegister__field > label, .cmRegister__field > legend { display: block; font-weight: 600; margin-bottom: .35rem; }
 .cmRegister__field input[type="text"], .cmRegister__field select { width: 100%; max-width: 100%; box-sizing: border-box; padding: .45rem .5rem; }
 .cmRegister__choice { display: block; margin: .25rem 0; font-weight: normal; }
-.cmRegister__error { color: #b00020; margin: .35rem 0 0; }
-.cmRegister__hint { color: #555; font-size: .9em; margin: .35rem 0; }
-.cmRegister__required { color: #b00020; }
+.cmRegister__error { color: var(--cm-danger); margin: .35rem 0 0; }
+.cmRegister__hint { color: var(--cm-muted); font-size: .9em; margin: .35rem 0; }
+.cmRegister__required { color: var(--cm-danger); }
 .cmRegister__consentText { font-size: .9em; max-height: 12rem; overflow: auto; padding: .5rem .75rem; border: 1px solid rgba(0, 0, 0, .15); }
 .cmRegister__trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .cmMy { list-style: none; padding: 0; }
@@ -59,22 +79,22 @@
 .cmMy__title { font-size: 1.15em; margin: 0 0 .5rem; }
 .cmMy__deadline { margin-left: .75rem; font-size: .9em; }
 .cmMy__section { margin-top: 2rem; }
-.cmInvoice__instructions { margin: .5rem 0; padding: .5rem .75rem; border-left: 3px solid #b26b00; background: rgba(178, 107, 0, .06); }
+.cmInvoice__instructions { margin: .5rem 0; padding: .5rem .75rem; border-left: 3px solid var(--cm-warning); background: rgba(178, 107, 0, .06); }
 .cmInvoice__actions .cmEdition__button { margin: 0 .5rem .5rem 0; }
 .cmInvoice__subtitle { margin: .75rem 0 .25rem; font-size: 1rem; }
 .cmInvoice__proofs { margin: 0 0 .5rem; padding-left: 1.2rem; }
-.cmInvoice__proof--accepted strong { color: #1b5e20; }
-.cmInvoice__proof--rejected strong { color: #b00020; }
-.cmInvoice__proofNote { color: #555; font-size: .9em; }
-.cmInvoice__upload { margin: .75rem 0 0; padding: .5rem .75rem; border: 1px dashed #bbb; border-radius: 4px; }
+.cmInvoice__proof--accepted strong { color: var(--cm-accent); }
+.cmInvoice__proof--rejected strong { color: var(--cm-danger); }
+.cmInvoice__proofNote { color: var(--cm-muted); font-size: .9em; }
+.cmInvoice__upload { margin: .75rem 0 0; padding: .5rem .75rem; border: 1px dashed var(--cm-border-strong); border-radius: 4px; }
 .cmInvoice__upload label { display: block; font-weight: 600; }
 .cmInvoice__upload input[type=file] { display: block; max-width: 100%; margin: .35rem 0 .5rem; }
 /* The guardian block shows once "under 18" is ticked (browsers without :has() always show it). */
 .cmRegister__field:has(input[name=minor]:not(:checked)) .cmRegister__guardian { display: none; }
 
 /* Certificate check (CRT-07) */
-.cmVerify { border-left: 4px solid #2e7d32; padding: 0.5rem 1rem; margin: 1rem 0; background: #f4faf4; }
-.cmVerify--revoked { border-left-color: #b71c1c; background: #fdf3f3; }
+.cmVerify { border-left: 4px solid var(--cm-accent); padding: 0.5rem 1rem; margin: 1rem 0; background: var(--cm-accent-surface); }
+.cmVerify--revoked { border-left-color: var(--cm-danger); background: var(--cm-danger-surface); }
 .cmVerify__status { font-weight: bold; font-size: 1.1em; margin: 0 0 0.5rem; }
 .cmVerify__form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 1.5rem; }
 .cmVerify__form input { flex: 1 1 20rem; max-width: 26rem; padding: 0.4rem; font-family: monospace; }
@@ -82,8 +102,8 @@
 /* CRT-08: public register of professional development documents */
 .cmDocuments__scroll { overflow-x: auto; }
 .cmDocuments { width: 100%; border-collapse: collapse; font-size: .95em; }
-.cmDocuments th, .cmDocuments td { padding: .45em .6em; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
-.cmDocuments th { background: #f5f5f5; font-weight: 600; }
+.cmDocuments th, .cmDocuments td { padding: .45em .6em; border-bottom: 1px solid var(--cm-border); text-align: left; vertical-align: top; }
+.cmDocuments th { background: var(--cm-surface); font-weight: 600; }
 .cmDocuments__pages { display: flex; gap: 1em; align-items: center; margin-top: 1em; }
 
 /* JUR-05: who pays the invoice */
@@ -94,3 +114,19 @@
 .cmInvoice__payerForm legend { font-weight: 600; margin-bottom: .25em; }
 .cmInvoice__payerForm button { justify-self: start; }
 .cmInvoice__actions a + a { margin-left: .75em; }
+
+/* PRG-01: program of an edition. Colours come from the theme. */
+.cmProgram__back { margin-bottom: 0.5rem; font-size: 0.9em; }
+.cmProgram__event { opacity: 0.8; margin-top: 0; }
+.cmProgram__preview { border-left: 4px solid currentColor; padding: 0.5rem 1rem; opacity: 0.85; }
+.cmProgram__intro { margin: 1rem 0 1.5rem; }
+.cmProgram__toc ol { padding-left: 1.25rem; columns: 2 18rem; }
+.cmProgram__section { margin: 2rem 0; }
+.cmProgram__section h2 { border-bottom: 1px solid rgba(0, 0, 0, 0.15); padding-bottom: 0.25rem; }
+.cmProgram__group { font-size: 1.05em; margin: 1.25rem 0 0.5rem; }
+.cmProgram__count { font-weight: normal; opacity: 0.7; }
+.cmProgram__items { padding-left: 1.5rem; margin: 0; }
+.cmProgram__item { margin: 0 0 0.75rem; }
+.cmProgram__title { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.cmProgram__authors { display: block; opacity: 0.8; font-size: 0.95em; }
+@media print { .cmProgram__toc, .cmProgram__back { display: none; } }
