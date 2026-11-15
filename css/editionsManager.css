@@ -139,3 +139,26 @@
 /* DAT-02…04: personal data */
 .cmPrivacy__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 1rem; align-items: end; }
 .cmPrivacy__disabled { opacity: .5; pointer-events: none; }
+
+/* INS-08: first setup wizard */
+.cmSetup__intro { max-width: 48rem; }
+.cmSetup__steps { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; padding: 0; margin: 1rem 0; list-style: none; counter-reset: cmstep; }
+.cmSetup__steps li { counter-increment: cmstep; color: #6b6b6b; }
+.cmSetup__steps li::before { content: counter(cmstep); display: inline-block; width: 1.5rem; height: 1.5rem; line-height: 1.5rem; margin-right: .375rem; border-radius: 50%; border: 1px solid #bbb; text-align: center; font-size: .8125rem; }
+.cmSetup__steps .cmSetup__step--active { color: inherit; font-weight: 700; }
+.cmSetup__steps .cmSetup__step--active::before { background: #006798; border-color: #006798; color: #fff; }
+.cmSetup__steps .cmSetup__step--done::before { content: "✓"; border-color: #1b5e20; color: #1b5e20; }
+.cmSetup__presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(18rem, 100%), 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.cmSetup__preset { display: flex; flex-direction: column; gap: .5rem; border: 1px solid #ddd; border-radius: 4px; padding: 1rem; background: #fff; }
+.cmSetup__preset h3 { margin: 0; font-size: 1rem; }
+.cmSetup__preset p { margin: 0; font-size: .875rem; }
+.cmSetup__preset .pkpButton { align-self: flex-start; margin-top: auto; }
+.cmSetup__preset--other { background: #fafafa; }
+.cmSetup__facts { margin: 0; padding-left: 1.125rem; font-size: .8125rem; color: #444; }
+.cmSetup__summary { border: 1px solid #ddd; border-radius: 4px; padding: .75rem 1rem; margin-bottom: 1rem; background: #fafafa; }
+.cmSetup__summary h3 { margin: 0 0 .5rem; font-size: 1rem; }
+.cmSetup__summary ul { margin: .25rem 0; padding-left: 1.125rem; font-size: .875rem; }
+.cmSetup__warning { border-left: 4px solid #d97706; background: #fff8e6; padding: .5rem .75rem; margin: .5rem 0; }
+.cmSetup__warnings { list-style: none; padding: 0; }
+.cmSetup__note { color: #555; font-size: .875rem; }
+.cmSetup__buttons { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1rem; }

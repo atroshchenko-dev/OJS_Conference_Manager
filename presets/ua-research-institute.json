@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "code": "ua-research-institute",
+  "name": {"uk": "Наукова установа з громадською організацією: школа-семінар", "en": "Research institute with an NGO: school-seminar"},
+  "description": {
+    "uk": "Оргвнески збирає співорганізатор (громадська організація) на свій рахунок, а установа видає документи. Тези виходять випуском журналу. Сертифікати українською й англійською. Суми лише приклад.",
+    "en": "Fees are collected by the co-organizer (an NGO) to its own account; the institute issues the documents. Abstracts are published as a journal issue. Certificates in Ukrainian and English. The amounts are only an example."
+  },
+  "jurisdiction": "UA",
+  "institutionTypes": ["research_institute", "ngo"],
+  "edition": {"eventType": "school", "submissionMode": "abstracts", "publicationMode": "ojs_issue", "format": "in_person"},
+  "categories": [
+    {"code": "researchers"},
+    {"code": "young_researchers", "requiresProof": true},
+    {"code": "students", "requiresProof": true},
+    {"code": "foreign"}
+  ],
+  "tariffs": [
+    {"category": "researchers", "material": "abstract", "pricing": "flat", "amount": "600.00", "currency": "UAH"},
+    {"category": "young_researchers", "material": "abstract", "pricing": "flat", "amount": "300.00", "currency": "UAH"},
+    {"category": "students", "material": "abstract", "pricing": "flat", "amount": "300.00", "currency": "UAH"},
+    {"category": "foreign", "material": "abstract", "pricing": "flat", "amount": "25.00", "currency": "EUR"}
+  ],
+  "paymentRules": [
+    {"category": null, "mode": "external_organizer"}
+  ],
+  "certificates": {"professionalDevelopment": false, "vector": false}
+}

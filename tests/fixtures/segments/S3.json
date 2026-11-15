@@ -1,0 +1,21 @@
+{
+  "code": "S3",
+  "name": "ІППО",
+  "hosting": "A, віртуальний хостинг без cron",
+  "institution": {
+    "jurisdiction": "UA", "institutionType": "ippo", "ownership": "communal", "legalId": "02070944",
+    "name": {"uk": "Інститут післядипломної освіти (приклад)", "en": "In-service Teacher Training Institute (example)"},
+    "address": {"uk": "м. Полтава, вул. Прикладна, 3"}
+  },
+  "preset": "ua-ippo",
+  "edition": {"name": {"uk": "Вебінар для вчителів"}, "path": "s3-webinar", "startsAt": "2027-03-10 15:00", "endsAt": "2027-03-10 18:00", "registrationClosesAt": "2027-03-09"},
+  "expect": {
+    "edition": {"eventType": "webinar", "submissionMode": "none", "publicationMode": "none", "hours": 6, "ectsX100": 20},
+    "categories": 3, "tariffs": 0,
+    "rules": {"*": "free"},
+    "warnings": 0, "vector": true,
+    "listeners": [
+      {"category": "teachers_other", "result": "free"}
+    ]
+  }
+}

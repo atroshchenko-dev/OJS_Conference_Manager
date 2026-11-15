@@ -3257,3 +3257,126 @@ msgstr "Posters"
 
 msgid "plugins.generic.conferenceManager.program.group.absentee"
 msgstr "Papers without presentation"
+
+msgid "plugins.generic.conferenceManager.setup.open"
+msgstr "Setup wizard"
+
+msgid "plugins.generic.conferenceManager.setup.title"
+msgstr "First setup"
+
+msgid "plugins.generic.conferenceManager.setup.intro"
+msgstr "The wizard creates an edition with typical settings for your type of institution: participant categories, tariffs, payment rules and document settings. You can change everything it creates later."
+
+msgid "plugins.generic.conferenceManager.setup.step1"
+msgstr "Institution type"
+
+msgid "plugins.generic.conferenceManager.setup.step2"
+msgstr "Preset"
+
+msgid "plugins.generic.conferenceManager.setup.step3"
+msgstr "First edition"
+
+msgid "plugins.generic.conferenceManager.setup.type"
+msgstr "Type of your institution"
+
+msgid "plugins.generic.conferenceManager.setup.type.help"
+msgstr "Taken from the institution profile. The type decides which presets the wizard offers first."
+
+msgid "plugins.generic.conferenceManager.setup.next"
+msgstr "Next"
+
+msgid "plugins.generic.conferenceManager.setup.previous"
+msgstr "Back"
+
+msgid "plugins.generic.conferenceManager.setup.none"
+msgstr "There is no preset for this type of institution. Choose the closest one below."
+
+msgid "plugins.generic.conferenceManager.setup.categories"
+msgstr "categories: {$n}"
+
+msgid "plugins.generic.conferenceManager.setup.tariffs"
+msgstr "tariffs: {$n}"
+
+msgid "plugins.generic.conferenceManager.setup.pk"
+msgstr "professional development certificate, {$hours} h"
+
+msgid "plugins.generic.conferenceManager.setup.vector"
+msgstr "the \"Vector\" export will be turned on"
+
+msgid "plugins.generic.conferenceManager.setup.sitePreset"
+msgstr "This preset was added by the site administrator."
+
+msgid "plugins.generic.conferenceManager.setup.choose"
+msgstr "Choose"
+
+msgid "plugins.generic.conferenceManager.setup.othersNote"
+msgstr "Presets on a grey background are meant for other types of institutions, but you can choose them too."
+
+msgid "plugins.generic.conferenceManager.setup.willCreate"
+msgstr "The wizard will create:"
+
+msgid "plugins.generic.conferenceManager.setup.categoriesList"
+msgstr "participant categories"
+
+msgid "plugins.generic.conferenceManager.setup.tariffsList"
+msgstr "tariffs"
+
+msgid "plugins.generic.conferenceManager.setup.rulesList"
+msgstr "payment rules"
+
+msgid "plugins.generic.conferenceManager.setup.rule.default"
+msgstr "all other categories"
+
+msgid "plugins.generic.conferenceManager.setup.accountMissing"
+msgstr "The institution profile has no account for \"{$modes}\", so this rule will not be created. Add the account to the institution profile, then create the rule under \"Payment\" of the edition."
+
+msgid "plugins.generic.conferenceManager.setup.timezone"
+msgstr "Enter dates and times in the {$zone} time zone. You can change it later in the edition form."
+
+msgid "plugins.generic.conferenceManager.setup.draftNote"
+msgstr "The edition is created as a draft. Check it, then open the call in the edition form."
+
+msgid "plugins.generic.conferenceManager.setup.create"
+msgstr "Create the edition"
+
+msgid "plugins.generic.conferenceManager.setup.created"
+msgstr "The edition has been created"
+
+msgid "plugins.generic.conferenceManager.setup.fix"
+msgstr "Correct the marked fields"
+
+msgid "plugins.generic.conferenceManager.setup.doneTitle"
+msgstr "The edition \"{$name}\" has been created"
+
+msgid "plugins.generic.conferenceManager.setup.doneText"
+msgstr "Check the edition, fees and payment rules, then change the status to \"Call open\". You can run the wizard again to create another edition from a preset."
+
+msgid "plugins.generic.conferenceManager.setup.toEditions"
+msgstr "Back to editions"
+
+msgid "plugins.generic.conferenceManager.setup.error.preset"
+msgstr "Choose a preset from the list."
+
+msgid "plugins.generic.conferenceManager.setup.warning.account"
+msgstr "The \"{$mode}\" rule was not created: the institution profile has no matching active account. Add the account and create the rule under \"Payment\"."
+
+msgid "plugins.generic.conferenceManager.setup.warning.url"
+msgstr "The payment-by-link rule was not created because it needs the address of the payment page. Add it under \"Payment\"."
+
+msgid "plugins.generic.conferenceManager.setup.warning.vector"
+msgstr "The \"Vector\" export was not turned on: the jurisdiction profile of the institution does not have it."
+
+msgid "plugins.generic.conferenceManager.audit.entity.setup"
+msgstr "First setup"
+
+msgid "plugins.generic.conferenceManager.site.presets"
+msgstr "Presets"
+
+msgid "plugins.generic.conferenceManager.site.presets.count"
+msgstr "Presets available: {$n}."
+
+msgid "plugins.generic.conferenceManager.site.presets.folder"
+msgstr "Add your own presets to the {$folder} folder on the server; the plugin package does not need to change."
+
+msgid "plugins.generic.conferenceManager.site.presets.problems"
+msgstr "These files have errors, so the wizard does not offer them:"

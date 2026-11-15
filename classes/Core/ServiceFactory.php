@@ -214,6 +214,35 @@ final class ServiceFactory
         );
     }
 
+    /** DST-07: presets of the package and of the site ({files_dir}/conferenceManager/presets). */
+    public static function presets(): \APP\plugins\generic\conferenceManager\classes\Application\PresetLibrary
+    {
+        $files = (string) Config::getVar('files', 'files_dir');
+        $dirs = ['package' => dirname(__DIR__, 2) . '/presets'];
+        if ($files !== '') {
+            $dirs['site'] = rtrim($files, '/') . '/conferenceManager/presets';
+        }
+        return new \APP\plugins\generic\conferenceManager\classes\Application\PresetLibrary(
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Files\JsonPresetSource($dirs),
+        );
+    }
+
+    /** INS-08: the first setup wizard. */
+    public static function setup(): \APP\plugins\generic\conferenceManager\classes\Application\SetupService
+    {
+        $profiles = self::institutionProfiles();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\SetupService(
+            self::presets(),
+            self::editions(),
+            self::fees(),
+            self::invoices(),
+            self::certificates(),
+            static fn (ContextInfo $c) => $profiles->getOrDraft($c),
+            self::settings(),
+            new AuditLogger(DB::connection()),
+        );
+    }
+
     /** Plan, section 15.2: the load profile of the installation. */
     public static function loadPolicy(): \APP\plugins\generic\conferenceManager\classes\Application\LoadPolicy
     {

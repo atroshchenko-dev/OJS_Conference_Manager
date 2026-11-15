@@ -3257,3 +3257,126 @@ msgstr "Стендові доповіді"
 
 msgid "plugins.generic.conferenceManager.program.group.absentee"
 msgstr "Заочні доповіді"
+
+msgid "plugins.generic.conferenceManager.setup.open"
+msgstr "Майстер налаштування"
+
+msgid "plugins.generic.conferenceManager.setup.title"
+msgstr "Перше налаштування"
+
+msgid "plugins.generic.conferenceManager.setup.intro"
+msgstr "Майстер створить видання з типовими налаштуваннями для вашого типу закладу: категорії учасників, тарифи, правила оплати й налаштування документів. Усе, що він створить, можна змінити потім."
+
+msgid "plugins.generic.conferenceManager.setup.step1"
+msgstr "Тип закладу"
+
+msgid "plugins.generic.conferenceManager.setup.step2"
+msgstr "Типовий набір"
+
+msgid "plugins.generic.conferenceManager.setup.step3"
+msgstr "Перше видання"
+
+msgid "plugins.generic.conferenceManager.setup.type"
+msgstr "Тип вашого закладу"
+
+msgid "plugins.generic.conferenceManager.setup.type.help"
+msgstr "Узято з профілю закладу. Від типу залежить, які набори майстер запропонує першими."
+
+msgid "plugins.generic.conferenceManager.setup.next"
+msgstr "Далі"
+
+msgid "plugins.generic.conferenceManager.setup.previous"
+msgstr "Назад"
+
+msgid "plugins.generic.conferenceManager.setup.none"
+msgstr "Для цього типу закладу немає окремого набору. Оберіть найближчий із наведених нижче."
+
+msgid "plugins.generic.conferenceManager.setup.categories"
+msgstr "категорій: {$n}"
+
+msgid "plugins.generic.conferenceManager.setup.tariffs"
+msgstr "тарифів: {$n}"
+
+msgid "plugins.generic.conferenceManager.setup.pk"
+msgstr "свідоцтво про підвищення кваліфікації, {$hours} год"
+
+msgid "plugins.generic.conferenceManager.setup.vector"
+msgstr "експорт для «Вектора» буде увімкнено"
+
+msgid "plugins.generic.conferenceManager.setup.sitePreset"
+msgstr "Цей набір додав адміністратор сайту."
+
+msgid "plugins.generic.conferenceManager.setup.choose"
+msgstr "Обрати"
+
+msgid "plugins.generic.conferenceManager.setup.othersNote"
+msgstr "Набори на сірому тлі призначені для інших типів закладів, але їх теж можна обрати."
+
+msgid "plugins.generic.conferenceManager.setup.willCreate"
+msgstr "Майстер створить:"
+
+msgid "plugins.generic.conferenceManager.setup.categoriesList"
+msgstr "категорії учасників"
+
+msgid "plugins.generic.conferenceManager.setup.tariffsList"
+msgstr "тарифи"
+
+msgid "plugins.generic.conferenceManager.setup.rulesList"
+msgstr "правила оплати"
+
+msgid "plugins.generic.conferenceManager.setup.rule.default"
+msgstr "усі інші категорії"
+
+msgid "plugins.generic.conferenceManager.setup.accountMissing"
+msgstr "У профілі закладу немає рахунку для режиму «{$modes}», тому це правило не буде створено. Додайте рахунок у профілі закладу, а правило потім створіть у розділі «Оплата» видання."
+
+msgid "plugins.generic.conferenceManager.setup.timezone"
+msgstr "Дати й час вказуйте за часовим поясом {$zone}. Його можна змінити потім у формі видання."
+
+msgid "plugins.generic.conferenceManager.setup.draftNote"
+msgstr "Видання буде створено як чернетку. Перевірте його, а потім відкрийте прийом заявок у формі видання."
+
+msgid "plugins.generic.conferenceManager.setup.create"
+msgstr "Створити видання"
+
+msgid "plugins.generic.conferenceManager.setup.created"
+msgstr "Видання створено"
+
+msgid "plugins.generic.conferenceManager.setup.fix"
+msgstr "Виправте позначені поля"
+
+msgid "plugins.generic.conferenceManager.setup.doneTitle"
+msgstr "Видання «{$name}» створено"
+
+msgid "plugins.generic.conferenceManager.setup.doneText"
+msgstr "Перевірте видання, оргвнески й правила оплати, а потім змініть статус на «Прийом заявок відкрито». Майстер можна запустити знову, щоб створити ще одне видання з типового набору."
+
+msgid "plugins.generic.conferenceManager.setup.toEditions"
+msgstr "До списку видань"
+
+msgid "plugins.generic.conferenceManager.setup.error.preset"
+msgstr "Оберіть типовий набір зі списку."
+
+msgid "plugins.generic.conferenceManager.setup.warning.account"
+msgstr "Правило «{$mode}» не створено: у профілі закладу немає відповідного активного рахунку. Додайте рахунок і створіть правило в розділі «Оплата»."
+
+msgid "plugins.generic.conferenceManager.setup.warning.url"
+msgstr "Правило оплати за посиланням не створено, бо потрібна адреса сторінки оплати. Додайте її в розділі «Оплата»."
+
+msgid "plugins.generic.conferenceManager.setup.warning.vector"
+msgstr "Експорт для «Вектора» не увімкнено: профіль юрисдикції закладу його не має."
+
+msgid "plugins.generic.conferenceManager.audit.entity.setup"
+msgstr "Перше налаштування"
+
+msgid "plugins.generic.conferenceManager.site.presets"
+msgstr "Типові набори"
+
+msgid "plugins.generic.conferenceManager.site.presets.count"
+msgstr "Доступно наборів: {$n}."
+
+msgid "plugins.generic.conferenceManager.site.presets.folder"
+msgstr "Власні набори закладів додавайте в папку {$folder} на сервері, пакет плагіна змінювати не треба."
+
+msgid "plugins.generic.conferenceManager.site.presets.problems"
+msgstr "Ці файли мають помилки, тому майстер їх не пропонує:"

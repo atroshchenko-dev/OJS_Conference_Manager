@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "code": "ua-university-private",
+  "name": {"uk": "Приватний ЗВО: конференція з тезами й статтями", "en": "Private university: conference with abstracts and papers"},
+  "description": {
+    "uk": "Оргвнесок за банківським переказом у гривнях, для закордонних учасників у доларах. Працівники закладу беруть участь безкоштовно. Матеріали виходять випуском журналу. Суми лише приклад: змініть їх під свій кошторис.",
+    "en": "Fees by bank transfer in hryvnias, in US dollars for foreign participants. Staff of the institution take part free of charge. Papers are published as a journal issue. The amounts are only an example: change them to your budget."
+  },
+  "jurisdiction": "UA",
+  "institutionTypes": ["university", "college"],
+  "edition": {"eventType": "conference", "submissionMode": "abstracts_and_papers", "publicationMode": "ojs_issue", "format": "hybrid"},
+  "categories": [
+    {"code": "own_staff", "requiresProof": true},
+    {"code": "partners"},
+    {"code": "other_faculty"},
+    {"code": "students", "requiresProof": true},
+    {"code": "foreign"}
+  ],
+  "tariffs": [
+    {"category": "other_faculty", "material": "paper", "pricing": "flat", "amount": "500.00", "currency": "UAH"},
+    {"category": "partners", "material": "paper", "pricing": "flat", "amount": "400.00", "currency": "UAH"},
+    {"category": "students", "material": "paper", "pricing": "flat", "amount": "250.00", "currency": "UAH"},
+    {"category": "foreign", "material": "paper", "pricing": "flat", "amount": "30.00", "currency": "USD"},
+    {"category": "other_faculty", "material": "listener", "pricing": "flat", "amount": "150.00", "currency": "UAH"}
+  ],
+  "paymentRules": [
+    {"category": null, "mode": "bank_transfer"},
+    {"category": "own_staff", "mode": "free"}
+  ],
+  "certificates": {"professionalDevelopment": false, "vector": false}
+}

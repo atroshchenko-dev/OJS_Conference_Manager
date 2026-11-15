@@ -1,0 +1,28 @@
+{
+  "code": "S6",
+  "name": "Провайдер",
+  "hosting": "C, 20 контекстів",
+  "contexts": 20,
+  "segments": ["S1", "S2", "S3", "S4", "S5", "generic"],
+  "generic": {
+    "institution": {
+      "jurisdiction": "generic", "institutionType": "university", "ownership": "private",
+      "name": {"en": "Example University"},
+      "address": {"en": "1 Example Street, Example City"},
+      "paymentAccounts": [
+        {"kind": "bank", "recipientName": "Example University", "iban": "DE89370400440532013000", "bankName": "Example Bank"}
+      ]
+    },
+    "preset": "generic-conference",
+    "edition": {"name": {"en": "Example Conference 2027"}, "path": "generic-2027", "startsAt": "2027-09-01 09:00", "endsAt": "2027-09-03 18:00", "cfpOpensAt": "2027-02-01", "abstractDeadline": "2027-05-01", "paperDeadline": "2027-06-01", "registrationClosesAt": "2027-08-20"},
+    "expect": {
+      "edition": {"eventType": "conference", "submissionMode": "abstracts_and_papers", "publicationMode": "ojs_issue"},
+      "categories": 3, "tariffs": 4,
+      "rules": {"*": "bank_transfer"},
+      "warnings": 0, "vector": false,
+      "listeners": [
+        {"category": "general", "result": "issued", "minor": 3000, "currency": "EUR", "method": "bank"}
+      ]
+    }
+  }
+}

@@ -98,6 +98,7 @@ class ManageConferenceHandler extends Handler
         'audit.consent.agreements', 'audit.entity.edition', 'audit.entity.invoice', 'audit.entity.participant', 'audit.entity.participation',
         'audit.entity.submission', 'audit.entity.submission_registration', 'audit.entity.campaign', 'audit.entity.reminders',
         'audit.entity.export', 'audit.entity.export_columns', 'audit.entity.fee_category', 'audit.entity.tariff', 'audit.entity.payment_rule', 'audit.entity.retention', 'audit.entity.personal_data', 'audit.entity.user', 'audit.entity.certificate', 'audit.entity.certificate_settings', 'audit.entity.certificate_template', 'audit.entity.invoice_settings', 'audit.entity.invoice_template',
+        'audit.entity.setup', 'setup.open', 'setup.title', 'setup.intro', 'setup.step1', 'setup.step2', 'setup.step3', 'setup.type', 'setup.type.help', 'setup.next', 'setup.previous', 'setup.none', 'setup.categories', 'setup.tariffs', 'setup.pk', 'setup.vector', 'setup.sitePreset', 'setup.choose', 'setup.othersNote', 'setup.willCreate', 'setup.categoriesList', 'setup.tariffsList', 'setup.rulesList', 'setup.rule.default', 'setup.accountMissing', 'setup.timezone', 'setup.draftNote', 'setup.create', 'setup.created', 'setup.fix', 'setup.doneTitle', 'setup.doneText', 'setup.toEditions',
     ];
 
     /** @var bool */
@@ -148,6 +149,7 @@ class ManageConferenceHandler extends Handler
         $templateMgr->addJavaScript('conferenceDecisionsManager', $base . '/js/decisionsManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferenceCommunicationManager', $base . '/js/communicationManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferenceCertificatesManager', $base . '/js/certificatesManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
+        $templateMgr->addJavaScript('conferenceSetupWizard', $base . '/js/setupWizard.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferencePrivacyManager', $base . '/js/privacyManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addStyleSheet('conferenceEditionsManager', $base . '/css/editionsManager.css', ['contexts' => 'backend']);
 

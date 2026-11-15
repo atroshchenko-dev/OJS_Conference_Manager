@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "code": "generic-conference",
+  "name": {"uk": "Конференція з оргвнеском (будь-яка країна)", "en": "Conference with a fee (any country)"},
+  "description": {
+    "uk": "Для організаторів за межами України (профіль юрисдикції generic): оргвнесок банківським переказом у євро, тези й статті, публікація випуском журналу. Суми лише приклад.",
+    "en": "For organizers outside Ukraine (the generic jurisdiction profile): a fee by bank transfer in euros, abstracts and papers, publication as a journal issue. The amounts are only an example."
+  },
+  "jurisdiction": "generic",
+  "institutionTypes": [],
+  "edition": {"eventType": "conference", "submissionMode": "abstracts_and_papers", "publicationMode": "ojs_issue", "format": "hybrid"},
+  "categories": [
+    {"code": "general"},
+    {"code": "members", "requiresProof": true},
+    {"code": "students", "requiresProof": true}
+  ],
+  "tariffs": [
+    {"category": "general", "material": "paper", "pricing": "flat", "amount": "100.00", "currency": "EUR"},
+    {"category": "members", "material": "paper", "pricing": "flat", "amount": "70.00", "currency": "EUR"},
+    {"category": "students", "material": "paper", "pricing": "flat", "amount": "50.00", "currency": "EUR"},
+    {"category": "general", "material": "listener", "pricing": "flat", "amount": "30.00", "currency": "EUR"}
+  ],
+  "paymentRules": [
+    {"category": null, "mode": "bank_transfer"}
+  ],
+  "certificates": {"professionalDevelopment": false, "vector": false}
+}

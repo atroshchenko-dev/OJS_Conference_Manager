@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "code": "ua-man",
+  "name": {"uk": "Учнівська конференція або конкурс", "en": "School pupils' conference or contest"},
+  "description": {
+    "uk": "Безкоштовна участь для учнів, їхніх наукових керівників і гостей. Учні подають тези, а для неповнолітніх анкета просить згоду батьків. Матеріали окремо не публікуються.",
+    "en": "Free for pupils, their supervisors and guests. Pupils submit abstracts, and the form asks a parent's consent for minors. Materials are not published separately."
+  },
+  "jurisdiction": "UA",
+  "institutionTypes": ["man", "ippo", "other"],
+  "edition": {"eventType": "contest", "submissionMode": "abstracts", "publicationMode": "none", "format": "in_person"},
+  "categories": [
+    {"code": "pupils", "requiresProof": true},
+    {"code": "teachers_supervisors"},
+    {"code": "guests"}
+  ],
+  "tariffs": [],
+  "paymentRules": [
+    {"category": null, "mode": "free"}
+  ],
+  "certificates": {"professionalDevelopment": false, "vector": false}
+}

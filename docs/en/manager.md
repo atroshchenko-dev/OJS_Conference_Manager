@@ -1,0 +1,389 @@
+# Journal manager and organizing committee guide
+
+This guide is for the OJS journal manager and the members of the organizing committee who prepare and run events: conferences, seminars, webinars, schools, round tables and contests. It covers the whole path: the institution profile, the first setup, editions, fees, payment, decisions on submissions, mailings, the program, attendance, certificates, personal data and reports.
+
+The site administrator has to install and enable the plugin first, see the [site administrator guide](site-admin.md).
+
+## Where things are
+
+- **Institution profile:** **Settings → Website → Plugins**, the **Organizing institution profile** button next to "Conference Manager".
+- **The "Conferences" page:** the **Conferences** item in the journal's side menu (address `/{journal}/manageConference`).
+
+At the top of the "Conferences" page there are buttons for the whole journal: **Reminders**, **Certificate templates**, **Audit log**, **Personal data**, **Setup wizard** and **New edition**. Above the list of editions there is a **Status** filter.
+
+Each edition in the list has the buttons **Summary**, **Edit**, **Fees**, **Participants**, **Payment**, **Invoices**, **Receipts**, **Mailings**, **Certificates**, **Decisions** (only if the edition accepts submissions), **Copy**, **Public page** and **Delete**. **← Back to events** returns to the list.
+
+## Suggested order of work
+
+1. Fill in the institution profile: legal details, signers, accounts, privacy texts.
+2. Create the first edition with the "First setup" wizard or by hand.
+3. Check the participant categories, tariffs and payment rules.
+4. Assign a registration manager.
+5. Open the call.
+6. After the deadline, record decisions, follow payments, send mailings.
+7. Publish the program, mark attendance, issue certificates.
+8. Export data for accounting and look at the summary.
+
+## How to fill in the institution profile
+
+Open **Settings → Website → Plugins** and click **Organizing institution profile** next to "Conference Manager". These details go into invoices, certificates and the public pages of events. Each journal has its own profile.
+
+### Institution
+
+1. Choose the **Jurisdiction profile**: "Ukraine" or "Generic (no national rules)". "Ukraine" adds the EDRPOU code, treasury accounts, professional development certificates and the export for "Vector". After changing the profile, save the form and open it again to see the fields of the new profile.
+2. Choose the **Institution type** (higher education institution, college, in-service teacher training institute, research institute, junior academy of sciences, non-governmental organization or other) and **Ownership**.
+3. Fill in **Full name** and **Short name** in all languages of the journal.
+4. Enter the **EDRPOU code** (for "Ukraine": 8 digits, the check digit is verified) or the **Legal entity identifier**. If needed, enter the **EDEBO institution code**.
+5. Fill in **Address**, **Contact email** and **Website**.
+
+### Signers
+
+Under **Signers**, click **New signer** and enter **Full name**, **Position** and **Signs documents**: the invoice, certificates of the kinds you need, the professional development certificate. Each document prints the first signer assigned to it.
+
+### Payment accounts
+
+Under **Payment accounts**, click **New account** and fill in:
+
+- **Account type:** bank account, treasury account or co-organizer account;
+- **Internal label:** to tell accounts apart in the settings;
+- **Recipient**, **IBAN**, **Bank**, and **SWIFT (BIC)** if needed;
+- for a treasury account: **Budget income classification code**, **Budget programme code (KPKV)** and **Note for the payer**;
+- **Payment purpose template**. You can insert variables: `{invoiceNumber}`, `{paymentReference}`, `{payerName}`, `{editionTitle}`, `{editionPath}`, `{year}`, `{amount}`, `{currency}`;
+- **Active**: only active accounts can be chosen in payment rules.
+
+The IBAN checksum is verified. A Ukrainian IBAN starts with UA and has 29 characters.
+
+### Personal data
+
+- **Privacy notice:** the text participants see and agree to when they submit or register. If it is empty, the plugin's general text is shown.
+- **Data protection contact**.
+- **Data retention periods**.
+
+With the "Ukraine" profile, an expandable block **Example text for the lawyer to adapt** under these fields gives a sample based on the Law of Ukraine "On Personal Data Protection". Copy it into the field, replace the parts in square brackets with your institution's details, and have your institution's lawyer review it. The sample is not legal advice.
+
+When you change the consent text, participants who have not yet sent their submission must agree again. All versions of the text are kept, see "Audit log".
+
+### Submissions
+
+The option **The journal also accepts regular articles not related to conferences** lets authors choose "Not for a conference (regular article)" in the submission wizard. If it is off, then while any event accepts submissions, every submission must be for an event.
+
+### Profile import and export
+
+**Download the profile as JSON** saves the profile to a file. In another journal, paste this JSON into **Import a profile (JSON)** and save the form. Signers and accounts from the file replace the current ones.
+
+## How to go through the first setup
+
+When you open **Conferences** for the first time in a journal that has no editions yet, the page shows **First setup**. The wizard creates an edition ready to use from a typical setup (a preset).
+
+1. **Institution type.** Check **Type of your institution**: it is pre-filled from the institution profile. Click **Next**.
+2. **Preset.** Pick a preset from the list with **Choose**. Presets for your institution type and jurisdiction profile come first. Presets on a grey background are meant for other types of institutions, but you can choose them too. The preset card shows what the wizard will create: the event type, submission and publication modes, participant categories, tariffs, payment rules and certificate settings. Presets added by the site administrator are marked as such.
+3. **First edition.** Enter the name, the page path and the dates. Dates are in the time zone the wizard shows; you can change it later in the edition form.
+4. Click **Create the edition**.
+
+The wizard creates the edition with the preset's event type and modes, the participant categories, tariffs, payment rules and certificate settings.
+
+- The edition is created as a draft. Check it, its fees and payment rules, then change the status to "Call open" in the edition form. **Back to editions** returns to the list.
+- Payment rules that need a recipient account are created only if the institution profile has an active account. Otherwise the wizard tells you to add the account to the profile and create the rule later on the **Payment** page.
+- The wizard does not create a "Payment on an external page" rule, because it needs the address of the payment page. Add it on the **Payment** page.
+- The "Vector" export is turned on only if the institution's jurisdiction profile has it.
+- Amounts in presets are examples. Be sure to replace them with your own.
+- Everything the wizard creates can be edited afterwards in the usual way.
+- To create another edition from a preset, click **Setup wizard** on the "Conferences" page.
+
+How presets work and how to add your own is in the [presets guide](presets.md).
+
+## How to create and set up an edition
+
+Click **New edition** (or **Edit** next to an existing one). The form has language tabs for all journal languages and the sections **General**, **Submissions and publication**, **Dates and windows**, **Texts for participants**, **Proceedings and certificates** and **Program of the event**.
+
+### General
+
+- **Title** (required in the primary language of the journal).
+- **Page path:** part of the URL, for example `conf-2027`. Lowercase Latin letters, digits, hyphens and underscores, unique in the journal.
+- **Event type:** conference, seminar, webinar, school / course, round table, contest, other event. Changing the type fills in the default modes: a conference takes abstracts and has an issue in the journal; a webinar, school and round table have no submissions and no proceedings; a contest takes abstracts, then full papers.
+- **Format:** in person, online or hybrid.
+- **Time zone** and **Venue**.
+- **Status** (see below).
+
+### Submissions and publication
+
+- **Submissions:** "No submissions (attendees only)", "Abstracts" or "Abstracts, then full papers".
+- **Proceedings:** "No proceedings", "Issue in this journal" or "External proceedings (link)". For external proceedings, enter the **Proceedings link**.
+- **Review:** light (decision at submission stage), two-phase or standard OJS review.
+
+With "Issue in this journal" the plugin creates one unpublished OJS issue for the edition. Accepted papers go into it automatically. The plugin never deletes the issue.
+
+### Dates and windows
+
+**Starts**, **Ends**, **Call opens**, **Abstract deadline**, **Full paper deadline**, **Registration closes**, **Payment deadline**.
+
+- Dates are in the local time of the event, as `YYYY-MM-DD HH:MM`. Daylight saving time is taken into account.
+- At the deadline the window is already closed. A date without a time means 00:00 that day.
+- Dates must be in order. A full paper deadline applies only in the "Abstracts, then full papers" mode.
+
+### Texts, proceedings and certificates
+
+- **Description**, **Call for papers**, **Learning outcomes**.
+- **Proceedings ISBN** (ISBN-13 with check digit), **UDC / classification**.
+- **Hours** and **ECTS credits**. With hours set, listeners in the "Ukraine" profile receive a professional development certificate. Without credits, they are counted as hours divided by 30.
+- **Partial qualifications (if awarded)** and **Vector programme ID**.
+
+### Edition statuses
+
+The usual order: "Draft" → "Call open" → "Call closed" → "Held" → "Proceedings published" → "Archived". The **Status** field offers only allowed changes.
+
+- **The call does not open automatically.** Set "Call open" in advance. Submissions are accepted only between the call opening and the deadline.
+- The call closes automatically: every 15 minutes the OJS scheduler moves an edition to "Call closed" once the abstract deadline has passed.
+- A draft's public page is visible to managers only, marked "Draft".
+
+### Copying and deleting
+
+- **Copy** opens the form filled in from an existing edition, without dates and ISBN. Categories, tariffs and payment rules are not copied: add them to the new edition, or create the edition with **Setup wizard**.
+- **Delete** works only for an edition without participants, invoices and submissions. Otherwise the edition can only be archived.
+
+### Public page
+
+**Public page** opens `/{journal}/conference/{path}`: type, format, dates, venue, submission windows, call for papers, workload, ISBN. The **Submit** button appears only while the call is actually open. **Register as a listener** appears while registration is open. The page carries schema.org/Event markup for search engines.
+
+## How to set up participant categories and tariffs
+
+Click **Fees** next to the edition.
+
+### Participant categories
+
+- Choose an institution type in the list next to it and click **Add typical categories** to get the set for that type. For a higher education institution, for example: staff of the institution, staff of partner institutions, faculty of other institutions, students, foreign participants. Then adjust the set.
+- Or click **Add a category** and enter the **Name** (in all languages), the **Code** (for reports, e.g. `students`) and, if needed, **Proof required (certificate, student card, etc.)**.
+- A category that participants already have cannot be deleted.
+
+An author chooses the category in the speaker questionnaire, a listener when registering.
+
+### Tariffs
+
+Click **Add a tariff** and fill in:
+
+- **Category** and **Material**: abstract, paper (full text), listener participation or any material;
+- **Presentation type**: any or a specific one;
+- **Pricing**: flat amount or per page; for papers you can limit **Pages from** and **Pages to**;
+- **Amount** (e.g. `150` or `150.50`) and **Currency** (ISO 4217 code: UAH, USD, EUR);
+- **Valid from** and **Valid until (exclusive)**, for example for an early-bird discount. Without dates a tariff always applies.
+
+An amount of 0 means free participation. When several tariffs fit, the most specific one wins: a tariff for a specific presentation type beats a general one, a page range beats a tariff without pages, a tariff with dates beats an open-ended one.
+
+To check your setup, use **Check the calculation** and click **Calculate**.
+
+## How to set up payment rules
+
+Click **Payment** next to the edition. In **How participant categories pay**, click **Add a rule**.
+
+1. Choose a category or "All other categories". A category rule wins over the general one. There can be only one general rule.
+2. Choose the **Payment mode**: "Free", "Bank transfer by invoice", "Treasury transfer", "Paid by a co-organizer" or "Payment on an external page".
+3. For a transfer, choose the **Recipient account** from the institution profile. Bank transfer accepts only a bank account, treasury transfer only a treasury account.
+4. For an external page, enter the **Payment page link** (`https://` only).
+5. If needed, write **Instructions for the payer**. If empty, the participant sees the default instructions for the mode. For Ukraine the instructions always warn that a transfer to a card number is not a payment to the institution's account.
+
+Without rules, with "Free", or with a zero tariff no invoices are issued.
+
+### Invoice templates
+
+The same page has **Invoice templates**: "Invoice (bank)" and "Invoice (treasury)". The PDF is built from an HTML template. You can adapt the template to your institution using only the variables listed under **Variables:**. **Restore built-in** undoes your changes.
+
+### Payer's tax number
+
+With the "Ukraine" profile there is the option **Require the personal tax number from individuals who pay**. It is off by default. Turn it on only when your accounting department requires it: it is sensitive personal data.
+
+## How invoices work
+
+- A listener is invoiced right after registering. A presenter is invoiced after the acceptance decision.
+- The number looks like `2027-00001` and has no gaps within the journal and year. The payment reference has 8 characters including a check character.
+- Payer and recipient details are fixed at the moment of issue.
+- The payer gets a letter and sees the invoice, the PDF and the instructions in the cabinet.
+
+Click **Invoices** next to the edition to see all invoices. Search by number, payment reference or email. For an invoice you can:
+
+- **Mark paid**: enter the amount received. A smaller amount is recorded as a part payment and the invoice stays open with the balance.
+- **Waive**: enter the reason. A zero invoice with the reason is created and the old one becomes "superseded".
+- **Reissue**: a new invoice by the current tariff, category and presentation type. The amount paid is carried over. If more has been paid than the new amount, the invoice is not reissued.
+- Cancel the invoice, download the PDF, see **History**.
+
+A paid invoice can be neither waived nor cancelled. **The plugin does not make refunds:** handle overpayments or refunds after a cancellation by hand.
+
+To issue an invoice by hand (for example when a paper is paid per page), use the **Invoice** button in the **Participants** register.
+
+**Publishing waits for payment.** OJS will not publish an event paper until the presenter's invoice is paid or waived.
+
+Receipt review, the payment journal and the register of participants are described in detail in the [registration manager guide](registration-manager.md).
+
+## How to assign a registration manager
+
+Open **Users & Roles**, find the user and give them the **Registration manager** role. They see the **Conferences** item but cannot edit editions, tariffs, payment rules or templates.
+
+## How to record decisions on submissions
+
+### On the submission card
+
+At the "Submission" stage, next to the standard OJS buttons, there are four buttons:
+
+- **Accept: oral presentation**;
+- **Accept: poster presentation**;
+- **Accept: online presentation**;
+- **Accept: publication only**.
+
+They appear only for submissions linked to an event. Each opens the standard OJS decision page with a letter to the authors that you can edit.
+
+After the decision:
+
+- the presentation type is recorded in the submission;
+- the submission moves to copyediting and into the event's issue;
+- the presenter is invoiced by the tariff of the accepted type;
+- the authors get a letter.
+
+The submission card has an **Event participation** panel: the event, the presentation type, participants and their confirmation, the invoice and the receipt. At the copyediting and production stages you can click **Change the presentation type** here. The authors get a letter, and an unpaid invoice is reissued with the paid part carried over.
+
+### Bulk decisions
+
+1. Click **Decisions** next to the edition. The page **Decisions on abstracts** lists submissions waiting for the first decision.
+2. Find the ones you need: **Search by title, author or number**, the filters **Requested presentation type** and **Section**, then **Find**.
+3. Tick submissions or click **Select all**.
+4. In **Decision**, choose one of the four "Accept" decisions or "Decline".
+5. Click **Record the decision** and confirm. This cannot be undone.
+
+Up to 200 submissions at once. Each submission is decided by a separate OJS queue job, so every author gets their own letter, and a failure in one submission does not stop the others. The page shows progress, any failed submissions and **Recent runs**. A section editor sees only submissions assigned to them. Sending to review or requesting revisions is done one by one from the submission card.
+
+### Letter texts
+
+All plugin letters are journal email templates: a decision for each presentation type, the presentation type change, co-authorship confirmation, invoice issued, receipt accepted or rejected, and three reminders. Edit them in **Settings → Workflow → Emails**. Plugin upgrades do not overwrite texts you changed.
+
+## How to send a mailing
+
+1. Click **Mailings** next to the edition.
+2. In **Recipients**, choose the conditions: role, category, payment, **Section**, **Only authors of accepted materials**, **Full text** (uploaded or not).
+3. Click **Preview recipients**.
+4. Fill in **Subject** and **Text of the letter**. Variables (recipient's name, event name, cabinet link, journal name) are inserted by clicking them under **Variables (click to insert)**.
+5. Click **Send a test letter to myself** and check the letter.
+6. Click **Send the mailing** and confirm.
+
+Each person gets one letter even with several roles. Up to 5,000 recipients per mailing. Letters go in portions through the OJS queue within the letters-per-hour limit. A started mailing cannot be cancelled. Progress and failed addresses are under **Previous mailings**.
+
+## How to turn on reminders
+
+Click **Reminders** at the top of the "Conferences" page. There are three kinds:
+
+- **Payment:** to participants with an unpaid invoice and no receipt waiting for review;
+- **Full text:** to authors of accepted abstracts without a full text;
+- **Event start:** to listeners and presenters of accepted papers.
+
+For each, tick **Send**, set **Days before** (1 to 60) and save. Reminders are off by default. They are sent hourly for events whose call is open or closed, and each person gets each reminder only once. Without the OJS scheduler (cron) no reminders are sent.
+
+"Full text uploaded" means the author uploaded a file after the acceptance decision. If an editor uploads the file, the plugin does not count it.
+
+## How to publish the program
+
+1. Click **Edit** next to the edition and go to **Program of the event**.
+2. If needed, fill in **Introduction to the program (schedule, rules, links)**.
+3. Click **View the program** to see the draft. Visitors cannot see it yet.
+4. Tick **Publish the program on the event page** and save.
+
+The program is built from accepted papers: by journal section, and within a section by presentation type (oral, online, poster, without presentation) and alphabetically. Papers with published articles link to the article. The address is `/{journal}/conference/{path}/program`.
+
+**Limit:** there is no schedule with rooms, sessions and times yet. You can describe the schedule in the introduction text.
+
+## How to mark attendance
+
+Click **Participants** next to the edition.
+
+- **By hand:** tick the **Attendance** column, or click **Mark everyone on the page** or **Unmark everyone on the page**.
+- **From an online meeting report:** click **Import meeting report**, choose a **Report file** (CSV from Microsoft Teams, Zoom or Google Meet, up to 5 MB), set **Threshold, minutes** (30 by default) and click **Preview**. Check who was found, who counts as present and who is not among the participants, then click **Apply**.
+
+Participants are matched by email. Minutes of several joins are added up. An import never removes attendance marked by hand. Next to each mark you can see how it was set: by hand or from a report, with the minutes.
+
+## How to issue certificates
+
+### Templates and numbers
+
+Click **Certificate templates** at the top of the "Conferences" page.
+
+- Document kinds: certificate of participation, speaker certificate, listener certificate, organizer acknowledgement, reviewer acknowledgement. With the "Ukraine" profile there is also the professional development certificate (item 13 of the Procedure approved by Cabinet of Ministers Resolution No. 800).
+- The built-in template is A4 landscape with a QR code. To change it, edit **Template HTML (A4 landscape)**: click a variable to insert it at the cursor. Check the result with **Preview**. **Back to built-in** undoes your changes. Scripts, frames and unknown variables are not accepted.
+- **Number series:** 1 to 10 letters or digits, `CERT` by default. Numbers look like `CERT-2027-00001`; the counter restarts every year.
+- **Export for the "Vector" platform** ("Ukraine" profile only) turns the export buttons on. It is off by default.
+
+The signature on a document comes from the institution profile signer assigned to that kind of document.
+
+### Issuing
+
+Click **Certificates** next to the edition. For each participant you can see which document they are entitled to, or why none.
+
+- A listener gets a certificate when attendance is marked (or, in the "Ukraine" profile, a professional development certificate when the event has hours).
+- A speaker gets a certificate for an accepted paper and attendance.
+- A co-author gets a certificate of participation.
+- An absentee author gets a certificate after the paper is published.
+- Reviewers and organizers get an acknowledgement. Click **Add the reviewers of the event** to add everyone who completed a review of the event's papers. This version has no separate button to add organizers to the register.
+
+The **Show** filter has "all", "eligible", "issued" and "not eligible". Tick people or click **Select everyone eligible**, then **Issue to the selected**. **Issue to everyone eligible** issues to all at once: up to 25 documents immediately, more through the OJS queue in portions. Each person gets a document of each kind only once.
+
+A document is fixed when it is issued: later changes to the template or data do not change it. A document issued in Ukrainian also has an English version.
+
+### Revoking and reissuing
+
+Below the table is the list **Issued documents** with the state "Valid", "Revoked" or "Replaced by …".
+
+- **Revoke:** enter the reason. It is shown on the verification page.
+- **Reissue:** the old document is revoked and a new one is issued with a new number from the current data. Use this to fix a mistake in a name. The old document's verification page shows the new number. If the person is no longer entitled to the document, reissue does nothing.
+
+### Public verification and register
+
+- The QR code on a document leads to the verification page `/{journal}/conference/verify/{code}`.
+- With the "Ukraine" profile, `/{journal}/conference/documents` is the public register of issued professional development certificates. Revoked documents and email addresses are not shown there.
+
+### Export for "Vector"
+
+**Export for "Vector" (new)** and **Export for "Vector" (all)** download a CSV with number, date, full name, email, programme ID, topic, kind, form, dates, hours, credits and verification link. Exported rows are marked, so "new" next time gives only new rows. The platform does not publish an official import template, so the columns follow the fields of item 13 of the Procedure.
+
+## How to handle personal data
+
+Click **Personal data** at the top of the "Conferences" page.
+
+### Retention periods
+
+Under **Retention periods**, enter months (0 to 120):
+
+- **Receipt files, months after upload**;
+- **Participant data, months after the event ended**.
+
+0 means keep. Both are off by default: your institution sets the period by its accounting and archive rules. After the period, a daily OJS task removes receipt files and anonymises participants of ended events. Invoice records and issued documents stay.
+
+### A person's request
+
+Under **A person's request**, enter the **Email address of the person** and:
+
+- click **Download the data (JSON)** to get everything the plugin stores about that person in the journal;
+- click **Anonymise** to remove their data. The name becomes "Anonymized"; email, affiliation, position, country, ORCID and the link to the account are removed. Invoices and issued documents keep their copies of the data. **This cannot be undone.**
+
+Participants can also download their own data in the cabinet.
+
+## Audit log and consent versions
+
+Click **Audit log** at the top of the "Conferences" page (journal managers only).
+
+- **Actions:** who changed events, fees, invoices, participants, mailings and settings, and when, with **Before** and **After** details.
+- **Consent versions:** every version of the personal data consent text that participants saw, with the number of agreements.
+
+## Event summary
+
+Click **Summary** next to the edition. It shows submissions by state (waiting for a decision, in review, accepted, declined, published, full text uploaded), accepted papers by presentation type, participants (active, cancelled), payments by currency (paid, unpaid, partly paid, waived, replaced or cancelled), receipts waiting for review and reminders sent. Click **Refresh** for fresh numbers.
+
+## Export for accounting
+
+In the **Invoices** list, open **Export for accounting**.
+
+1. Under **What to export**, choose "This event only" or "All events of the journal".
+2. Set the period **From** and **To** and the **Date**: of issue or of full payment.
+3. If needed, tick **Include cancelled and superseded invoices**.
+4. Set the **Columns**: **Add a column**, **Up**, **Down**, **Remove**. Click **Save columns** so the journal remembers your choice.
+5. Click **Download CSV** or **Download XLSX**.
+
+The CSV is made for Excel: UTF-8, ";" as separator, decimal comma. **XLSX needs the PHP `zip` extension on the server**; without it only CSV is available.
+
+## Google Scholar
+
+If the Google Scholar plugin is enabled in the journal, the article page of an event paper shows the event name (`citation_conference_title`) instead of the journal name, plus the proceedings ISBN and the publisher (the institution's name).

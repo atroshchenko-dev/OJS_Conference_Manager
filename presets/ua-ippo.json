@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "code": "ua-ippo",
+  "name": {"uk": "ІППО: вебінар або курс без подань", "en": "In-service teacher training institute: webinar or course without submissions"},
+  "description": {
+    "uk": "Безкоштовна онлайн-подія для педагогів без подання матеріалів. Учасники отримують свідоцтво про підвищення кваліфікації (6 годин, 0,2 кредиту ЄКТС), а експорт для «Вектора» увімкнено. Години змініть під свою програму.",
+    "en": "A free online event for teachers without submissions. Participants get a professional development certificate (6 hours, 0.2 ECTS credits), and the \"Vector\" export is on. Change the hours to your programme."
+  },
+  "jurisdiction": "UA",
+  "institutionTypes": ["ippo"],
+  "edition": {"eventType": "webinar", "submissionMode": "none", "publicationMode": "none", "format": "online", "hours": 6, "ectsX100": 20},
+  "categories": [
+    {"code": "teachers_region", "requiresProof": true},
+    {"code": "teachers_other"},
+    {"code": "heads"}
+  ],
+  "tariffs": [],
+  "paymentRules": [
+    {"category": null, "mode": "free"}
+  ],
+  "certificates": {"professionalDevelopment": true, "vector": true}
+}

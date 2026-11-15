@@ -1,0 +1,25 @@
+{
+  "code": "S1",
+  "name": "Приватний ЗВО",
+  "hosting": "A",
+  "institution": {
+    "jurisdiction": "UA", "institutionType": "university", "ownership": "private", "legalId": "02070944",
+    "name": {"uk": "Приватний університет (приклад)", "en": "Private University (example)"},
+    "address": {"uk": "м. Київ, вул. Прикладна, 1"},
+    "paymentAccounts": [
+      {"kind": "bank", "recipientName": "Приватний університет", "iban": "UA213223130000026007233566001", "bankName": "Банк", "purposeTemplate": "Оргвнесок за {editionTitle}, рахунок {invoiceNumber}, {payerName}"}
+    ]
+  },
+  "preset": "ua-university-private",
+  "edition": {"name": {"uk": "Конференція 2027", "en": "Conference 2027"}, "path": "s1-2027", "startsAt": "2027-05-20 09:00", "endsAt": "2027-05-21 18:00", "cfpOpensAt": "2027-01-15", "abstractDeadline": "2027-03-01", "paperDeadline": "2027-04-01", "registrationClosesAt": "2027-05-10", "isbn": "978-0-306-40615-7"},
+  "expect": {
+    "edition": {"eventType": "conference", "submissionMode": "abstracts_and_papers", "publicationMode": "ojs_issue"},
+    "categories": 5, "tariffs": 5,
+    "rules": {"*": "bank_transfer", "own_staff": "free"},
+    "warnings": 0, "vector": false,
+    "listeners": [
+      {"category": "other_faculty", "result": "issued", "minor": 15000, "currency": "UAH", "method": "bank"},
+      {"category": "own_staff", "result": "free"}
+    ]
+  }
+}

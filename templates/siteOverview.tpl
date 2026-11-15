@@ -78,6 +78,20 @@
 		</ul>
 	{/if}
 
+	<h3>{translate key="plugins.generic.conferenceManager.site.presets"}</h3>
+	<p class="cmSite__hint">
+		{translate key="plugins.generic.conferenceManager.site.presets.count" n=$presetCount}
+		{translate key="plugins.generic.conferenceManager.site.presets.folder" folder=$presetFolder|escape}
+	</p>
+	{if $presetProblems}
+		<div class="cmSite__advice">
+			<p>{translate key="plugins.generic.conferenceManager.site.presets.problems"}</p>
+			<ul>
+				{foreach from=$presetProblems item=p}<li><code>{$p.file|escape}</code>: {$p.text|escape}</li>{/foreach}
+			</ul>
+		</div>
+	{/if}
+
 	<style>
 		#confManagerSiteForm .cmSite__table {ldelim} width: 100%; border-collapse: collapse; margin: 1rem 0 0.25rem; {rdelim}
 		#confManagerSiteForm .cmSite__table th, #confManagerSiteForm .cmSite__table td {ldelim} border-bottom: 1px solid #ddd; padding: 0.4rem 0.5rem; text-align: left; vertical-align: top; {rdelim}

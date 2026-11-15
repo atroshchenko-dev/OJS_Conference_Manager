@@ -1,0 +1,25 @@
+{
+  "code": "S2",
+  "name": "Державний ЗВО",
+  "hosting": "B",
+  "institution": {
+    "jurisdiction": "UA", "institutionType": "university", "ownership": "state", "legalId": "02070944",
+    "name": {"uk": "Державний університет (приклад)", "en": "State University (example)"},
+    "address": {"uk": "м. Львів, вул. Прикладна, 2"},
+    "paymentAccounts": [
+      {"kind": "treasury", "recipientName": "Державний університет", "iban": "UA118201720000031000000000001", "extra": {"incomeCode": "25010100"}}
+    ]
+  },
+  "preset": "ua-university-state",
+  "edition": {"name": {"uk": "Наукова конференція 2027"}, "path": "s2-2027", "startsAt": "2027-04-15 10:00", "endsAt": "2027-04-16 17:00", "cfpOpensAt": "2027-01-10", "abstractDeadline": "2027-03-15", "registrationClosesAt": "2027-04-10", "externalProceedingsUrl": "https://books.example.org/catalog/book/12"},
+  "expect": {
+    "edition": {"eventType": "conference", "submissionMode": "abstracts", "publicationMode": "external"},
+    "categories": 4, "tariffs": 3,
+    "rules": {"*": "treasury_transfer", "own_staff": "free"},
+    "warnings": 0, "vector": false,
+    "listeners": [
+      {"category": "own_staff", "result": "free"},
+      {"category": "other_faculty", "result": "noTariff"}
+    ]
+  }
+}

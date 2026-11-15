@@ -58,6 +58,7 @@
 				errors: {},
 				formLocale: this.primaryLocale,
 				selected: null,
+				autoSetup: true,
 			};
 		},
 		computed: {
@@ -173,6 +174,14 @@
 				this.selected = edition;
 				this.view = 'proofs';
 			},
+			openSetup: function () {
+				this.selected = null;
+				this.view = 'setup';
+			},
+			setupCreated: function () {
+				this.view = 'list';
+				this.load();
+			},
 			backToList: function () {
 				this.selected = null;
 				this.view = 'list';
@@ -191,6 +200,11 @@
 					if (r.ok) {
 						self.items = r.data.items || [];
 						self.itemsMax = r.data.itemsMax || 0;
+						// INS-08: a journal without editions starts with the setup wizard.
+						if (self.autoSetup && self.canEditEditions && !self.statusFilter && self.itemsMax === 0) {
+							self.view = 'setup';
+						}
+						self.autoSetup = false;
 					} else {
 						self.notify(r.data.errorMessage || self.t('errors'), 'warning');
 					}
@@ -407,6 +421,7 @@
 			<pkp-button v-if="canEditEditions" @click="openCertificateTemplates">{{ t(\'certificateTemplates\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" @click="openAudit">{{ t(\'audit\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" @click="openPrivacy">{{ t(\'privacy.title\') }}</pkp-button>\
+			<pkp-button v-if="canEditEditions" @click="openSetup">{{ t(\'setup.open\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" :is-primary="true" @click="create">{{ t(\'new\') }}</pkp-button>\
 		</div>\
 		<div v-if="isLoading" class="cmEditions__loading"><spinner></spinner> {{ t(\'loading\') }}</div>\
@@ -450,6 +465,7 @@
 	<conference-reminders v-else-if="view === \'reminders\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :can-edit="canEditEditions" :i18n="i18n" @back="backToList"></conference-reminders>\
 	<conference-certificates v-else-if="view === \'certificates\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :edition-id="selected.id" :edition-name="localized(selected.name)" :pdf-url="certificatePdfUrl" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-certificates>\
 	<conference-certificate-templates v-else-if="view === \'certificateTemplates\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-certificate-templates>\
+	<conference-setup-wizard v-else-if="view === \'setup\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :ui-locale="uiLocale" :default-timezone="defaultTimezone" :i18n="i18n" @back="backToList" @created="setupCreated"></conference-setup-wizard>\
 	<conference-personal-data v-else-if="view === \'privacy\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-personal-data>\
 	<conference-audit-log v-else-if="view === \'audit\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-audit-log>\
 	<conference-invoices-list v-else-if="view === \'invoices\'" :api-url="apiUrl + \'/\' + selected.id + \'/invoices\'" :invoice-api-url="apiUrl.replace(/editions$/, \'invoices\')" :pdf-url="invoicePdfUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-invoices-list>\

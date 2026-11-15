@@ -1,0 +1,24 @@
+{
+  "code": "S4",
+  "name": "Наукова установа + ГО",
+  "hosting": "A",
+  "institution": {
+    "jurisdiction": "UA", "institutionType": "research_institute", "ownership": "state", "legalId": "02070944",
+    "name": {"uk": "Інститут (приклад)", "en": "Institute (example)"},
+    "address": {"uk": "м. Харків, вул. Прикладна, 4"},
+    "paymentAccounts": [
+      {"kind": "partner", "recipientName": "ГО «Наукове товариство» (приклад)", "iban": "UA213223130000026007233566001", "bankName": "Банк", "legalId": "02070944"}
+    ]
+  },
+  "preset": "ua-research-institute",
+  "edition": {"name": {"uk": "Школа-семінар молодих учених", "en": "School-seminar of young researchers"}, "path": "s4-school", "startsAt": "2027-06-01 09:00", "endsAt": "2027-06-04 18:00", "cfpOpensAt": "2027-02-01", "abstractDeadline": "2027-04-15", "registrationClosesAt": "2027-05-25"},
+  "expect": {
+    "edition": {"eventType": "school", "submissionMode": "abstracts", "publicationMode": "ojs_issue"},
+    "categories": 4, "tariffs": 4,
+    "rules": {"*": "external_organizer"},
+    "warnings": 0, "vector": false,
+    "listeners": [
+      {"category": "researchers", "result": "noTariff"}
+    ]
+  }
+}

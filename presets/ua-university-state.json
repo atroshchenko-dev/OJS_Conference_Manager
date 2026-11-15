@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "code": "ua-university-state",
+  "name": {"uk": "Державний або комунальний ЗВО: конференція з тезами", "en": "State or communal university: conference with abstracts"},
+  "description": {
+    "uk": "Для своїх працівників участь безкоштовна, зовнішні учасники платять на казначейський рахунок. Збірник тез виходить окремо (наприклад, в OMP), тому видання посилається на нього. Суми лише приклад.",
+    "en": "Free for the institution's own staff; external participants pay to the treasury account. The book of abstracts is published elsewhere (for example in OMP) and the edition links to it. The amounts are only an example."
+  },
+  "jurisdiction": "UA",
+  "institutionTypes": ["university", "college"],
+  "edition": {"eventType": "conference", "submissionMode": "abstracts", "publicationMode": "external", "format": "in_person"},
+  "categories": [
+    {"code": "own_staff", "requiresProof": true},
+    {"code": "other_faculty"},
+    {"code": "students", "requiresProof": true},
+    {"code": "foreign"}
+  ],
+  "tariffs": [
+    {"category": "other_faculty", "material": "abstract", "pricing": "flat", "amount": "300.00", "currency": "UAH"},
+    {"category": "students", "material": "abstract", "pricing": "flat", "amount": "150.00", "currency": "UAH"},
+    {"category": "foreign", "material": "abstract", "pricing": "flat", "amount": "600.00", "currency": "UAH"}
+  ],
+  "paymentRules": [
+    {"category": null, "mode": "treasury_transfer"},
+    {"category": "own_staff", "mode": "free"}
+  ],
+  "certificates": {"professionalDevelopment": false, "vector": false}
+}

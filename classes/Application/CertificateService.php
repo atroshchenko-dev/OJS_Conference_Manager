@@ -38,7 +38,7 @@ final class CertificateService
     public const MAX_ISSUE = 50;
     public const STATUS_PUBLISHED = 3;
     private const SETTING_SERIES = 'certificateSeries';
-    private const SETTING_VECTOR = 'vectorEnabled';
+    public const SETTING_VECTOR = 'vectorEnabled';
     public const REASON_MAX = 500;
     public const BATCH_SIZE = 25;
     private const K = 'plugins.generic.conferenceManager.certificate.';

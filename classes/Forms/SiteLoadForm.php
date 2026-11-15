@@ -98,6 +98,7 @@ class SiteLoadForm extends Form
                 'ok' => is_array($run) ? (bool) ($run['ok'] ?? false) : null,
             ];
         }
+        $presets = \APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory::presets();
         TemplateManager::getManager($request)->assign([
             'pluginName' => $this->plugin->getName(),
             'profileOptions' => $profiles,
@@ -105,6 +106,9 @@ class SiteLoadForm extends Form
             'overview' => $o,
             'taskRuns' => $runs,
             'advice' => $advice,
+            'presetCount' => count($presets->all()),
+            'presetProblems' => array_map(static fn (array $p): array => ['file' => $p['file'], 'text' => implode('; ', $p['errors'])], $presets->problems()),
+            'presetFolder' => rtrim((string) \PKP\config\Config::getVar('files', 'files_dir'), '/') . '/conferenceManager/presets',
         ]);
         return parent::fetch($request, $template, $display);
     }

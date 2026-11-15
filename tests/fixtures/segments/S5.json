@@ -1,0 +1,21 @@
+{
+  "code": "S5",
+  "name": "Учнівська конференція",
+  "hosting": "B",
+  "institution": {
+    "jurisdiction": "UA", "institutionType": "man", "ownership": "communal", "legalId": "02070944",
+    "name": {"uk": "Мала академія наук (приклад)", "en": "Junior Academy of Sciences (example)"},
+    "address": {"uk": "м. Одеса, вул. Прикладна, 5"}
+  },
+  "preset": "ua-man",
+  "edition": {"name": {"uk": "Конкурс-конференція учнів"}, "path": "s5-contest", "startsAt": "2027-02-20 10:00", "endsAt": "2027-02-20 16:00", "cfpOpensAt": "2026-12-01", "abstractDeadline": "2027-01-20", "registrationClosesAt": "2027-02-15"},
+  "expect": {
+    "edition": {"eventType": "contest", "submissionMode": "abstracts", "publicationMode": "none"},
+    "categories": 3, "tariffs": 0,
+    "rules": {"*": "free"},
+    "warnings": 0, "vector": false,
+    "listeners": [
+      {"category": "guests", "result": "free"}
+    ]
+  }
+}
