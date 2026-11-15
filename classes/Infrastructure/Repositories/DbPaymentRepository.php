@@ -156,7 +156,8 @@ final class DbPaymentRepository implements PaymentRepository
             if ($invoice->supersedesId !== null) {
                 $this->changeStatus($invoice->supersedesId, InvoiceStatus::Superseded, [], 'superseded', $actorId, ['by' => $id], $now);
             }
-            $this->event($id, $invoice->status === InvoiceStatus::Waived ? 'waived' : 'issued', $actorId, ['total' => $invoice->total->minor, 'number' => $number], $stamp);
+            $this->event($id, $invoice->status === InvoiceStatus::Waived ? 'waived' : 'issued', $actorId, ['total' => $invoice->total->minor, 'number' => $number]
+                + ($invoice->paidAmount()->minor > 0 && $invoice->status !== InvoiceStatus::Waived ? ['carried' => $invoice->paidAmount()->minor, 'supersedes' => $invoice->supersedesId] : []), $stamp);
             return $invoice->with(['id' => $id, 'numberYear' => $year, 'number' => $number, 'paymentReference' => $reference, 'issuedAt' => $now]);
         }, 3);
     }

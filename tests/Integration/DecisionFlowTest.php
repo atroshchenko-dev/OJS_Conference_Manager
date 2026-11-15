@@ -250,6 +250,68 @@ final class DecisionFlowTest extends TestCase
         self::assertSame(InvoiceStatus::Paid, $this->invoices->currentForSubmission(1)?->status);
     }
 
+    /** FEE-08: what was paid moves to the new invoice; only the difference is due. */
+    public function testReissueCarriesThePaidAmount(): void
+    {
+        [$edition, $cat] = $this->edition();
+        $this->submit(1, $edition, $cat, 'oral');
+        $this->decisions->onDecision($this->ctx, 1, AcceptanceDecision::Oral->value, 1, $this->now);
+        $this->editorial->stage[1] = EditorialDirectory::STAGE_EDITING;
+        $first = $this->invoices->currentForSubmission(1);
+        self::assertSame(30000, $first?->total->minor);
+        self::assertTrue($this->invoices->markPaid($this->ctx, (int) $first?->id, '100', null, 1, $this->now)?->isEmpty());
+        self::assertNotNull($this->invoices->unpaidForPublication(1), 'FEE-11: part paid still blocks publishing');
+
+        // Part paid, cheaper type: a new invoice for 200 with 100 already paid.
+        self::assertSame(['changed' => true, 'invoice' => InvoiceService::ISSUED], $this->decisions->changeType($this->ctx, 1, 'poster', 1, $this->now));
+        $second = $this->invoices->currentForSubmission(1);
+        self::assertSame(20000, $second?->total->minor);
+        self::assertSame(10000, $second?->paidAmount()->minor);
+        self::assertSame(10000, $second?->due()->minor);
+        self::assertSame($first?->id, $second?->supersedesId);
+        self::assertSame(InvoiceStatus::Superseded, $this->invoices->find($this->ctx, (int) $first?->id)?->status);
+        $history = $this->invoices->history($this->ctx, (int) $second?->id, 'uk');
+        self::assertSame([$second?->id, $first?->id], array_column($history, 'id'), 'the chain, newest first');
+
+        // Nothing changed: no new invoice.
+        $same = $this->invoices->reissue($this->ctx, (int) $second?->id, null, 1, $this->now);
+        self::assertNull($same[0] ?? null);
+        self::assertTrue(($same[1] ?? new ValidationErrors())->has('pages'));
+
+        // Paid in full, then a dearer type: the manager reissues, 100 is due.
+        self::assertTrue($this->invoices->markPaid($this->ctx, (int) $second?->id, null, null, 1, $this->now)?->isEmpty());
+        self::assertNull($this->invoices->unpaidForPublication(1), 'FEE-11: paid passes');
+        self::assertSame(['changed' => true, 'invoice' => InvoiceService::ISSUED], $this->decisions->changeType($this->ctx, 1, 'oral', 1, $this->now));
+        $third = $this->invoices->currentForSubmission(1);
+        self::assertSame(30000, $third?->total->minor);
+        self::assertSame(20000, $third?->paidAmount()->minor);
+        self::assertSame(InvoiceStatus::Issued, $third?->status);
+        self::assertSame(InvoiceStatus::Superseded, $this->invoices->find($this->ctx, (int) $second?->id)?->status);
+        $events = $this->invoices->events($this->ctx, (int) $third?->id);
+        self::assertSame(20000, $events[0]['payload']['carried'] ?? null, 'the journal shows the carried payment');
+
+        // Overpaid after a cheaper type: the invoice stays, no refund here.
+        self::assertTrue($this->invoices->markPaid($this->ctx, (int) $third?->id, null, null, 1, $this->now)?->isEmpty());
+        self::assertSame(['changed' => true, 'invoice' => InvoiceService::KEPT], $this->decisions->changeType($this->ctx, 1, 'poster', 1, $this->now));
+        $over = $this->invoices->reissue($this->ctx, (int) $third?->id, null, 1, $this->now);
+        self::assertTrue(($over[1] ?? new ValidationErrors())->has('status'));
+    }
+
+    /** FEE-11: unpaid blocks, waived and free pass. */
+    public function testPublicationWaitsForPayment(): void
+    {
+        [$edition, $cat] = $this->edition();
+        $this->submit(1, $edition, $cat, 'oral');
+        self::assertNull($this->invoices->unpaidForPublication(1), 'no invoice yet');
+        $this->decisions->onDecision($this->ctx, 1, AcceptanceDecision::Oral->value, 1, $this->now);
+        $invoice = $this->invoices->unpaidForPublication(1);
+        self::assertSame(30000, $invoice?->due()->minor);
+        [$waiver] = $this->invoices->waive($this->ctx, (int) $invoice?->id, 'Запрошений доповідач', 1, $this->now) ?? [null];
+        self::assertNotNull($waiver);
+        self::assertNull($this->invoices->unpaidForPublication(1), 'waived passes');
+        self::assertNull($this->invoices->unpaidForPublication(4), 'not a conference submission');
+    }
+
     public function testPanel(): void
     {
         [$edition, $cat] = $this->edition();

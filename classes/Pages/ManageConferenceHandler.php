@@ -54,7 +54,7 @@ class ManageConferenceHandler extends Handler
         'invoiceTemplate.title', 'invoiceTemplate.description', 'invoiceTemplate.kind.bank', 'invoiceTemplate.kind.treasury',
         'invoiceTemplate.custom', 'invoiceTemplate.builtIn', 'invoiceTemplate.variables', 'invoiceTemplate.reset',
         'invoice.title', 'invoice.search', 'invoice.empty', 'invoice.number', 'invoice.payer', 'invoice.total', 'invoice.paidPart',
-        'invoice.markPaid', 'invoice.waive', 'invoice.history', 'invoice.paidPrompt', 'invoice.paidDone', 'invoice.waivePrompt',
+        'invoice.markPaid', 'invoice.reissue', 'invoice.reissuePrompt', 'invoice.reissueDone', 'invoice.waive', 'invoice.history', 'invoice.paidPrompt', 'invoice.paidDone', 'invoice.waivePrompt',
         'invoice.waiveDone', 'invoice.cancelConfirm', 'invoice.cancelDone', 'invoice.issue', 'invoice.issued', 'invoice.pagesPrompt',
         'invoice.event.issued', 'invoice.event.part_paid', 'invoice.event.paid', 'invoice.event.waived', 'invoice.event.superseded',
         'invoice.event.cancelled', 'invoice.event.status_cancelled', 'invoice.event.status_refund_requested',

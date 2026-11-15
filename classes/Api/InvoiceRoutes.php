@@ -40,6 +40,7 @@ use PKP\security\Role;
  * POST   invoices/{iid}/paid                         {amount, note}; less than due = part payment
  * POST   invoices/{iid}/waive                        {reason}
  * POST   invoices/{iid}/cancel
+ * POST   invoices/{iid}/reissue                     {pages}; new invoice, paid amount carried over (FEE-08)
  * GET    editions/{id}/payment-events?count&offset  the payment journal (FEE-13)
  * GET    proofs?status=pending&editionId&count&offset  receipts to review (FEE-10)
  * GET    proofs/{prid}/file                          the receipt file
@@ -73,6 +74,7 @@ final class InvoiceRoutes implements RouteModule
         Route::get('invoices/{invoiceId}/pdf', $this->getInvoicePdf(...))->name('conference.invoices.pdf')->whereNumber('invoiceId');
         Route::post('invoices/{invoiceId}/paid', $this->markInvoicePaid(...))->name('conference.invoices.paid')->whereNumber('invoiceId');
         Route::post('invoices/{invoiceId}/waive', $this->waiveInvoice(...))->name('conference.invoices.waive')->whereNumber('invoiceId');
+        Route::post('invoices/{invoiceId}/reissue', $this->reissueInvoice(...))->name('conference.invoices.reissue')->whereNumber('invoiceId');
         Route::post('invoices/{invoiceId}/cancel', $this->cancelInvoice(...))->name('conference.invoices.cancel')->whereNumber('invoiceId');
         Route::get('editions/{editionId}/payment-events', $this->getPaymentJournal(...))->name('conference.payments.journal')->whereNumber('editionId');
         Route::get('proofs', $this->getProofs(...))->name('conference.proofs.list');
@@ -241,6 +243,7 @@ final class InvoiceRoutes implements RouteModule
         }
         return response()->json($service->present($context, $invoice, \PKP\facades\Locale::getLocale()) + [
             'events' => $service->events($context, (int) $invoice->id),
+            'history' => $service->history($context, (int) $invoice->id, \PKP\facades\Locale::getLocale()),
         ], Response::HTTP_OK);
     }
 
@@ -312,6 +315,30 @@ final class InvoiceRoutes implements RouteModule
         return $waiver === null
             ? ConferenceApiController::errorResponse($errors, $errors->has('status') ? Response::HTTP_CONFLICT : Response::HTTP_BAD_REQUEST)
             : response()->json($service->present($context, $waiver, \PKP\facades\Locale::getLocale()), Response::HTTP_OK);
+    }
+
+    public function reissueInvoice(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $context = $this->api->contextInfo();
+        $service = ServiceFactory::invoices();
+        $pages = $r->input('pages');
+        $out = $service->reissue(
+            $context,
+            (int) $r->route('invoiceId'),
+            $pages === null || $pages === '' ? null : (int) $pages,
+            $this->api->actorId(),
+            self::now(),
+        );
+        if ($out === null) {
+            return ConferenceApiController::notFound();
+        }
+        [$invoice, $errors] = $out;
+        return $invoice === null
+            ? ConferenceApiController::errorResponse($errors, $errors->has('status') ? Response::HTTP_CONFLICT : Response::HTTP_BAD_REQUEST)
+            : response()->json($service->present($context, $invoice, \PKP\facades\Locale::getLocale()), Response::HTTP_OK);
     }
 
     public function cancelInvoice(Request $r): JsonResponse

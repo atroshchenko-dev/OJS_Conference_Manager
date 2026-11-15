@@ -350,6 +350,14 @@
 				}
 				self.api('POST', self.invoiceApiUrl + '/' + i.id + '/waive', { reason: reason }).then(function (r) { self.after(r, self.t('invoice.waiveDone')); });
 			},
+			reissue: function (i) {
+				var self = this;
+				var pages = window.prompt(self.t('invoice.reissuePrompt'), '');
+				if (pages === null) {
+					return;
+				}
+				self.api('POST', self.invoiceApiUrl + '/' + i.id + '/reissue', { pages: pages.trim() === '' ? null : Number(pages) }).then(function (r) { self.after(r, self.t('invoice.reissueDone')); });
+			},
 			cancelInvoice: function (i) {
 				var self = this;
 				if (!window.confirm(self.t('invoice.cancelConfirm', { number: i.number || i.id }))) {
@@ -395,11 +403,12 @@
 			<td class="cmEditions__actions">\
 				<a v-if="i.hasDocument" class="pkpButton" :href="pdf(i)" target="_blank" rel="noopener">PDF</a>\
 				<pkp-button v-if="i.isOpen" @click="markPaid(i)">{{ t(\'invoice.markPaid\') }}</pkp-button>\
+				<pkp-button v-if="(i.isOpen || i.status === \'paid\') && i.method !== \'waiver\'" @click="reissue(i)">{{ t(\'invoice.reissue\') }}</pkp-button>\
 				<pkp-button v-if="i.isOpen && i.paid.minor === 0" @click="waive(i)">{{ t(\'invoice.waive\') }}</pkp-button>\
 				<pkp-button v-if="i.isOpen && i.paid.minor === 0" :is-warnable="true" @click="cancelInvoice(i)">{{ t(\'cancel\') }}</pkp-button>\
 				<pkp-button @click="toggle(i)">{{ t(\'invoice.history\') }}</pkp-button>\
 			</td>\
-		</tr><tr v-if="opened && opened.id === i.id"><td colspan="6"><ul class="cmInvoices__events"><li v-for="(e, n) in opened.events" :key="n"><code>{{ e.createdAt }}</code> {{ t(\'invoice.event.\' + e.type) }}<template v-if="e.amount"> · {{ money(e.amount) }}</template><template v-if="e.payload && e.payload.note"> · {{ e.payload.note }}</template></li></ul></td></tr></template></tbody>\
+		</tr><tr v-if="opened && opened.id === i.id"><td colspan="6"><ul v-if="opened.history && opened.history.length > 1" class="cmInvoices__chain"><li v-for="h in opened.history" :key="h.id">{{ h.number || (\'#\' + h.id) }} · {{ h.statusLabel }} · {{ money(h.total) }}<template v-if="h.paid.minor > 0"> · {{ t(\'invoice.paidPart\', { amount: money(h.paid) }) }}</template></li></ul><ul class="cmInvoices__events"><li v-for="(e, n) in opened.events" :key="n"><code>{{ e.createdAt }}</code> {{ t(\'invoice.event.\' + e.type) }}<template v-if="e.amount"> · {{ money(e.amount) }}</template><template v-if="e.payload && e.payload.note"> · {{ e.payload.note }}</template></li></ul></td></tr></template></tbody>\
 	</table>\
 	<div class="cmEditions__buttons" v-if="pages > 1">\
 		<pkp-button :disabled="page <= 1" @click="go(page - 1)">‹</pkp-button>\

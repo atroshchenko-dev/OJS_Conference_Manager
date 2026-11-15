@@ -150,28 +150,44 @@ final class InvoiceService
         if ($existing !== null) {
             return ['result' => self::EXISTS, 'invoice' => $existing];
         }
+        [$result, $draft] = $this->draft($context, $p, $pages, $now);
+        if ($draft === null) {
+            return ['result' => $result, 'invoice' => null];
+        }
+        return ['result' => self::ISSUED, 'invoice' => $this->create($context, $draft, $actorId, $now)];
+    }
+
+    /**
+     * The invoice a participation would get now, not saved: the rule of the
+     * payer's category, the tariff and the snapshots (FEE-04, FEE-08).
+     *
+     * @param array<string, mixed> $p participation (findParticipation)
+     * @return array{0: string, 1: ?Invoice}
+     */
+    private function draft(ContextInfo $context, array $p, ?int $pages, DateTimeImmutable $now): array
+    {
         $edition = $this->edition($context, $p['editionId']);
         $payer = $this->participants->payer($p['participantId'], $context->primaryLocale);
         if ($edition === null || $payer === null) {
-            return ['result' => self::NOT_FOUND, 'invoice' => null];
+            return [self::NOT_FOUND, null];
         }
         $rule = PaymentRule::pick($this->payments->rules($edition->id ?? 0), $payer['categoryId']);
         if ($rule === null || !$rule->mode->issuesInvoice() || $payer['categoryId'] === null) {
-            return ['result' => self::FREE, 'invoice' => null];
+            return [self::FREE, null];
         }
 
         [$material, $quote] = $this->quoteFor($edition, $p, $payer['categoryId'], $pages, $now);
         if (!$quote->isOk()) {
-            return ['result' => $quote->problem === Quote::PAGES_REQUIRED ? self::PAGES_REQUIRED : self::NO_TARIFF, 'invoice' => null];
+            return [$quote->problem === Quote::PAGES_REQUIRED ? self::PAGES_REQUIRED : self::NO_TARIFF, null];
         }
         if ($quote->isFree()) {
-            return ['result' => self::FREE, 'invoice' => null];
+            return [self::FREE, null];
         }
 
         $total = $quote->total;
         $tariff = $quote->tariff;
         if ($total === null || $tariff === null) {
-            return ['result' => self::NO_TARIFF, 'invoice' => null];
+            return [self::NO_TARIFF, null];
         }
         $perPage = $tariff->pricing === PricingMode::PerPage;
         $locale = $context->primaryLocale;
@@ -181,11 +197,11 @@ final class InvoiceService
             $perPage ? (int) $quote->pages : 1,
             $perPage ? $tariff->amount : $total,
             $total,
-            $participationId,
+            (int) $p['participationId'],
             $p['submissionId'],
             $tariff->id,
         );
-        $invoice = $this->payments->createInvoice(new Invoice(
+        return [self::ISSUED, new Invoice(
             null,
             $context->id,
             $edition->id ?? 0,
@@ -199,15 +215,78 @@ final class InvoiceService
             payer: ['name' => $payer['name'], 'email' => $payer['email'], 'affiliation' => $payer['affiliation']],
             recipient: $this->recipient($context, $rule, $edition),
             method: $rule->mode->method(),
-        ), $actorId, $now);
-        $this->audit?->log($context->id, $actorId, 'invoice', $invoice->id, 'issued', null, ['number' => $invoice->number, 'total' => $total->minor]);
+        )];
+    }
+
+    /** Saves a drafted invoice, logs it and sends the letter to the payer. */
+    private function create(ContextInfo $context, Invoice $draft, ?int $actorId, DateTimeImmutable $now): Invoice
+    {
+        $invoice = $this->payments->createInvoice($draft, $actorId, $now);
+        $this->audit?->log($context->id, $actorId, 'invoice', $invoice->id, 'issued', $draft->supersedesId === null ? null : ['invoice' => $draft->supersedesId], [
+            'number' => $invoice->number, 'total' => $invoice->total->minor, 'paid' => $invoice->paidAmount()->minor,
+        ]);
         try {
-            $this->notifier?->invoiceIssued($context, $invoice, $this->present($context, $invoice, $locale));
+            $this->notifier?->invoiceIssued($context, $invoice, $this->present($context, $invoice, $context->primaryLocale));
         } catch (\Throwable $e) {
             // A failed letter must not undo the invoice: it is in the cabinet.
             error_log('conferenceManager: invoice letter failed: ' . $e->getMessage());
         }
-        return ['result' => self::ISSUED, 'invoice' => $invoice];
+        return $invoice;
+    }
+
+    /**
+     * FEE-08: a new invoice instead of an open or paid one, after the
+     * number of pages, the payer's category or the presentation type
+     * changed. What was paid is carried over, so only the difference is due;
+     * the old invoice becomes "superseded" and points to the new one.
+     *
+     * @return array{0: ?Invoice, 1: ValidationErrors}|null
+     */
+    public function reissue(ContextInfo $context, int $invoiceId, ?int $pages, ?int $actorId, DateTimeImmutable $now): ?array
+    {
+        $invoice = $this->payments->findInvoice($context->id, $invoiceId);
+        if ($invoice === null) {
+            return null;
+        }
+        $errors = new ValidationErrors();
+        if ($pages !== null && ($pages < 1 || $pages > 1000)) {
+            $errors->add('pages', 'plugins.generic.conferenceManager.fee.error.pages');
+            return [null, $errors];
+        }
+        $item = $invoice->items[0] ?? null;
+        $p = $item?->participationId === null ? null : $this->participants->findParticipation($context->id, (int) $item->participationId);
+        if ($invoice->isWaiver() || !in_array($invoice->status, [InvoiceStatus::Issued, InvoiceStatus::Overdue, InvoiceStatus::Paid], true)
+            || $p === null || $p['status'] !== ParticipationStatus::Active->value) {
+            $errors->add('status', self::K . 'notReissuable');
+            return [null, $errors];
+        }
+        if ($pages === null && $item !== null && $item->quantity > 1) {
+            $pages = $item->quantity;
+        }
+        [$result, $draft] = $this->draft($context, $p, $pages, $now);
+        if ($draft === null) {
+            $errors->add('pages', self::K . 'reissue.' . $result);
+            return [null, $errors];
+        }
+        $paid = $invoice->paidAmount();
+        if ($draft->total->currency !== $invoice->total->currency && $paid->minor > 0) {
+            $errors->add('status', self::K . 'reissue.currency');
+            return [null, $errors];
+        }
+        if ($draft->total->minor === $invoice->total->minor && $draft->total->currency === $invoice->total->currency
+            && $draft->items[0]->quantity === ($item?->quantity ?? 1)) {
+            $errors->add('pages', self::K . 'reissue.unchanged');
+            return [null, $errors];
+        }
+        if ($paid->minor >= $draft->total->minor && $paid->minor > 0) {
+            $errors->add('status', self::K . 'reissue.overpaid');
+            return [null, $errors];
+        }
+        $new = $this->create($context, $draft->with([
+            'supersedesId' => $invoice->id,
+            'paid' => $paid->minor > 0 ? $paid : null,
+        ]), $actorId, $now);
+        return [$new, $errors];
     }
 
     /**
@@ -252,9 +331,11 @@ final class InvoiceService
 
     /**
      * DEC-05: the presentation type of an accepted submission changed. An
-     * open, unpaid invoice whose amount no longer matches the tariff is
-     * cancelled and a new one is issued; a paid or part-paid invoice stays
-     * as it is (the manager settles the difference by hand).
+     * invoice whose amount no longer matches the tariff is replaced by a new
+     * one (FEE-08): an unpaid one is cancelled, a paid or part-paid one is
+     * superseded and what was paid is carried over, so the presenter pays
+     * only the difference. When the payment already covers the new amount,
+     * the invoice stays as it is (a refund is the manager's call).
      *
      * @return array{result: string, invoice: ?Invoice, previous: ?Invoice}
      */
@@ -268,13 +349,18 @@ final class InvoiceService
         if ($current === null) {
             return $this->issueFor($context, $participationId, null, $actorId, $now) + ['previous' => null];
         }
-        if (!$current->status->isOpen() || $current->paidAmount()->minor > 0 || $current->isWaiver()) {
+        if ($current->isWaiver() || !in_array($current->status, [InvoiceStatus::Issued, InvoiceStatus::Overdue, InvoiceStatus::Paid], true)) {
             return ['result' => self::KEPT, 'invoice' => $current, 'previous' => null];
         }
+        if ($current->paidAmount()->minor > 0) {
+            $done = $this->reissue($context, (int) $current->id, null, $actorId, $now);
+            $new = $done === null ? null : $done[0];
+            return $new === null
+                ? ['result' => self::KEPT, 'invoice' => $current, 'previous' => null]
+                : ['result' => self::ISSUED, 'invoice' => $new, 'previous' => $current];
+        }
         $p = $this->participants->findParticipation($context->id, $participationId);
-        $edition = $this->edition($context, $current->editionId);
-        $payer = $p === null ? null : $this->participants->payer($p['participantId'], $context->primaryLocale);
-        if ($p === null || $edition === null || $payer === null || $payer['categoryId'] === null) {
+        if ($p === null) {
             return ['result' => self::KEPT, 'invoice' => $current, 'previous' => null];
         }
         $pages = null;
@@ -283,15 +369,45 @@ final class InvoiceService
                 $pages = $item->quantity;
             }
         }
-        [, $quote] = $this->quoteFor($edition, $p, (int) $payer['categoryId'], $pages, $now);
-        $same = $quote->isOk() && !$quote->isFree() && $quote->total !== null && $quote->total->minor === $current->total->minor
-            && $quote->total->currency === $current->total->currency;
-        if ($same) {
+        [, $draft] = $this->draft($context, $p, $pages, $now);
+        if ($draft !== null && $draft->total->minor === $current->total->minor && $draft->total->currency === $current->total->currency) {
             return ['result' => self::KEPT, 'invoice' => $current, 'previous' => null];
         }
         $this->payments->changeStatus((int) $current->id, InvoiceStatus::Cancelled, [], 'cancelled', $actorId, ['reason' => 'presentation_type'], $now);
         $this->audit?->log($context->id, $actorId, 'invoice', $current->id, 'cancelled', null, ['reason' => 'presentation_type']);
         return $this->issueFor($context, $participationId, $pages, $actorId, $now) + ['previous' => $current];
+    }
+
+    /**
+     * FEE-11: a paid material is published only after payment. Returns the
+     * presenter's invoice that still waits for money, or null when nothing
+     * blocks: no invoice (free participation), paid or waived.
+     */
+    public function unpaidForPublication(int $submissionId): ?Invoice
+    {
+        $invoice = $this->currentForSubmission($submissionId);
+        return $invoice !== null && $invoice->status->isOpen() && !$invoice->isWaiver() && $invoice->due()->minor > 0 ? $invoice : null;
+    }
+
+    /**
+     * FEE-08: the chain of invoices of a participation, newest first, with
+     * the superseded and cancelled ones, so the manager sees what replaced
+     * what.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function history(ContextInfo $context, int $invoiceId, string $locale): array
+    {
+        $invoice = $this->payments->findInvoice($context->id, $invoiceId);
+        $participationId = $invoice?->items[0]->participationId ?? null;
+        if ($invoice === null || $participationId === null) {
+            return [];
+        }
+        $all = array_filter(
+            $this->payments->ofParticipants([$invoice->payerParticipantId]),
+            static fn (Invoice $i): bool => ($i->items[0]->participationId ?? null) === $participationId,
+        );
+        return array_values(array_map(fn (Invoice $i): array => $this->present($context, $i, $locale), $all));
     }
 
     /**

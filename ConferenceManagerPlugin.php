@@ -89,6 +89,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         Hook::add('TemplateManager::display', $this->addWizardStep(...));
         Hook::add('TemplateManager::display', $this->addWorkflowScript(...));
         Hook::add('Submission::validateSubmit', $this->validateSubmit(...));
+        Hook::add('Publication::validatePublish', $this->validatePublish(...));
         Event::listen(SubmissionSubmitted::class, $this->onSubmissionSubmitted(...));
         Event::listen(DecisionAdded::class, $this->onDecisionAdded(...));
         Hook::add('Decision::types', $this->addDecisionTypes(...));
@@ -408,6 +409,36 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
             }
         } catch (\Throwable $e) {
             error_log('conferenceManager: validate submit: ' . $e->getMessage());
+        }
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * FEE-11: a conference material whose fee is not paid is not published.
+     * Publication::validatePublish is run with Hook::call():
+     * [&$errors, $publication, $submission, $allowedLocales, $primaryLocale].
+     *
+     * @param array{0: array<string, string>, 1: \APP\publication\Publication, 2: \APP\submission\Submission} $args
+     */
+    public function validatePublish(string $hookName, array $args): bool
+    {
+        $errors = &$args[0];
+        $submission = $args[2];
+        $contextId = (int) $submission->getData('contextId');
+        if (!$this->isEnabledFor($contextId)) {
+            return Hook::CONTINUE;
+        }
+        try {
+            $invoice = ServiceFactory::invoices()->unpaidForPublication((int) $submission->getId());
+            if ($invoice !== null) {
+                $due = $invoice->due();
+                $errors['conferencePayment'] = __('plugins.generic.conferenceManager.publish.unpaid', [
+                    'number' => (string) $invoice->number,
+                    'due' => $due->decimal() . ' ' . $due->currency,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: validate publish: ' . $e->getMessage());
         }
         return Hook::CONTINUE;
     }
