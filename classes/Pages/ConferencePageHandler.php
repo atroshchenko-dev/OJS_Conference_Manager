@@ -358,8 +358,12 @@ class ConferencePageHandler extends Handler
         }
 
         $items = [];
+        $letters = ServiceFactory::invitationLetters();
         foreach ($service->myParticipations($info, (int) $user->getId(), $email, $locale, $now) as $p) {
+            $letterUrl = $letters->isAvailable($info, $p) ? $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'invitationLetter', [(string) $p['participationId']]) : null;
             $items[] = $p + [
+                'letterUrl' => $letterUrl,
+                'letterUrlEn' => $letterUrl === null ? null : $letterUrl . (str_contains($letterUrl, '?') ? '&' : '?') . 'lang=en',
                 'editionUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, (string) $p['editionPath']),
                 'startsAtText' => $this->formatDate($p['startsAt'] === null ? null : new DateTimeImmutable((string) $p['startsAt']), (string) $p['timezone'], $locale),
                 'cancelDeadlineText' => $this->formatDate($p['cancelDeadline'] === null ? null : new DateTimeImmutable((string) $p['cancelDeadline']), (string) $p['timezone'], $locale),
@@ -528,6 +532,40 @@ class ConferencePageHandler extends Handler
         $owner = $manager ? null : $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail());
         $lang = $request->getUserVar('lang');
         $pdf = ServiceFactory::certificates()->pdf($info, (int) ($args[0] ?? 0), $owner, is_string($lang) && preg_match('/^[a-z]{2}$/', $lang) === 1 ? $lang : null);
+        if ($pdf === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $pdf['name'] . '"');
+        header('Content-Length: ' . strlen($pdf['content']));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, no-store');
+        echo $pdf['content'];
+        exit;
+    }
+
+    /**
+     * COM-04: the letter of invitation for the participant or a
+     * registration manager.
+     */
+    public function invitationLetter($args, $request)
+    {
+        $context = $request->getContext();
+        $user = $request->getUser();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        if ($user === null) {
+            $dispatcher = $request->getDispatcher();
+            $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), 'login', null, null, [
+                'source' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'invitationLetter', [(string) ($args[0] ?? '')]),
+            ]));
+        }
+        $info = ContextGateway::fromContext($context);
+        $manager = (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId());
+        $owner = $manager ? null : $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail());
+        $lang = $request->getUserVar('lang');
+        $pdf = ServiceFactory::invitationLetters()->pdf($info, (int) ($args[0] ?? 0), $owner, is_string($lang) ? $lang : substr(Locale::getLocale(), 0, 2), new DateTimeImmutable('now', new DateTimeZone('UTC')));
         if ($pdf === null) {
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }

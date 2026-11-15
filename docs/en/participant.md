@@ -71,6 +71,10 @@ After registering you land in your cabinet. If participation is paid, the invoic
 
 Open `/{journal}/conference/my`. It shows all your participations in events of this journal, as a listener, presenter or co-author, with the role, category, form of participation, confirmation state and submission.
 
+### Letter of invitation
+
+Under a participation there is **Letter of invitation (PDF)** and **in English**. The letter on the institution's letterhead is for your employer or place of study, for example to arrange a business trip. Presenters and co-authors get it once their paper is accepted.
+
 ### How to pay an invoice
 
 Under **My invoices**, each invoice shows the amount, the state, the **Payment reference**, the **Payment purpose**, the **Payment method**, the **Due date** and the instructions.

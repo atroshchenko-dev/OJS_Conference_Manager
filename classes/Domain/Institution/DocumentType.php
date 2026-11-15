@@ -16,6 +16,8 @@ enum DocumentType: string
     case CertificateOrganizer = 'certificate_organizer';
     case CertificateReviewer = 'certificate_reviewer';
     case CertificateProfessionalDevelopment = 'certificate_pk';
+    /** COM-04 */
+    case InvitationLetter = 'invitation_letter';
 
     public function labelKey(): string
     {

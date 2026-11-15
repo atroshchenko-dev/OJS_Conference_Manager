@@ -702,7 +702,7 @@
 			<td>{{ p.confirmationLabel }}</td>\
 			<td>{{ p.statusLabel }}</td>\
 			<td v-if="editionUrl"><label class="cmAttendance"><input type="checkbox" :checked="p.attended" :disabled="p.status !== \'active\'" @change="setAttended(p, $event.target.checked)"> {{ p.attended ? t(\'attendance.present\') : t(\'attendance.absent\') }}</label><div class="cmEditions__path" v-if="p.attended && p.attendanceSource === \'import\'">{{ t(\'attendance.fromImport\', { minutes: p.attendedMinutes === null ? \'—\' : p.attendedMinutes }) }}</div></td>\
-			<td class="cmEditions__actions"><pkp-button v-if="p.status === \'active\'" @click="issueInvoice(p)">{{ t(\'invoice.issue\') }}</pkp-button><pkp-button v-if="p.status === \'active\'" :is-warnable="true" @click="cancelParticipation(p)">{{ t(\'participants.cancel\') }}</pkp-button></td>\
+			<td class="cmEditions__actions"><a v-if="p.letterAvailable" class="pkpButton" :href="cancelUrl + \'/\' + p.participationId + \'/invitation-letter\'" target="_blank" rel="noopener">{{ t(\'invitationLetter.short\') }}</a><pkp-button v-if="p.status === \'active\'" @click="issueInvoice(p)">{{ t(\'invoice.issue\') }}</pkp-button><pkp-button v-if="p.status === \'active\'" :is-warnable="true" @click="cancelParticipation(p)">{{ t(\'participants.cancel\') }}</pkp-button></td>\
 		</tr></tbody>\
 	</table>\
 	<div class="cmEditions__buttons" v-if="pages > 1">\

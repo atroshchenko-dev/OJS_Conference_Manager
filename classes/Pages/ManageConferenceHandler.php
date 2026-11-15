@@ -85,7 +85,7 @@ class ManageConferenceHandler extends Handler
         'dashboard.title', 'dashboard.refresh', 'dashboard.submissions', 'dashboard.waiting', 'dashboard.review', 'dashboard.accepted',
         'dashboard.declined', 'dashboard.published', 'dashboard.fullText', 'dashboard.byType', 'dashboard.participants', 'dashboard.active',
         'dashboard.cancelled', 'dashboard.payments', 'dashboard.noInvoices', 'dashboard.paid', 'dashboard.open', 'dashboard.due',
-        'dashboard.partPaid', 'dashboard.waived', 'dashboard.replaced', 'dashboard.pendingProofs', 'dashboard.reminders',
+        'dashboard.partPaid', 'dashboard.waived', 'dashboard.replaced', 'dashboard.pendingProofs', 'dashboard.reminders', 'scheduler.ok', 'scheduler.stale', 'scheduler.never', 'report.title', 'report.by', 'report.csv', 'report.empty', 'report.total', 'invitationLetter.short',
         'campaign.title', 'campaign.description', 'campaign.progress', 'campaign.failedCount', 'campaign.finished', 'campaign.recipients',
         'campaign.section', 'campaign.accepted', 'campaign.fullText', 'campaign.fullText.yes', 'campaign.fullText.no', 'campaign.preview',
         'campaign.count', 'campaign.tooMany', 'campaign.subject', 'campaign.body', 'campaign.variables', 'campaign.test', 'campaign.send',

@@ -27,6 +27,9 @@
 						{if $p.role !== 'listener'}<dt>{translate key="plugins.generic.conferenceManager.participants.confirmation"}</dt><dd>{$p.confirmationLabel|escape}</dd>{/if}
 						<dt>{translate key="plugins.generic.conferenceManager.participants.status"}</dt><dd>{$p.statusLabel|escape}</dd>
 					</dl>
+					{if $p.letterUrl}
+						<p class="cmMy__letter"><a class="cmEdition__button" href="{$p.letterUrl|escape}" target="_blank" rel="noopener">{translate key="plugins.generic.conferenceManager.invitationLetter.download"}</a> <a href="{$p.letterUrlEn|escape}" target="_blank" rel="noopener">{translate key="plugins.generic.conferenceManager.invitationLetter.downloadEn"}</a></p>
+					{/if}
 					{if $p.canCancel}
 						<form method="post" action="{$myUrl|escape}" class="cmMy__cancel">
 							{csrf}

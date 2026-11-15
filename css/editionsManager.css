@@ -98,6 +98,12 @@
 .cmDashboard__table { width: 100%; border-collapse: collapse; }
 .cmDashboard__table th, .cmDashboard__table td { padding: .25rem .5rem; text-align: right; border-bottom: 1px solid #eee; }
 .cmDashboard__table tbody th { text-align: left; font-weight: 400; }
+.cmReport { margin-top: 1rem; }
+.cmReport__toolbar { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; margin-bottom: .75rem; }
+.cmReport__scroll { overflow-x: auto; }
+.cmReport__table thead th:first-child, .cmReport__table tfoot th { text-align: left; }
+.cmReport__table tfoot th, .cmReport__table tfoot td { font-weight: 700; border-bottom: 0; }
+.cmDashboard__scheduler { margin: 0 0 1rem; }
 .cmCampaigns__filter, .cmReminders__kind { border: 1px solid #ddd; border-radius: 4px; padding: .75rem 1rem; margin: 0 0 1rem; display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: flex-end; }
 .cmCampaigns__filter label, .cmReminders__kind label, .cmCampaigns__letter label { display: flex; flex-direction: column; gap: .25rem; }
 .cmCampaigns__filter p, .cmReminders__kind p { flex-basis: 100%; margin: 0; }

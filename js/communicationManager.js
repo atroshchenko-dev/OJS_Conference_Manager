@@ -76,10 +76,15 @@
 		},
 		emits: ['back'],
 		data: function () {
-			return { data: null, error: '' };
+			return { data: null, error: '', dimension: '', report: null, reportError: '' };
 		},
 		mounted: function () {
 			this.load();
+		},
+		computed: {
+			csvUrl: function () {
+				return this.apiUrl + '/editions/' + this.editionId + '/reports/' + this.dimension + '?format=csv';
+			},
 		},
 		methods: {
 			load: function () {
@@ -90,6 +95,25 @@
 						return;
 					}
 					self.data = r.data;
+					if (!self.dimension && r.data.reportDimensions && r.data.reportDimensions.length) {
+						self.dimension = r.data.reportDimensions[0].value;
+					}
+					self.loadReport();
+				});
+			},
+			loadReport: function () {
+				var self = this;
+				if (!this.dimension) {
+					return;
+				}
+				this.reportError = '';
+				this.call('GET', this.apiUrl + '/editions/' + this.editionId + '/reports/' + this.dimension).then(function (r) {
+					if (!r.ok) {
+						self.reportError = firstError(r.data) || self.t('errors');
+						self.report = null;
+						return;
+					}
+					self.report = r.data;
 				});
 			},
 		},
@@ -102,7 +126,12 @@
 	</div>\
 	<p v-if="error" class="cmPanel__error" role="alert">{{ error }}</p>\
 	<p v-else-if="!data">{{ t(\'loading\') }}</p>\
-	<div v-else class="cmDashboard__grid">\
+	<template v-else>\
+	<p v-if="data.scheduler && data.scheduler.status !== \'ok\'" class="cmPanel__error cmDashboard__scheduler" role="alert">\
+		{{ data.scheduler.status === \'never\' ? t(\'scheduler.never\') : t(\'scheduler.stale\', { minutes: data.scheduler.minutes }) }}\
+	</p>\
+	<p v-else-if="data.scheduler" class="cmPanel__muted cmDashboard__scheduler">{{ t(\'scheduler.ok\', { minutes: data.scheduler.minutes }) }}</p>\
+	<div class="cmDashboard__grid">\
 		<section class="cmDashboard__card">\
 			<h3>{{ t(\'dashboard.submissions\') }}</h3>\
 			<p class="cmDashboard__big">{{ data.submissions.total }}</p>\
@@ -147,6 +176,25 @@
 			</dl>\
 		</section>\
 	</div>\
+	<section v-if="data.reportDimensions && data.reportDimensions.length" class="cmDashboard__card cmReport">\
+		<h3>{{ t(\'report.title\') }}</h3>\
+		<div class="cmReport__toolbar">\
+			<label>{{ t(\'report.by\') }} <select v-model="dimension" @change="loadReport">\
+				<option v-for="d in data.reportDimensions" :key="d.value" :value="d.value">{{ d.label }}</option>\
+			</select></label>\
+			<a class="pkpButton" :href="csvUrl">{{ t(\'report.csv\') }}</a>\
+		</div>\
+		<p v-if="reportError" class="cmPanel__error" role="alert">{{ reportError }}</p>\
+		<p v-else-if="report && !report.rows.length" class="cmPanel__muted">{{ t(\'report.empty\') }}</p>\
+		<div v-else-if="report" class="cmReport__scroll">\
+		<table class="cmDashboard__table cmReport__table">\
+			<thead><tr><th scope="col">{{ (data.reportDimensions.find(function (d) { return d.value === report.dimension; }) || {}).label }}</th><th v-for="c in report.columns" :key="c.value" scope="col">{{ c.label }}</th></tr></thead>\
+			<tbody><tr v-for="row in report.rows" :key="row.label"><th scope="row">{{ row.label }}</th><td v-for="c in report.columns" :key="c.value">{{ row.counts[c.value] }}</td></tr></tbody>\
+			<tfoot><tr><th scope="row">{{ t(\'report.total\') }}</th><td v-for="c in report.columns" :key="c.value">{{ report.totals[c.value] }}</td></tr></tfoot>\
+		</table>\
+		</div>\
+	</section>\
+	</template>\
 </div>',
 	});
 

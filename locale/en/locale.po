@@ -4241,3 +4241,105 @@ msgstr "Refunded: {$amount}"
 
 msgid "plugins.generic.conferenceManager.group.refused.invited"
 msgstr "an invited participant who pays no fee"
+
+msgid "plugins.generic.conferenceManager.documentType.invitation_letter"
+msgstr "Letter of invitation"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.number"
+msgstr "No. {$number} of {$date}"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.title"
+msgstr "Letter of invitation"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.salutation"
+msgstr "Dear {$name},"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.text"
+msgstr "{$institution} invites you to take part in the event “{$conference}” to be held on {$dates} at {$venue}. Your role: {$role}."
+
+msgid "plugins.generic.conferenceManager.invitationLetter.textNoVenue"
+msgstr "{$institution} invites you to take part in the event “{$conference}” to be held on {$dates}. Your role: {$role}."
+
+msgid "plugins.generic.conferenceManager.invitationLetter.paper"
+msgstr "Your paper “{$paper}” has been accepted for the programme."
+
+msgid "plugins.generic.conferenceManager.invitationLetter.form"
+msgstr "Form of participation: {$form}."
+
+msgid "plugins.generic.conferenceManager.invitationLetter.purpose"
+msgstr "This letter is issued for your employer or place of study, in particular to arrange a business trip or a visa."
+
+msgid "plugins.generic.conferenceManager.invitationLetter.download"
+msgstr "Letter of invitation (PDF)"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.downloadEn"
+msgstr "in English"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.short"
+msgstr "Invitation letter"
+
+msgid "plugins.generic.conferenceManager.report.title"
+msgstr "Reports"
+
+msgid "plugins.generic.conferenceManager.report.by"
+msgstr "Group by:"
+
+msgid "plugins.generic.conferenceManager.report.csv"
+msgstr "Download CSV"
+
+msgid "plugins.generic.conferenceManager.report.empty"
+msgstr "No data yet."
+
+msgid "plugins.generic.conferenceManager.report.total"
+msgstr "Total"
+
+msgid "plugins.generic.conferenceManager.report.none"
+msgstr "Not specified"
+
+msgid "plugins.generic.conferenceManager.report.dimension.sections"
+msgstr "Journal sections"
+
+msgid "plugins.generic.conferenceManager.report.dimension.types"
+msgstr "Presentation types"
+
+msgid "plugins.generic.conferenceManager.report.dimension.roles"
+msgstr "Participant roles"
+
+msgid "plugins.generic.conferenceManager.report.dimension.categories"
+msgstr "Participant categories"
+
+msgid "plugins.generic.conferenceManager.report.dimension.affiliations"
+msgstr "Institutions"
+
+msgid "plugins.generic.conferenceManager.report.dimension.countries"
+msgstr "Countries"
+
+msgid "plugins.generic.conferenceManager.report.dimension.forms"
+msgstr "Forms of participation"
+
+msgid "plugins.generic.conferenceManager.report.column.submissions"
+msgstr "Submissions"
+
+msgid "plugins.generic.conferenceManager.report.column.accepted"
+msgstr "Accepted"
+
+msgid "plugins.generic.conferenceManager.report.column.declined"
+msgstr "Declined"
+
+msgid "plugins.generic.conferenceManager.report.column.active"
+msgstr "Registered"
+
+msgid "plugins.generic.conferenceManager.report.column.attended"
+msgstr "Attended"
+
+msgid "plugins.generic.conferenceManager.report.column.cancelled"
+msgstr "Cancelled"
+
+msgid "plugins.generic.conferenceManager.scheduler.ok"
+msgstr "The OJS scheduler runs: last run {$minutes} min ago."
+
+msgid "plugins.generic.conferenceManager.scheduler.stale"
+msgstr "The OJS scheduler has not run the plugin's tasks for {$minutes} min. Reminders, mailings and batch documents will not work until the server administrator checks cron (administrator guide, section “Scheduler”)."
+
+msgid "plugins.generic.conferenceManager.scheduler.never"
+msgstr "The OJS scheduler has never run the plugin's tasks. Reminders, mailings and batch documents will not work until the server administrator sets up cron (administrator guide, section “Scheduler”)."

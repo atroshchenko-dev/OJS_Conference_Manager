@@ -28,6 +28,21 @@ final class DbEditionStatistics implements EditionStatistics
         return $out;
     }
 
+    public function participationRows(int $editionId): array
+    {
+        return array_map(static fn (object $r): array => [
+            'role' => (string) $r->role,
+            'status' => (string) $r->status,
+            'form' => (string) $r->participation_form,
+            'attended' => (bool) $r->attended,
+            'affiliation' => trim((string) ($r->affiliation ?? '')),
+            'country' => strtoupper(trim((string) ($r->country ?? ''))),
+            'categoryId' => $r->category_id === null ? null : (int) $r->category_id,
+        ], $this->db->table('conf_participations as pn')->join('conf_participants as p', 'p.id', '=', 'pn.participant_id')
+            ->where('p.edition_id', $editionId)->orderBy('pn.id')
+            ->get(['pn.role', 'pn.status', 'pn.participation_form', 'pn.attended', 'p.affiliation', 'p.country', 'p.category_id'])->all());
+    }
+
     public function invoices(int $editionId): array
     {
         return array_map(static fn (object $r): array => [

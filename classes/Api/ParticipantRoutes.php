@@ -49,6 +49,29 @@ final class ParticipantRoutes implements RouteModule
         Route::put('participations/{participationId}/category', $this->setParticipantCategory(...))->name('conference.participations.category')->whereNumber('participationId');
         Route::post('participations/{participationId}/cancel', $this->cancelParticipation(...))->name('conference.participations.cancel')->whereNumber('participationId');
         Route::post('editions/{editionId}/invitations', $this->inviteParticipant(...))->name('conference.participants.invite')->whereNumber('editionId');
+        Route::get('participations/{participationId}/invitation-letter', $this->getInvitationLetter(...))->name('conference.participations.letter')->whereNumber('participationId');
+    }
+
+    /** COM-04: the letter of invitation of any participant, for a manager. */
+    public function getInvitationLetter(Request $r): Response|JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $lang = $r->query('lang');
+        $pdf = ServiceFactory::invitationLetters()->pdf(
+            $this->api->contextInfo(),
+            (int) $r->route('participationId'),
+            null,
+            is_string($lang) ? $lang : null,
+            new DateTimeImmutable('now', new DateTimeZone('UTC')),
+        );
+        return $pdf === null ? ConferenceApiController::notFound() : new Response($pdf['content'], Response::HTTP_OK, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $pdf['name'] . '"',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 
     /** REG-10: the manager invites a person who pays nothing. */
@@ -86,6 +109,12 @@ final class ParticipantRoutes implements RouteModule
         foreach (ServiceFactory::fees()->categories($context, $editionId) ?? [] as $c) {
             $categories[] = ['id' => $c->id, 'name' => (string) $c->name->resolve(\PKP\facades\Locale::getLocale(), $context->primaryLocale)];
         }
+        // COM-04: whether the invitation letter can be downloaded now
+        $letters = ServiceFactory::invitationLetters()->available($context, $page['items']);
+        foreach ($page['items'] as &$item) {
+            $item['letterAvailable'] = in_array($item['participationId'], $letters, true);
+        }
+        unset($item);
         return response()->json($page + ['maxPage' => ParticipantFilter::MAX_PAGE, 'categories' => $categories], Response::HTTP_OK);
     }
 

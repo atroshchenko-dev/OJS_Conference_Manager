@@ -464,6 +464,22 @@ In the **Invoices** list, open **Export for accounting**.
 
 The CSV is made for Excel: UTF-8, ";" as separator, decimal comma. **XLSX needs the PHP `zip` extension on the server**; without it only CSV is available.
 
+### Reports
+
+The **Reports** card at the bottom of **Summary** groups the edition by one dimension:
+- **Journal sections** and **Presentation types**: submitted, accepted, declined;
+- **Participant roles**, **Participant categories**, **Institutions**, **Countries**, **Forms of participation**: registered, attended, cancelled.
+
+Rows are sorted largest first. Institution names that differ only in spaces or case are counted together. The last row is **Total**. **Download CSV** gives the table for Excel (UTF-8, ";" separator).
+
+### Is the scheduler running
+
+Above the cards you see when the OJS scheduler last ran the plugin's tasks. If it has not run for more than two hours or never, a warning appears: reminders, submission windows, mailings and batch documents will not work. Send it to the server administrator; see the [site administrator guide](site-admin.md), "How to set up cron and the OJS queue".
+
+### Letter of invitation
+
+A participant with an active participation can download a letter of invitation as a PDF from the cabinet, in Ukrainian or English. Presenters and co-authors get it only once the submission is accepted (copyediting or later) and not declined. The letter has the institution's letterhead from the profile, an outgoing number `{edition path}/{participation number}`, the event's name, dates and venue, the role, the accepted paper and the form of participation. It is signed by the signer with the document type **Letter of invitation**, or the first signer of the profile. A manager downloads the letter with **Invitation letter** in the register of participants.
+
 ## Google Scholar
 
 If the Google Scholar plugin is enabled in the journal, the article page of an event paper shows the event name (`citation_conference_title`) instead of the journal name, plus the proceedings ISBN and the publisher (the institution's name).

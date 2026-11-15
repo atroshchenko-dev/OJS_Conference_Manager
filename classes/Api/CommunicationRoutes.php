@@ -47,6 +47,8 @@ final class CommunicationRoutes implements RouteModule
     public function routes(): void
     {
         Route::get('editions/{editionId}/dashboard', $this->getEditionDashboard(...))->name('conference.dashboard')->whereNumber('editionId');
+        Route::get('editions/{editionId}/reports/{dimension}', $this->getEditionReport(...))->name('conference.reports.get')->whereNumber('editionId')->whereAlpha('dimension');
+        Route::get('health', $this->getHealth(...))->name('conference.health');
         Route::get('editions/{editionId}/campaigns', $this->getCampaigns(...))->name('conference.campaigns.list')->whereNumber('editionId');
         Route::post('editions/{editionId}/campaigns/preview', $this->previewCampaign(...))->name('conference.campaigns.preview')->whereNumber('editionId');
         Route::post('editions/{editionId}/campaigns/test', $this->testCampaign(...))->name('conference.campaigns.test')->whereNumber('editionId');
@@ -73,8 +75,48 @@ final class CommunicationRoutes implements RouteModule
         if (!$this->api->canManageRegistrations()) {
             return ConferenceApiController::forbidden();
         }
-        $out = ServiceFactory::dashboard()->edition($this->api->contextInfo(), (int) $r->route('editionId'), \PKP\facades\Locale::getLocale());
-        return $out === null ? ConferenceApiController::notFound() : response()->json($out, Response::HTTP_OK);
+        $locale = \PKP\facades\Locale::getLocale();
+        $out = ServiceFactory::dashboard()->edition($this->api->contextInfo(), (int) $r->route('editionId'), $locale);
+        if ($out === null) {
+            return ConferenceApiController::notFound();
+        }
+        $reports = ServiceFactory::reports();
+        return response()->json($out + ['scheduler' => $reports->scheduler(self::now()), 'reportDimensions' => $reports->dimensions($locale)], Response::HTTP_OK);
+    }
+
+    /** RPT-02: one report of an edition as JSON, or CSV with format=csv. */
+    public function getEditionReport(Request $r): Response|JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $locale = \PKP\facades\Locale::getLocale();
+        $editionId = (int) $r->route('editionId');
+        $dimension = (string) $r->route('dimension');
+        $reports = ServiceFactory::reports();
+        if ($r->query('format') === 'csv') {
+            $csv = $reports->csv($this->api->contextInfo(), $editionId, $dimension, $locale);
+            return $csv === null ? ConferenceApiController::notFound() : new Response($csv, Response::HTTP_OK, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="report-' . $editionId . '-' . $dimension . '-' . gmdate('Ymd') . '.csv"',
+                'Cache-Control' => 'no-store',
+            ]);
+        }
+        $out = $reports->report($this->api->contextInfo(), $editionId, $dimension, $locale);
+        if ($out === null) {
+            return ConferenceApiController::notFound();
+        }
+        unset($out['table']);
+        return response()->json($out, Response::HTTP_OK);
+    }
+
+    /** RPT-03: whether the OJS scheduler runs. */
+    public function getHealth(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        return response()->json(['scheduler' => ServiceFactory::reports()->scheduler(self::now())], Response::HTTP_OK);
     }
 
     public function getCampaigns(Request $r): JsonResponse

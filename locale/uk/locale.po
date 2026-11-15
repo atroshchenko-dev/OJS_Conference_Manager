@@ -4241,3 +4241,105 @@ msgstr "Повернено: {$amount}"
 
 msgid "plugins.generic.conferenceManager.group.refused.invited"
 msgstr "запрошений учасник, оргвнесок не сплачує"
+
+msgid "plugins.generic.conferenceManager.documentType.invitation_letter"
+msgstr "Лист-запрошення"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.number"
+msgstr "№ {$number} від {$date}"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.title"
+msgstr "Лист-запрошення"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.salutation"
+msgstr "Шановний(-а) {$name}!"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.text"
+msgstr "{$institution} запрошує Вас узяти участь у заході «{$conference}», що відбудеться {$dates} за адресою: {$venue}. Ваша роль: {$role}."
+
+msgid "plugins.generic.conferenceManager.invitationLetter.textNoVenue"
+msgstr "{$institution} запрошує Вас узяти участь у заході «{$conference}», що відбудеться {$dates}. Ваша роль: {$role}."
+
+msgid "plugins.generic.conferenceManager.invitationLetter.paper"
+msgstr "Вашу доповідь «{$paper}» прийнято до програми заходу."
+
+msgid "plugins.generic.conferenceManager.invitationLetter.form"
+msgstr "Форма участі: {$form}."
+
+msgid "plugins.generic.conferenceManager.invitationLetter.purpose"
+msgstr "Лист видано для пред'явлення за місцем роботи чи навчання, зокрема для оформлення відрядження."
+
+msgid "plugins.generic.conferenceManager.invitationLetter.download"
+msgstr "Лист-запрошення (PDF)"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.downloadEn"
+msgstr "англійською"
+
+msgid "plugins.generic.conferenceManager.invitationLetter.short"
+msgstr "Лист-запрошення"
+
+msgid "plugins.generic.conferenceManager.report.title"
+msgstr "Звіти"
+
+msgid "plugins.generic.conferenceManager.report.by"
+msgstr "Розріз:"
+
+msgid "plugins.generic.conferenceManager.report.csv"
+msgstr "Завантажити CSV"
+
+msgid "plugins.generic.conferenceManager.report.empty"
+msgstr "Даних поки немає."
+
+msgid "plugins.generic.conferenceManager.report.total"
+msgstr "Разом"
+
+msgid "plugins.generic.conferenceManager.report.none"
+msgstr "Не вказано"
+
+msgid "plugins.generic.conferenceManager.report.dimension.sections"
+msgstr "Секції журналу"
+
+msgid "plugins.generic.conferenceManager.report.dimension.types"
+msgstr "Типи доповідей"
+
+msgid "plugins.generic.conferenceManager.report.dimension.roles"
+msgstr "Ролі учасників"
+
+msgid "plugins.generic.conferenceManager.report.dimension.categories"
+msgstr "Категорії учасників"
+
+msgid "plugins.generic.conferenceManager.report.dimension.affiliations"
+msgstr "Установи"
+
+msgid "plugins.generic.conferenceManager.report.dimension.countries"
+msgstr "Країни"
+
+msgid "plugins.generic.conferenceManager.report.dimension.forms"
+msgstr "Форми участі"
+
+msgid "plugins.generic.conferenceManager.report.column.submissions"
+msgstr "Подання"
+
+msgid "plugins.generic.conferenceManager.report.column.accepted"
+msgstr "Прийнято"
+
+msgid "plugins.generic.conferenceManager.report.column.declined"
+msgstr "Відхилено"
+
+msgid "plugins.generic.conferenceManager.report.column.active"
+msgstr "Зареєстровано"
+
+msgid "plugins.generic.conferenceManager.report.column.attended"
+msgstr "Були присутні"
+
+msgid "plugins.generic.conferenceManager.report.column.cancelled"
+msgstr "Скасовано"
+
+msgid "plugins.generic.conferenceManager.scheduler.ok"
+msgstr "Планувальник OJS працює: останній запуск {$minutes} хв тому."
+
+msgid "plugins.generic.conferenceManager.scheduler.stale"
+msgstr "Планувальник OJS не запускав завдання плагіна вже {$minutes} хв. Нагадування, розсилки й пакетна видача документів не працюватимуть, доки адміністратор сервера не перевірить cron (посібник адміністратора, розділ «Планувальник»)."
+
+msgid "plugins.generic.conferenceManager.scheduler.never"
+msgstr "Планувальник OJS ще жодного разу не запускав завдання плагіна. Нагадування, розсилки й пакетна видача документів не працюватимуть, доки адміністратор сервера не налаштує cron (посібник адміністратора, розділ «Планувальник»)."

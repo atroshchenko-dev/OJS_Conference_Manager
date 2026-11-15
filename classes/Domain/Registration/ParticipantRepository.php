@@ -43,7 +43,7 @@ interface ParticipantRepository
 
     /**
      * @return array{participationId: int, participantId: int, editionId: int, userId: ?int, email: string,
-     *   role: string, status: string, submissionId: ?int}|null
+     *   role: string, status: string, submissionId: ?int, participationForm: string}|null
      */
     public function findParticipation(int $contextId, int $participationId): ?array;
 

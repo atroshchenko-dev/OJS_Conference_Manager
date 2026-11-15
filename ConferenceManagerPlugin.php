@@ -249,7 +249,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
                 $handler = new ConferencePageHandler($this);
                 return true;
             }
-            if ($contextId !== null && in_array($op, ['confirm', 'my', 'invoice', 'receipt', 'certificate', 'verify', 'documents'], true) && $this->isEnabledFor((int) $contextId)) {
+            if ($contextId !== null && in_array($op, ['confirm', 'my', 'invoice', 'receipt', 'certificate', 'verify', 'documents', 'invitationLetter'], true) && $this->isEnabledFor((int) $contextId)) {
                 $handler = new ConferencePageHandler($this);
                 return true;
             }

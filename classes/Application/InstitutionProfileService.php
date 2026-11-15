@@ -52,6 +52,13 @@ final class InstitutionProfileService
         return $this->jurisdictions->has($code) ? $this->jurisdictions->get($code)->getFeatures() : [];
     }
 
+    /** The label of the institution's legal id in its jurisdiction (ЄДРПОУ in Ukraine). */
+    public function legalIdLabelKey(ContextInfo $context): string
+    {
+        $code = $this->getOrDraft($context)->jurisdiction;
+        return ($this->jurisdictions->has($code) ? $this->jurisdictions->get($code) : new \APP\plugins\generic\conferenceManager\classes\Jurisdiction\Generic\GenericProfile())->getLegalIdLabelKey();
+    }
+
     public function exists(int $contextId): bool
     {
         return $this->repository->findByContextId($contextId) !== null;

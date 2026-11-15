@@ -143,7 +143,7 @@ final class DbParticipantRepository implements ParticipantRepository
         $r = $this->db->table('conf_participations as pn')
             ->join('conf_participants as p', 'p.id', '=', 'pn.participant_id')
             ->where('p.context_id', $contextId)->where('pn.id', $participationId)
-            ->first(['pn.id', 'pn.participant_id', 'p.edition_id', 'p.user_id', 'p.email', 'pn.role', 'pn.status', 'pn.submission_id']);
+            ->first(['pn.id', 'pn.participant_id', 'p.edition_id', 'p.user_id', 'p.email', 'pn.role', 'pn.status', 'pn.submission_id', 'pn.participation_form']);
         if ($r === null) {
             return null;
         }
@@ -156,6 +156,7 @@ final class DbParticipantRepository implements ParticipantRepository
             'role' => (string) $r->role,
             'status' => (string) $r->status,
             'submissionId' => $r->submission_id === null ? null : (int) $r->submission_id,
+            'participationForm' => (string) $r->participation_form,
         ];
     }
 

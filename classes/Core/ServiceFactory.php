@@ -397,6 +397,38 @@ final class ServiceFactory
         );
     }
 
+    /** RPT-02, RPT-03 */
+    public static function reports(): \APP\plugins\generic\conferenceManager\classes\Application\ReportService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\ReportService(
+            new DbEditionRepository($db),
+            new DbRegistrationRepository($db),
+            new EditorialGateway(),
+            new DbEditionStatistics($db),
+            new DbFeeRepository($db),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
+            static function (): array {
+                $runs = self::settings()->get(0, 'taskRuns');
+                return is_array($runs) ? $runs : [];
+            },
+        );
+    }
+
+    /** COM-04 */
+    public static function invitationLetters(): \APP\plugins\generic\conferenceManager\classes\Application\InvitationLetterService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\InvitationLetterService(
+            new DbParticipantRepository($db),
+            new DbEditionRepository($db),
+            new EditorialGateway(),
+            self::institutionProfiles(),
+            new MpdfRenderer(),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
+        );
+    }
+
     public static function dashboard(): DashboardService
     {
         $db = DB::connection();

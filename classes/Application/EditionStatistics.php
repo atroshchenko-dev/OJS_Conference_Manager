@@ -17,6 +17,13 @@ interface EditionStatistics
 
     public function pendingProofs(int $editionId): int;
 
+    /**
+     * RPT-02: one row per participation of the edition, for the reports.
+     *
+     * @return list<array{role: string, status: string, form: string, attended: bool, affiliation: string, country: string, categoryId: ?int}>
+     */
+    public function participationRows(int $editionId): array;
+
     /** Keeps the text of a consent version the first time it is used. */
     public function rememberConsent(int $contextId, string $version, string $texts, DateTimeImmutable $now): void;
 
