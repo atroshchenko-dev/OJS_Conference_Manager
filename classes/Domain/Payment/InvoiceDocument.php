@@ -26,7 +26,7 @@ final class InvoiceDocument
     public const VARIABLES = [
         'invoiceNumber', 'paymentReference', 'issueDate', 'dueDate',
         'institutionName', 'institutionAddress', 'recipientName', 'recipientLegalId', 'iban', 'bankName',
-        'payerName', 'payerEmail', 'payerAffiliation', 'editionTitle',
+        'payerName', 'payerEmail', 'payerAffiliation', 'payerRequisites', 'editionTitle',
         'purpose', 'total', 'currency', 'totalInWords', 'instructions',
         'signerName', 'signerPosition', 'itemsTable', 'accountFieldsRows',
     ];
@@ -56,7 +56,7 @@ final class InvoiceDocument
 
     /**
      * @param array<string, mixed> $invoice InvoiceService::present()
-     * @param array{no: string, description: string, quantity: string, price: string, amount: string, total: string} $labels
+     * @param array{no: string, description: string, quantity: string, price: string, amount: string, total: string, legalId?: string, taxId?: string} $labels
      * @param string $separator decimal separator of the document language
      */
     public static function render(string $html, array $invoice, array $labels, string $separator = '.'): string
@@ -83,6 +83,9 @@ final class InvoiceDocument
             'payerName' => $payer['name'] ?? '',
             'payerEmail' => $payer['email'] ?? '',
             'payerAffiliation' => $payer['affiliation'] ?? '',
+            // JUR-05: "ЄДРПОУ: 12345678" of an organisation, or the personal tax number when asked.
+            'payerRequisites' => ($payer['legalId'] ?? '') !== '' ? ($labels['legalId'] ?? '') . ': ' . $payer['legalId']
+                : (($payer['taxId'] ?? '') !== '' ? ($labels['taxId'] ?? '') . ': ' . $payer['taxId'] : ''),
             'editionTitle' => $invoice['editionName'] ?? '',
             'purpose' => $invoice['purpose'] ?? '',
             'total' => $money($total),

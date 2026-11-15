@@ -125,6 +125,48 @@ final class DbCertificateRepository implements CertificateRepository
             ->orderByDesc('id')->get()->all());
     }
 
+    public function revoke(int $id, string $reason, ?int $replacedById, DateTimeImmutable $now): bool
+    {
+        return $this->db->table('conf_certificates')->where('id', $id)->whereNull('revoked_at')->update([
+            'revoked_at' => DateInput::toStorage($now),
+            'revoke_reason' => $reason,
+            'replaced_by_id' => $replacedById,
+            'updated_at' => DateInput::toStorage($now),
+        ]) > 0;
+    }
+
+    public function setReplacedBy(int $id, int $replacedById): void
+    {
+        $this->db->table('conf_certificates')->where('id', $id)->update(['replaced_by_id' => $replacedById, 'updated_at' => gmdate('Y-m-d H:i:s')]);
+    }
+
+    public function forExport(int $contextId, int $editionId, string $type, bool $onlyNew): array
+    {
+        $q = $this->db->table('conf_certificates')->where('context_id', $contextId)->where('edition_id', $editionId)
+            ->where('type', $type)->whereNull('revoked_at');
+        if ($onlyNew) {
+            $q->whereNull('vector_exported_at');
+        }
+        return array_map(static fn (object $r): array => self::hydrate($r) + [
+            'vectorExportedAt' => DateInput::toIsoUtc(DateInput::fromStorage($r->vector_exported_at === null ? null : (string) $r->vector_exported_at)),
+        ], $q->orderBy('id')->get()->all());
+    }
+
+    public function markExported(array $ids, DateTimeImmutable $now): void
+    {
+        foreach (array_chunk($ids, 500) as $chunk) {
+            $this->db->table('conf_certificates')->whereIn('id', $chunk)->update(['vector_exported_at' => DateInput::toStorage($now)]);
+        }
+    }
+
+    public function publicList(int $contextId, string $type, int $count, int $offset): array
+    {
+        $q = $this->db->table('conf_certificates')->where('context_id', $contextId)->where('type', $type)->whereNull('revoked_at');
+        $total = (clone $q)->count();
+        $rows = $q->orderByDesc('issued_at')->orderByDesc('id')->offset(max(0, $offset))->limit(max(1, min(200, $count)))->get()->all();
+        return ['items' => array_map(static fn (object $r): array => self::hydrate($r), $rows), 'itemsMax' => $total];
+    }
+
     /** @return array<string, mixed> */
     private static function hydrate(object $r): array
     {

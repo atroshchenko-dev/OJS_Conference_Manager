@@ -17,6 +17,16 @@ abstract class AbstractJurisdictionProfile implements JurisdictionProfile
         return false;
     }
 
+    public function validatePersonalTaxId(string $taxId): ?string
+    {
+        return preg_match('/^[A-Za-z0-9-]{4,32}$/', $taxId) === 1 ? null : self::K . 'taxId';
+    }
+
+    public function getPersonalTaxIdLabelKey(): string
+    {
+        return 'plugins.generic.conferenceManager.payer.taxId';
+    }
+
     public function validateIban(string $iban, PaymentAccountKind $kind): ?string
     {
         return Iban::isValid($iban) ? null : self::K . 'iban';

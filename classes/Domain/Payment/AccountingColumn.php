@@ -19,6 +19,8 @@ enum AccountingColumn: string
     case PayerName = 'payerName';
     case PayerEmail = 'payerEmail';
     case PayerAffiliation = 'payerAffiliation';
+    /** JUR-05: ЄДРПОУ of an organisation that pays, or the personal tax number when asked. */
+    case PayerCode = 'payerCode';
     case Edition = 'edition';
     case Category = 'category';
     case Role = 'role';

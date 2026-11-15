@@ -23,6 +23,9 @@ final class DbParticipantRepository implements ParticipantRepository
     /** Invoice states that still wait for money. */
     private const UNPAID = ['draft', 'issued', 'overdue'];
 
+    /** JUR-05: payer details => setting names of the participant. */
+    private const PAYER_FIELDS = ['kind' => 'payerKind', 'organization' => 'payerOrganization', 'legalId' => 'payerLegalId', 'taxId' => 'payerTaxId'];
+
     public function __construct(private readonly Connection $db)
     {
     }
@@ -316,6 +319,9 @@ final class DbParticipantRepository implements ParticipantRepository
             'email' => (string) $p->email,
             'affiliation' => (string) ($p->affiliation ?? ''),
             'categoryId' => $p->category_id === null ? null : (int) $p->category_id,
+            'details' => $this->db->table('conf_participant_settings')->where('participant_id', $participantId)
+                ->whereIn('setting_name', array_values(self::PAYER_FIELDS))->pluck('setting_value', 'setting_name')
+                ->mapWithKeys(static fn ($v, $k): array => [(string) array_search($k, self::PAYER_FIELDS, true) => (string) $v])->all(),
         ];
     }
 
@@ -347,6 +353,17 @@ final class DbParticipantRepository implements ParticipantRepository
             $out[$id] = trim($pick($p['givenName'] ?? []) . ' ' . $pick($p['familyName'] ?? []));
         }
         return $out;
+    }
+
+    public function setPayerDetails(int $participantId, array $details): void
+    {
+        foreach (self::PAYER_FIELDS as $key => $name) {
+            $value = trim((string) ($details[$key] ?? ''));
+            $where = ['participant_id' => $participantId, 'locale' => '', 'setting_name' => $name];
+            $value === ''
+                ? $this->db->table('conf_participant_settings')->where($where)->delete()
+                : $this->db->table('conf_participant_settings')->updateOrInsert($where, ['setting_value' => mb_substr($value, 0, 255)]);
+        }
     }
 
     private static function cut(?string $value): ?string

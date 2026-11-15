@@ -6,7 +6,7 @@ namespace APP\plugins\generic\conferenceManager\classes\Domain\Certificate;
 
 use APP\plugins\generic\conferenceManager\classes\Domain\Institution\DocumentType;
 
-/** Certificate kinds of CRT-01; professional development (CRT-03) comes with the UA profile. */
+/** Certificate kinds of CRT-01; professional development (CRT-03) only in a jurisdiction with that feature. */
 enum CertificateType: string
 {
     case Participation = 'participation';
@@ -14,6 +14,7 @@ enum CertificateType: string
     case Listener = 'listener';
     case Organizer = 'organizer';
     case Reviewer = 'reviewer';
+    case ProfessionalDevelopment = 'pk';
 
     public function documentType(): DocumentType
     {
@@ -23,6 +24,7 @@ enum CertificateType: string
             self::Listener => DocumentType::CertificateListener,
             self::Organizer => DocumentType::CertificateOrganizer,
             self::Reviewer => DocumentType::CertificateReviewer,
+            self::ProfessionalDevelopment => DocumentType::CertificateProfessionalDevelopment,
         };
     }
 

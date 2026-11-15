@@ -2,7 +2,8 @@
  * Certificates, opened from the editions page:
  *
  *   ConferenceCertificates          who gets which certificate in an edition,
- *                                   issue and download (CRT-04, CRT-05)
+ *                                   issue, batch issue, reviewers, revoke and
+ *                                   reissue, the "Vector" export (CRT-04…CRT-11)
  *   ConferenceCertificateTemplates  templates per type with variables and a
  *                                   preview, the number series (CRT-01, CRT-02)
  *
@@ -77,9 +78,20 @@
 		},
 		emits: ['back'],
 		data: function () {
-			return { isLoading: true, items: [], threshold: 30, chosen: [], busy: false, show: 'all' };
+			return {
+				isLoading: true, items: [], issuedList: [], threshold: 30, chosen: [], busy: false, show: 'all',
+				settings: { vectorEnabled: false, professionalDevelopment: false }, polls: 0, timer: null,
+			};
+		},
+		beforeUnmount: function () {
+			if (this.timer) {
+				clearTimeout(this.timer);
+			}
 		},
 		computed: {
+			vectorUrl: function () {
+				return this.apiUrl + '/editions/' + this.editionId + '/vector-export';
+			},
 			eligible: function () {
 				return this.items.filter(function (c) { return c.type && !c.issued; });
 			},
@@ -100,55 +112,115 @@
 			this.load();
 		},
 		methods: {
-			load: function () {
+			load: function (quiet) {
 				var self = this;
-				self.isLoading = true;
-				self.call('GET', self.apiUrl + '/editions/' + self.editionId + '/certificate-candidates').then(function (r) {
+				self.isLoading = !quiet;
+				var base = self.apiUrl + '/editions/' + self.editionId;
+				return Promise.all([
+					self.call('GET', base + '/certificate-candidates'),
+					self.call('GET', base + '/certificates'),
+					self.call('GET', self.apiUrl + '/certificate-settings'),
+				]).then(function (r) {
 					self.isLoading = false;
-					if (!r.ok) {
-						notify(firstError(r.data), 'warning');
+					if (!r[0].ok) {
+						notify(firstError(r[0].data), 'warning');
 						return;
 					}
-					self.items = r.data.items || [];
-					self.threshold = r.data.threshold || 30;
-					self.chosen = [];
+					self.items = r[0].data.items || [];
+					self.threshold = r[0].data.threshold || 30;
+					self.issuedList = r[1].ok ? (r[1].data.items || []) : [];
+					if (r[2].ok) {
+						self.settings = r[2].data;
+					}
+					if (!quiet) {
+						self.chosen = [];
+					}
 				});
 			},
 			toggleAll: function () {
 				this.chosen = this.allChosen ? [] : this.eligible.map(function (c) { return c.participationId; });
 			},
-			issue: function () {
+			/** CRT-06: the chosen ones, or everyone eligible; many go to the queue. */
+			issue: function (everyone) {
 				var self = this;
-				if (!self.chosen.length || !window.confirm(self.t('certificate.issueConfirm', { count: self.chosen.length }))) {
+				var count = everyone ? self.eligible.length : self.chosen.length;
+				if (!count || !window.confirm(self.t('certificate.issueConfirm', { count: count }))) {
 					return;
 				}
 				self.busy = true;
-				// The server issues at most 50 at a time.
-				var queue = self.chosen.slice();
-				var issued = 0;
-				var next = function () {
-					var part = queue.splice(0, 50);
-					if (!part.length) {
-						self.busy = false;
-						notify(self.t('certificate.issued', { count: issued }));
+				var body = everyone ? {} : { participationIds: self.chosen.slice() };
+				self.call('POST', self.apiUrl + '/editions/' + self.editionId + '/certificates/batch', body).then(function (r) {
+					self.busy = false;
+					if (!r.ok) {
+						notify(firstError(r.data), 'warning');
 						self.load();
 						return;
 					}
-					self.call('POST', self.apiUrl + '/editions/' + self.editionId + '/certificates', { participationIds: part }).then(function (r) {
-						if (!r.ok) {
-							self.busy = false;
-							notify(firstError(r.data), 'warning');
-							self.load();
-							return;
-						}
-						issued += (r.data.items || []).filter(function (x) { return x.status === 'issued'; }).length;
-						next();
-					});
-				};
-				next();
+					if (r.data.queued) {
+						notify(self.t('certificate.queued', { count: r.data.queued }));
+						self.polls = 0;
+						self.poll();
+					} else {
+						notify(self.t('certificate.issued', { count: r.data.issued }));
+					}
+					self.load();
+				});
 			},
-			link: function (id) {
-				return this.pdfUrl.replace('__id__', String(id));
+			/** Follows the queue until no more certificates appear. */
+			poll: function () {
+				var self = this;
+				var before = self.issuedCount;
+				self.timer = setTimeout(function () {
+					self.load(true).then(function () {
+						self.polls = self.issuedCount === before ? self.polls + 1 : 0;
+						if (self.eligible.length && self.polls < 6) {
+							self.poll();
+						}
+					});
+				}, 5000);
+			},
+			addReviewers: function () {
+				var self = this;
+				self.busy = true;
+				self.call('POST', self.apiUrl + '/editions/' + self.editionId + '/reviewers').then(function (r) {
+					self.busy = false;
+					r.ok ? notify(self.t('certificate.reviewersAdded', { found: r.data.found, added: r.data.added })) : notify(firstError(r.data), 'warning');
+					self.load();
+				});
+			},
+			revoke: function (c) {
+				var self = this;
+				var reason = window.prompt(self.t('certificate.revokePrompt', { number: c.number }), '');
+				if (reason === null) {
+					return;
+				}
+				self.call('POST', self.apiUrl + '/certificates/' + c.id + '/revoke', { reason: reason }).then(function (r) {
+					r.ok ? notify(self.t('certificate.revokedDone', { number: c.number })) : notify(firstError(r.data), 'warning');
+					self.load();
+				});
+			},
+			reissue: function (c) {
+				var self = this;
+				var reason = window.prompt(self.t('certificate.reissuePrompt', { number: c.number }), '');
+				if (reason === null) {
+					return;
+				}
+				self.call('POST', self.apiUrl + '/certificates/' + c.id + '/reissue', { reason: reason }).then(function (r) {
+					r.ok ? notify(self.t('certificate.reissuedDone', { number: r.data.number })) : notify(firstError(r.data), 'warning');
+					self.load();
+				});
+			},
+			date: function (iso) {
+				var d = iso ? new Date(iso) : null;
+				return d && !isNaN(d.getTime()) ? d.toLocaleDateString(document.documentElement.lang || undefined) : '';
+			},
+			numberOf: function (id) {
+				var found = this.issuedList.filter(function (c) { return c.id === id; })[0];
+				return found ? found.number : '';
+			},
+			link: function (id, lang) {
+				var url = this.pdfUrl.replace('__id__', String(id));
+				return lang ? url + (url.indexOf('?') === -1 ? '?' : '&') + 'lang=' + lang : url;
 			},
 		},
 		template: '\
@@ -163,7 +235,15 @@
 		<div class="cmEditions__toolbar">\
 			<p role="status">{{ t(\'certificate.summary\', { total: items.length, eligible: eligible.length, issued: issuedCount }) }}</p>\
 			<label class="cmEditions__filter">{{ t(\'certificate.show\') }}<select class="pkpFormField__input" v-model="show"><option value="all">{{ t(\'certificate.show.all\') }}</option><option value="eligible">{{ t(\'certificate.show.eligible\') }}</option><option value="issued">{{ t(\'certificate.show.issued\') }}</option><option value="none">{{ t(\'certificate.show.none\') }}</option></select></label>\
-			<pkp-button :is-primary="true" :disabled="busy || !chosen.length" @click="issue">{{ t(\'certificate.issue\', { count: chosen.length }) }}</pkp-button>\
+			<pkp-button :disabled="busy || !chosen.length" @click="issue(false)">{{ t(\'certificate.issue\', { count: chosen.length }) }}</pkp-button>\
+			<pkp-button :is-primary="true" :disabled="busy || !eligible.length" @click="issue(true)">{{ t(\'certificate.issueAll\', { count: eligible.length }) }}</pkp-button>\
+		</div>\
+		<div class="cmEditions__toolbar">\
+			<pkp-button :disabled="busy" @click="addReviewers">{{ t(\'certificate.addReviewers\') }}</pkp-button>\
+			<template v-if="settings.professionalDevelopment && settings.vectorEnabled">\
+				<a class="pkpButton" :href="vectorUrl">{{ t(\'certificate.vectorNew\') }}</a>\
+				<a class="pkpButton" :href="vectorUrl + \'?all=1\'">{{ t(\'certificate.vectorAll\') }}</a>\
+			</template>\
 		</div>\
 		<p v-if="!items.length" class="cmEditions__empty">{{ t(\'participants.empty\') }}</p>\
 		<table v-else class="cmEditions__table">\
@@ -177,6 +257,20 @@
 				<td><a v-if="c.issued" :href="link(c.issued.id)" target="_blank" rel="noopener">{{ c.issued.number }}</a></td>\
 			</tr></tbody>\
 		</table>\
+		<template v-if="issuedList.length">\
+			<h3 class="cmFees__title">{{ t(\'certificate.issuedList\') }}</h3>\
+			<table class="cmEditions__table cmCertificates__issued">\
+				<thead><tr><th>{{ t(\'certificate.number\') }}</th><th>{{ t(\'certificate.type\') }}</th><th>{{ t(\'participants.name\') }}</th><th>{{ t(\'certificate.issuedAt\') }}</th><th>{{ t(\'certificate.state\') }}</th><th></th></tr></thead>\
+				<tbody><tr v-for="c in issuedList" :key="c.id" :class="{ \'cmCertificates__revoked\': c.revokedAt }">\
+					<td><a :href="link(c.id)" target="_blank" rel="noopener">{{ c.number }}</a><template v-for="l in c.languages.slice(1)" :key="l"> · <a :href="link(c.id, l)" target="_blank" rel="noopener">{{ l.toUpperCase() }}</a></template></td>\
+					<td>{{ c.typeLabel }}</td>\
+					<td>{{ c.recipientName }}</td>\
+					<td>{{ date(c.issuedAt) }}</td>\
+					<td><template v-if="c.revokedAt">{{ t(\'certificate.revoked\') }}<div class="cmEditions__path">{{ c.revokeReason }}</div><div class="cmEditions__path" v-if="c.replacedById">{{ t(\'certificate.replacedBy\', { number: numberOf(c.replacedById) }) }}</div></template><template v-else>{{ t(\'certificate.valid\') }}</template></td>\
+					<td class="cmEditions__buttons"><pkp-button v-if="!c.replacedById" @click="reissue(c)">{{ t(\'certificate.reissue\') }}</pkp-button><pkp-button v-if="!c.revokedAt" :is-warnable="true" @click="revoke(c)">{{ t(\'certificate.revoke\') }}</pkp-button></td>\
+				</tr></tbody>\
+			</table>\
+		</template>\
 	</template>\
 </div>',
 	});
@@ -192,7 +286,7 @@
 		},
 		emits: ['back'],
 		data: function () {
-			return { isLoading: true, items: [], variables: [], type: 'participation', html: '', preview: '', series: '', busy: false };
+			return { isLoading: true, items: [], variables: [], type: 'participation', html: '', preview: '', series: '', vectorEnabled: false, professionalDevelopment: false, busy: false };
 		},
 		computed: {
 			current: function () {
@@ -219,6 +313,8 @@
 					self.items = r[0].data.items || [];
 					self.variables = r[0].data.variables || [];
 					self.series = r[1].ok ? r[1].data.series : '';
+					self.vectorEnabled = r[1].ok && !!r[1].data.vectorEnabled;
+					self.professionalDevelopment = r[1].ok && !!r[1].data.professionalDevelopment;
 					self.pick();
 				});
 			},
@@ -261,8 +357,12 @@
 			},
 			saveSeries: function () {
 				var self = this;
-				self.call('PUT', self.apiUrl + '/certificate-settings', { series: self.series }).then(function (r) {
-					r.ok ? (self.series = r.data.series, notify(self.t('fee.saved'))) : notify(firstError(r.data), 'warning');
+				var body = { series: self.series };
+				if (self.professionalDevelopment) {
+					body.vectorEnabled = self.vectorEnabled;
+				}
+				self.call('PUT', self.apiUrl + '/certificate-settings', body).then(function (r) {
+					r.ok ? (self.series = r.data.series, self.vectorEnabled = !!r.data.vectorEnabled, notify(self.t('fee.saved'))) : notify(firstError(r.data), 'warning');
 				});
 			},
 		},
@@ -277,6 +377,7 @@
 		<form class="cmEditions__toolbar" @submit.prevent="saveSeries">\
 			<label class="cmEditions__filter">{{ t(\'certificate.series\') }}<input class="pkpFormField__input" v-model="series" maxlength="10" pattern="[A-Za-zА-Яа-яІіЇїЄєҐґ0-9]{1,10}"></label>\
 			<span class="cmEditions__path">{{ t(\'certificate.seriesHelp\', { example: (series || \'CERT\').toUpperCase() + \'-\' + new Date().getFullYear() + \'-00001\' }) }}</span>\
+			<label v-if="professionalDevelopment" class="cmEditions__filter"><input type="checkbox" v-model="vectorEnabled"> {{ t(\'certificate.vectorEnabled\') }}</label>\
 			<pkp-button @click="saveSeries">{{ t(\'save\') }}</pkp-button>\
 		</form>\
 		<div class="cmEditions__toolbar">\

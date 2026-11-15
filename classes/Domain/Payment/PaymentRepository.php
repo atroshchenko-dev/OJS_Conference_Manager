@@ -39,7 +39,7 @@ interface PaymentRepository
      * Changes the status and appends the event (the journal is never
      * updated or deleted, FEE-13).
      *
-     * @param array<string, mixed> $changes columns: paid_minor, paid_at, waiver_reason, method
+     * @param array<string, mixed> $changes columns: paid_minor, paid_at, waiver_reason, method, payer_snapshot (JUR-05, an array)
      * @param array<string, mixed> $payload
      */
     public function changeStatus(int $invoiceId, InvoiceStatus $to, array $changes, string $event, ?int $actorId, array $payload, DateTimeImmutable $now): void;

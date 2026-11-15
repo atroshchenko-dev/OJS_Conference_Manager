@@ -78,3 +78,19 @@
 .cmVerify__status { font-weight: bold; font-size: 1.1em; margin: 0 0 0.5rem; }
 .cmVerify__form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 1.5rem; }
 .cmVerify__form input { flex: 1 1 20rem; max-width: 26rem; padding: 0.4rem; font-family: monospace; }
+
+/* CRT-08: public register of professional development documents */
+.cmDocuments__scroll { overflow-x: auto; }
+.cmDocuments { width: 100%; border-collapse: collapse; font-size: .95em; }
+.cmDocuments th, .cmDocuments td { padding: .45em .6em; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
+.cmDocuments th { background: #f5f5f5; font-weight: 600; }
+.cmDocuments__pages { display: flex; gap: 1em; align-items: center; margin-top: 1em; }
+
+/* JUR-05: who pays the invoice */
+.cmInvoice__payer { margin: .75em 0; }
+.cmInvoice__payer summary { cursor: pointer; font-weight: 600; }
+.cmInvoice__payerForm { display: grid; gap: .35em; max-width: 32em; margin-top: .5em; }
+.cmInvoice__payerForm fieldset { border: 0; padding: 0; margin: 0; display: flex; gap: 1.25em; flex-wrap: wrap; }
+.cmInvoice__payerForm legend { font-weight: 600; margin-bottom: .25em; }
+.cmInvoice__payerForm button { justify-self: start; }
+.cmInvoice__actions a + a { margin-left: .75em; }

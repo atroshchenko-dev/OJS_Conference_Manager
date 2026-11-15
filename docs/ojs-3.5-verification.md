@@ -52,5 +52,7 @@
 | 46 | Альбомний PDF і SVG у mPDF | `new Mpdf(['format' => 'A4-L'])` дає 841,89 × 595,28 pt; `<img src="data:image/svg+xml;base64,…">` mPDF перетворює на векторний малюнок без звернень до мережі | `MpdfRenderer::render(…, landscape: true)`; розмір сторінки (`/MediaBox [0 0 841.890 595.280]`) перевіряє тест |
 | 48 | Назва завдання планувальника | У 3.5.0-5 `addSchedule()` не дає події назви, а `withoutOverlapping()` без назви кидає `LogicException`, і падає весь планувальник; у 3.5.0-6 назву ставить OJS | Плагін сам викликає `->name(Клас::class)` перед `withoutOverlapping()`; тест вимагає, щоб `scheduler.php list` показував `ReminderTask` |
 | 47 | Обмеження частоти запитів | У 3.5 є `Illuminate\Cache\RateLimiter`; сховище кешу OJS — `app('cache')->store()` | Сторінка перевірки сертифіката: 30 запитів за хвилину з адреси, далі 429 з `Retry-After` |
+| 49 | Рецензенти подання | Завершені рецензії — `review_assignments` з `date_completed`, без `declined` і `cancelled`; ім'я й заклад рецензента — `user_settings` | `Core\EditorialGateway::completedReviewers`; дані рецензента лише копіюються в учасників заходу |
+| 50 | Пакетна видача в черзі | Завдання `PKP\jobs\BaseJob` через `dispatch()` виконує обробник черги OJS (`jobs.php` або після веб-запитів) | `Core\Jobs\IssueCertificates` по 25 документів; видача ідемпотентна, тож повтор завдання нічого не дублює |
 
 Ще не перевірено (залишається у спайках спринту 1 за планом): QR у mPDF, вимкнення прийому подань, злиття користувачів.

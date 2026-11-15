@@ -23,7 +23,11 @@ final class CertificateDocument
         'certificateTitle', 'roleText', 'conferenceName', 'eventDates', 'venue', 'eventFormat',
         'paperTitle', 'presentationType', 'hours', 'number', 'issueDate',
         'verifyUrl', 'qrCode', 'signerName', 'signerPosition', 'contextName',
+        'eventType', 'ects', 'learningOutcomes', 'partialQualifications', 'institutionLegalId',
     ];
+
+    /** Kept with their line breaks. */
+    private const MULTILINE = ['learningOutcomes', 'partialQualifications'];
 
     /** Inserted as HTML, not as text. */
     private const RAW = ['qrCode'];
@@ -52,6 +56,9 @@ final class CertificateDocument
         foreach (self::VARIABLES as $name) {
             $value = (string) ($values[$name] ?? '');
             $out[$name] = in_array($name, self::RAW, true) ? '' : htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            if (in_array($name, self::MULTILINE, true)) {
+                $out[$name] = nl2br(trim($out[$name]), false);
+            }
         }
         $url = (string) ($values['verifyUrl'] ?? '');
         $out['qrCode'] = $url === '' ? '' : QrCode::encode($url)->toImgTag('QR', '28mm');

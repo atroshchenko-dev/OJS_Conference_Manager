@@ -70,9 +70,17 @@ interface ParticipantRepository
     /**
      * The payer of an invoice: name in the locale, email, affiliation, category.
      *
-     * @return array{participantId: int, editionId: int, userId: ?int, name: string, email: string, affiliation: string, categoryId: ?int}|null
+     * @return array{participantId: int, editionId: int, userId: ?int, name: string, email: string, affiliation: string, categoryId: ?int,
+     *     details: array<string, string>}|null details: kind, organization, legalId, taxId (JUR-05)
      */
     public function payer(int $participantId, string $locale): ?array;
+
+    /**
+     * JUR-05: payer details of the participant; empty values are removed.
+     *
+     * @param array<string, string> $details
+     */
+    public function setPayerDetails(int $participantId, array $details): void;
 
     /** Active presenter participation of a submission (FEE-04). */
     public function presenterOf(int $submissionId): ?int;

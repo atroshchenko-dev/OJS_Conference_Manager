@@ -309,6 +309,19 @@ class ConferencePageHandler extends Handler
         if ($request->isPost()) {
             if (!$request->checkCSRF()) {
                 $message = ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.confirm.retry')];
+            } elseif ($request->getUserVar('payerInvoiceId')) {
+                // JUR-05: who pays the invoice.
+                $errors = ServiceFactory::invoices()->savePayerDetails($info, (int) $request->getUserVar('payerInvoiceId'), (int) $user->getId(), $email, [
+                    'kind' => (string) $request->getUserVar('payerKind'),
+                    'organization' => (string) $request->getUserVar('payerOrganization'),
+                    'legalId' => (string) $request->getUserVar('payerLegalId'),
+                    'taxId' => (string) $request->getUserVar('payerTaxId'),
+                ], $now);
+                if ($errors !== null && $errors->isEmpty()) {
+                    $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my', null, ['payer' => 1]));
+                }
+                $message = ['type' => 'alert', 'text' => $errors === null ? __('plugins.generic.conferenceManager.payer.error.locked')
+                    : implode(' ', array_map(static fn (string $k): string => __($k), array_merge(...array_values($errors->toArray()))))];
             } elseif ($request->getUserVar('invoiceId')) {
                 $message = $this->uploadProof($info, (int) $request->getUserVar('invoiceId'), (int) $user->getId(), $email, $now, $locale);
                 if ($message['type'] === 'status') {
@@ -321,6 +334,8 @@ class ConferencePageHandler extends Handler
                 }
                 $message = ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.participation.error.' . $out['result'])];
             }
+        } elseif ($request->getUserVar('payer')) {
+            $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.payer.saved')];
         } elseif ($request->getUserVar('cancelled')) {
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.participation.cancelled')];
         } elseif ($request->getUserVar('proof')) {
@@ -349,14 +364,22 @@ class ConferencePageHandler extends Handler
                 'issuedAtText' => $this->formatDate($i['issuedAt'] === null ? null : new DateTimeImmutable((string) $i['issuedAt']), (string) $i['timezone'], $locale),
                 'dueAtText' => $this->formatDate($i['dueAt'] === null ? null : new DateTimeImmutable((string) $i['dueAt']), (string) $i['timezone'], $locale),
                 'instructionsHtml' => nl2br(htmlspecialchars((string) $i['instructions'])),
+                'canEditPayer' => $i['isOpen'] && $i['hasDocument'] && (int) ($i['paid']['minor'] ?? 0) === 0,
             ];
         }
+        $payerFields = ServiceFactory::invoices()->payerFields($info);
 
         $certificates = [];
         $participantIds = array_values(array_unique(array_map(static fn (array $p): int => (int) $p['participantId'], $items)));
         foreach (ServiceFactory::certificates()->mine($info, $participantIds, $locale) as $c) {
+            $pdfUrl = $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'certificate', [(string) $c['id']]);
+            $alt = [];
+            foreach (array_slice($c['languages'], 1) as $l) {
+                $alt[] = ['language' => strtoupper($l), 'url' => $pdfUrl . (str_contains($pdfUrl, '?') ? '&' : '?') . 'lang=' . rawurlencode($l)];
+            }
             $certificates[] = $c + [
-                'pdfUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'certificate', [(string) $c['id']]),
+                'pdfUrl' => $pdfUrl,
+                'altPdf' => $alt,
                 'issuedAtText' => $this->formatDate($c['issuedAt'] === null ? null : new DateTimeImmutable((string) $c['issuedAt']), $info->serverTimezone, $locale),
             ];
         }
@@ -368,6 +391,7 @@ class ConferencePageHandler extends Handler
         $templateMgr->assign([
             'myItems' => $items,
             'myInvoices' => $invoices,
+            'payerFields' => $payerFields,
             'myCertificates' => $certificates,
             'myMessage' => $message,
             'myUrl' => $myUrl,
@@ -487,7 +511,8 @@ class ConferencePageHandler extends Handler
         $info = ContextGateway::fromContext($context);
         $manager = (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId());
         $owner = $manager ? null : $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail());
-        $pdf = ServiceFactory::certificates()->pdf($info, (int) ($args[0] ?? 0), $owner);
+        $lang = $request->getUserVar('lang');
+        $pdf = ServiceFactory::certificates()->pdf($info, (int) ($args[0] ?? 0), $owner, is_string($lang) && preg_match('/^[a-z]{2}$/', $lang) === 1 ? $lang : null);
         if ($pdf === null) {
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
@@ -540,6 +565,40 @@ class ConferencePageHandler extends Handler
             'pageTitle' => 'plugins.generic.conferenceManager.verify.title',
         ]);
         return $templateMgr->display($this->plugin->getTemplateResource('frontend/verify.tpl'));
+    }
+
+    /**
+     * CRT-08, JUR-02: the public register of professional development
+     * documents the journal issued (only where the jurisdiction has them).
+     */
+    public function documents($args, $request)
+    {
+        $context = $request->getContext();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $info = ContextGateway::fromContext($context);
+        $service = ServiceFactory::certificates();
+        if (!$service->professionalDevelopmentAllowed($info)) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $perPage = 50;
+        $page = max(1, (int) $request->getUserVar('page'));
+        $list = $service->publicList($info, $page, $perPage);
+        $pages = max(1, (int) ceil($list['itemsMax'] / $perPage));
+        $url = $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'documents');
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $templateMgr->assign([
+            'documents' => $list['items'],
+            'documentsTotal' => $list['itemsMax'],
+            'documentsPage' => min($page, $pages),
+            'documentsPages' => $pages,
+            'documentsUrl' => $url,
+            'pageTitle' => 'plugins.generic.conferenceManager.documents.title',
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/documents.tpl'));
     }
 
     /**

@@ -39,6 +39,16 @@ final class UaProfile extends AbstractJurisdictionProfile
         return Edrpou::isValid($legalId) ? null : self::K . 'edrpou';
     }
 
+    public function validatePersonalTaxId(string $taxId): ?string
+    {
+        return Rnokpp::isValid($taxId) ? null : self::K . 'rnokpp';
+    }
+
+    public function getPersonalTaxIdLabelKey(): string
+    {
+        return 'plugins.generic.conferenceManager.jurisdiction.ua.rnokpp';
+    }
+
     public function validateIban(string $iban, PaymentAccountKind $kind): ?string
     {
         $iban = Iban::normalize($iban);

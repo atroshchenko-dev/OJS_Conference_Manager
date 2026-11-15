@@ -529,6 +529,8 @@
 				<textarea class="pkpFormField__input" rows="6" v-model="form.cfpText[formLocale]"></textarea></label>\
 			<label class="cmEditions__field"><span>{{ t(\'field.learningOutcomes\') }} ({{ formLocale }})</span>\
 				<textarea class="pkpFormField__input" rows="4" v-model="form.learningOutcomes[formLocale]"></textarea></label>\
+			<label class="cmEditions__field"><span>{{ t(\'field.partialQualifications\') }} ({{ formLocale }})</span>\
+				<textarea class="pkpFormField__input" rows="2" v-model="form.partialQualifications[formLocale]"></textarea></label>\
 		</fieldset>\
 		<fieldset class="cmEditions__section">\
 			<legend>{{ t(\'section.details\') }}</legend>\

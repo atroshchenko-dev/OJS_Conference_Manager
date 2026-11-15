@@ -39,6 +39,8 @@ final class CertificateRules
         /** null for participations without a submission */
         ?bool $accepted,
         bool $published,
+        /** the edition gives a professional development document (CRT-03): hours set, jurisdiction allows it */
+        bool $professionalDevelopment = false,
     ): array {
         if (!$active) {
             return [null, self::REASON_CANCELLED];
@@ -50,7 +52,7 @@ final class CertificateRules
             case ParticipantRole::Reviewer:
                 return [CertificateType::Reviewer, null];
             case ParticipantRole::Listener:
-                return $attended ? [CertificateType::Listener, null] : [null, self::REASON_NOT_ATTENDED];
+                return $attended ? [$professionalDevelopment ? CertificateType::ProfessionalDevelopment : CertificateType::Listener, null] : [null, self::REASON_NOT_ATTENDED];
             case ParticipantRole::Presenter:
             case ParticipantRole::Coauthor:
                 if ($accepted === false) {

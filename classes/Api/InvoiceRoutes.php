@@ -71,6 +71,7 @@ final class InvoiceRoutes implements RouteModule
         Route::put($rules . '/{ruleId}', $this->editPaymentRule(...))->name('conference.paymentRules.edit')->whereNumber(['editionId', 'ruleId']);
         Route::delete($rules . '/{ruleId}', $this->deletePaymentRule(...))->name('conference.paymentRules.delete')->whereNumber(['editionId', 'ruleId']);
         Route::get('invoice-templates', $this->getInvoiceTemplates(...))->name('conference.invoiceTemplates.get');
+        Route::put('invoice-settings', $this->editInvoiceSettings(...))->name('conference.invoiceSettings.edit');
         Route::put('invoice-templates/{kind}', $this->editInvoiceTemplate(...))->name('conference.invoiceTemplates.edit')->whereIn('kind', ['bank', 'treasury']);
 
         Route::get('editions/{editionId}/invoices', $this->getEditionInvoices(...))->name('conference.invoices.list')->whereNumber('editionId');
@@ -177,7 +178,21 @@ final class InvoiceRoutes implements RouteModule
         if (!$this->isManager()) {
             return ConferenceApiController::forbidden();
         }
-        return response()->json(['templates' => array_values(ServiceFactory::invoiceDocuments()->templates($this->api->contextInfo()))], Response::HTTP_OK);
+        return response()->json([
+            'templates' => array_values(ServiceFactory::invoiceDocuments()->templates($this->api->contextInfo())),
+            'personalTaxId' => ServiceFactory::invoices()->personalTaxIdEnabled($this->api->contextInfo()),
+        ], Response::HTTP_OK);
+    }
+
+    /** JUR-05: PUT invoice-settings {personalTaxId}: payers who are individuals give their tax number. */
+    public function editInvoiceSettings(Request $r): JsonResponse
+    {
+        if (!$this->isManager()) {
+            return ConferenceApiController::forbidden();
+        }
+        $service = ServiceFactory::invoices();
+        $service->setPersonalTaxIdEnabled($this->api->contextInfo(), filter_var($r->input('personalTaxId', false), FILTER_VALIDATE_BOOLEAN), $this->api->actorId());
+        return response()->json(['personalTaxId' => $service->personalTaxIdEnabled($this->api->contextInfo())], Response::HTTP_OK);
     }
 
     public function editInvoiceTemplate(Request $r): JsonResponse

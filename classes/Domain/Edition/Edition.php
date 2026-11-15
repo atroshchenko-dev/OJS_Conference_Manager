@@ -16,7 +16,7 @@ use DateTimeImmutable;
  */
 final class Edition
 {
-    public const LOCALIZED_FIELDS = ['name', 'description', 'venue', 'learningOutcomes', 'cfpText'];
+    public const LOCALIZED_FIELDS = ['name', 'description', 'venue', 'learningOutcomes', 'cfpText', 'partialQualifications'];
 
     /** API field => database column, for every date of the edition. */
     public const DATE_FIELDS = [

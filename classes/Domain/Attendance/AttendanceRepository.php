@@ -21,4 +21,15 @@ interface AttendanceRepository
      * @return int rows changed
      */
     public function mark(int $editionId, array $participationIds, bool $attended, ?int $minutes, string $source, ?int $actorId, DateTimeImmutable $now): int;
+
+    /**
+     * CRT-11: adds a person who served the edition (reviewer, organiser)
+     * without a submission. The person is confirmed: the journal adds them
+     * from its own records. An existing active participation in the same
+     * role is kept.
+     *
+     * @param array{email: string, userId: ?int, givenName: string, familyName: string, affiliation: string, locale: string} $person
+     * @return array{participationId: int, created: bool}
+     */
+    public function addStaff(int $contextId, int $editionId, string $role, array $person, DateTimeImmutable $now): array;
 }

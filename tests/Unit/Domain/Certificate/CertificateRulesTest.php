@@ -27,6 +27,11 @@ final class CertificateRulesTest extends TestCase
         self::assertSame([CertificateType::Participation, null], CertificateRules::decide(R::Coauthor, true, true, F::InPerson, null, true, false));
         self::assertSame([null, 'notAccepted'], CertificateRules::decide(R::Presenter, true, true, F::InPerson, null, false, false));
         self::assertSame([CertificateType::Participation, null], CertificateRules::decide(R::Presenter, true, false, F::Absentee, null, true, true));
+        // CRT-03: the professional development document replaces the listener one; speakers keep theirs.
+        self::assertSame([CertificateType::ProfessionalDevelopment, null], CertificateRules::decide(R::Listener, true, true, F::Online, null, null, false, true));
+        self::assertSame([null, 'notAttended'], CertificateRules::decide(R::Listener, true, false, F::Online, null, null, false, true));
+        self::assertSame([CertificateType::Speaker, null], CertificateRules::decide(R::Presenter, true, true, F::InPerson, null, true, false, true));
+        self::assertSame(\APP\plugins\generic\conferenceManager\classes\Domain\Institution\DocumentType::CertificateProfessionalDevelopment, CertificateType::ProfessionalDevelopment->documentType());
         self::assertSame([null, 'notPublished'], CertificateRules::decide(R::Presenter, true, false, F::InPerson, $absentee, true, false));
         self::assertSame([null, 'notAttended'], CertificateRules::decide(R::Presenter, true, false, F::InPerson, null, true, true));
     }
@@ -49,6 +54,8 @@ final class CertificateRulesTest extends TestCase
         self::assertFalse(CertificateDocument::validate('<a href="javascript:x()">{recipientName}</a>')->isEmpty());
         self::assertFalse(CertificateDocument::validate('<iframe src="x"></iframe>')->isEmpty());
         self::assertFalse(CertificateDocument::validate('<p>{nope}</p>')->isEmpty());
+        self::assertTrue(CertificateDocument::validate('<p>{ects} {institutionLegalId} {partialQualifications}</p>')->isEmpty());
+        self::assertStringContainsString('a<br>', CertificateDocument::render('<p>{learningOutcomes}</p>', ['learningOutcomes' => "a\nb"]));
 
         $html = CertificateDocument::render('<p>{recipientName}</p>{qrCode}', ['recipientName' => '<b>О\'Коннор</b>', 'verifyUrl' => 'https://x.example/v/1']);
         self::assertStringContainsString('&lt;b&gt;О&#039;Коннор&lt;/b&gt;', $html);

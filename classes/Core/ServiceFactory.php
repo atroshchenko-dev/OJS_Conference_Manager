@@ -129,6 +129,7 @@ final class ServiceFactory
             new AuditLogger($db),
             static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
             self::jurisdictions(),
+            self::settings(),
         );
     }
 

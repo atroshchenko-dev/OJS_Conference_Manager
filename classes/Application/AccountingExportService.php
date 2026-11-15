@@ -163,6 +163,7 @@ final class AccountingExportService
                 AccountingColumn::PayerAffiliation => is_array($invoice->payer['affiliation'] ?? null)
                     ? (string) (new LocalizedText($invoice->payer['affiliation']))->resolve($locale, $context->primaryLocale)
                     : (string) ($invoice->payer['affiliation'] ?? ''),
+                AccountingColumn::PayerCode => (string) (($invoice->payer['legalId'] ?? '') !== '' ? $invoice->payer['legalId'] : ($invoice->payer['taxId'] ?? '')),
                 AccountingColumn::Edition => (string) $p['editionName'],
                 AccountingColumn::Category => $category,
                 AccountingColumn::Role => $role === null ? '' : $this->t('plugins.generic.conferenceManager.registration.participantRole.' . $role, [], $locale),

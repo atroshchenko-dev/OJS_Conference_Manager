@@ -41,6 +41,17 @@ final class InstitutionProfileService
         return $this->repository->findByContextId($context->id) ?? $this->draft($context);
     }
 
+    /**
+     * Features of the jurisdiction of the context (JurisdictionProfile::FEATURE_*).
+     *
+     * @return list<string>
+     */
+    public function features(ContextInfo $context): array
+    {
+        $code = $this->getOrDraft($context)->jurisdiction;
+        return $this->jurisdictions->has($code) ? $this->jurisdictions->get($code)->getFeatures() : [];
+    }
+
     public function exists(int $contextId): bool
     {
         return $this->repository->findByContextId($contextId) !== null;

@@ -45,4 +45,13 @@ interface EditorialDirectory
      * @return array<int, bool>
      */
     public function hasFullText(array $submissionIds): array;
+
+    /**
+     * CRT-11: reviewers who completed a review of these submissions
+     * (not declined, not cancelled), one row per reviewer.
+     *
+     * @param list<int> $submissionIds
+     * @return list<array{userId: int, email: string, givenName: string, familyName: string, affiliation: string, reviews: int}>
+     */
+    public function completedReviewers(array $submissionIds, string $locale): array;
 }

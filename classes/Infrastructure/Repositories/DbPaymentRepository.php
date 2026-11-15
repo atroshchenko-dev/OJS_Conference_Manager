@@ -173,8 +173,11 @@ final class DbPaymentRepository implements PaymentRepository
         $stamp = DateInput::toStorage($now);
         $this->db->transaction(function () use ($invoiceId, $to, $changes, $event, $actorId, $payload, $stamp): void {
             $from = $this->db->table('conf_invoices')->where('id', $invoiceId)->lockForUpdate()->value('status');
-            $allowed = ['paid_minor', 'paid_at', 'waiver_reason', 'method'];
+            $allowed = ['paid_minor', 'paid_at', 'waiver_reason', 'method', 'payer_snapshot'];
             $values = array_intersect_key($changes, array_flip($allowed));
+            if (isset($values['payer_snapshot'])) {
+                $values['payer_snapshot'] = json_encode($values['payer_snapshot'], JSON_UNESCAPED_UNICODE);
+            }
             $this->db->table('conf_invoices')->where('id', $invoiceId)->update($values + ['status' => $to->value, 'updated_at' => $stamp]);
             $this->event($invoiceId, $event, $actorId, $payload + ['from' => $from, 'to' => $to->value], $stamp);
         });

@@ -21,6 +21,12 @@ final class PluginSettingsStore implements SettingsStore
 
     public function set(int $contextId, string $name, mixed $value): void
     {
-        $this->plugin?->updateSetting($contextId, $name, $value, is_array($value) ? 'object' : 'string');
+        $type = match (true) {
+            is_array($value) => 'object',
+            is_bool($value) => 'bool',
+            is_int($value) => 'int',
+            default => 'string',
+        };
+        $this->plugin?->updateSetting($contextId, $name, $value, $type);
     }
 }

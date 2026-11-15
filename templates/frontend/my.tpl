@@ -79,6 +79,31 @@
 							{/foreach}
 						</ul>
 					{/if}
+					{if $i.canEditPayer}
+						<details class="cmInvoice__payer"{if $i.payer.kind == 'organization'} open{/if}>
+							<summary>{translate key="plugins.generic.conferenceManager.payer.title"}</summary>
+							<form method="post" action="{$myUrl|escape}" class="cmInvoice__payerForm">
+								{csrf}
+								<input type="hidden" name="payerInvoiceId" value="{$i.id|escape}">
+								<fieldset>
+									<legend>{translate key="plugins.generic.conferenceManager.payer.who"}</legend>
+									<label><input type="radio" name="payerKind" value="person"{if $i.payer.kind != 'organization'} checked{/if}> {translate key="plugins.generic.conferenceManager.payer.person"}</label>
+									<label><input type="radio" name="payerKind" value="organization"{if $i.payer.kind == 'organization'} checked{/if}> {translate key="plugins.generic.conferenceManager.payer.organization"}</label>
+								</fieldset>
+								<label for="cmPayerOrg{$i.id|escape}">{translate key="plugins.generic.conferenceManager.payer.organizationName"}</label>
+								<input id="cmPayerOrg{$i.id|escape}" type="text" name="payerOrganization" maxlength="255" value="{if $i.payer.kind == 'organization'}{$i.payer.name|escape}{/if}">
+								<label for="cmPayerLegal{$i.id|escape}">{translate key=$payerFields.legalId}</label>
+								<input id="cmPayerLegal{$i.id|escape}" type="text" name="payerLegalId" maxlength="32" inputmode="numeric" value="{$i.payer.legalId|escape}">
+								{if $payerFields.taxIdEnabled}
+									<label for="cmPayerTax{$i.id|escape}">{translate key=$payerFields.taxId}</label>
+									<input id="cmPayerTax{$i.id|escape}" type="text" name="payerTaxId" maxlength="32" inputmode="numeric" autocomplete="off" value="{$i.payer.taxId|escape}">
+									<p class="cmRegister__hint">{translate key="plugins.generic.conferenceManager.payer.taxIdHint"}</p>
+								{/if}
+								<p class="cmRegister__hint">{translate key="plugins.generic.conferenceManager.payer.hint"}</p>
+								<button type="submit" class="cmEdition__button">{translate key="plugins.generic.conferenceManager.payer.save"}</button>
+							</form>
+						</details>
+					{/if}
 					{if $i.canUploadProof}
 						<form method="post" action="{$myUrl|escape}" enctype="multipart/form-data" class="cmInvoice__upload">
 							{csrf}
@@ -107,6 +132,7 @@
 					</dl>
 					<p class="cmInvoice__actions">
 						<a class="cmEdition__button" href="{$c.pdfUrl|escape}" target="_blank" rel="noopener">{translate key="plugins.generic.conferenceManager.certificate.download"}</a>
+						{foreach from=$c.altPdf item=alt}<a href="{$alt.url|escape}" target="_blank" rel="noopener">{translate key="plugins.generic.conferenceManager.certificate.downloadIn" language=$alt.language|escape}</a>{/foreach}
 						<a href="{$c.verifyUrl|escape}">{translate key="plugins.generic.conferenceManager.certificate.verifyLink"}</a>
 					</p>
 				</li>

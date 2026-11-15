@@ -828,6 +828,14 @@ final class FakeEditorial implements EditorialDirectory
         }
         return $out;
     }
+
+    /** @var list<array{userId: int, email: string, givenName: string, familyName: string, affiliation: string, reviews: int}> */
+    public array $reviewers = [];
+
+    public function completedReviewers(array $submissionIds, string $locale): array
+    {
+        return $this->reviewers;
+    }
 }
 
 final class FakeMailer implements ParticipantMailer

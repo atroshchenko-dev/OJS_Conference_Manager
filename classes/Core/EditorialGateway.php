@@ -82,6 +82,47 @@ final class EditorialGateway implements EditorialDirectory
         return $out;
     }
 
+    public function completedReviewers(array $submissionIds, string $locale): array
+    {
+        if ($submissionIds === []) {
+            return [];
+        }
+        $counts = [];
+        $rows = DB::table('review_assignments')
+            ->whereIn('submission_id', $submissionIds)
+            ->whereNotNull('date_completed')
+            ->where('declined', 0)
+            ->where('cancelled', 0)
+            ->get(['reviewer_id']);
+        foreach ($rows as $row) {
+            $id = (int) $row->reviewer_id;
+            $counts[$id] = ($counts[$id] ?? 0) + 1;
+        }
+        if ($counts === []) {
+            return [];
+        }
+        $ids = array_keys($counts);
+        $emails = DB::table('users')->whereIn('user_id', $ids)->where('disabled', 0)->pluck('email', 'user_id')->all();
+        $given = self::settings('user_settings', 'user_id', $ids, 'givenName');
+        $family = self::settings('user_settings', 'user_id', $ids, 'familyName');
+        $aff = self::settings('user_settings', 'user_id', $ids, 'affiliation');
+        $out = [];
+        foreach ($ids as $id) {
+            if (!isset($emails[$id])) {
+                continue;
+            }
+            $out[] = [
+                'userId' => $id,
+                'email' => (string) $emails[$id],
+                'givenName' => self::pick($given[$id] ?? [], $locale, $locale),
+                'familyName' => self::pick($family[$id] ?? [], $locale, $locale),
+                'affiliation' => self::pick($aff[$id] ?? [], $locale, $locale),
+                'reviews' => $counts[$id],
+            ];
+        }
+        return $out;
+    }
+
     /**
      * @param list<int> $ids
      * @return array<int, array<string, string>> id => locale => value

@@ -89,6 +89,7 @@
 				rule: null,
 				errors: {},
 				templates: [],
+				personalTaxId: false,
 				template: null,
 				templateErrors: {},
 			};
@@ -117,7 +118,15 @@
 				self.api('GET', self.templatesUrl).then(function (r) {
 					if (r.ok) {
 						self.templates = r.data.templates || [];
+						self.personalTaxId = !!r.data.personalTaxId;
 					}
+				});
+			},
+			/** JUR-05: off by default; only when the accounting needs it. */
+			savePersonalTaxId: function () {
+				var self = this;
+				self.api('PUT', self.templatesUrl.replace(/invoice-templates$/, 'invoice-settings'), { personalTaxId: self.personalTaxId }).then(function (r) {
+					r.ok ? (self.personalTaxId = !!r.data.personalTaxId, notify(self.t('fee.saved'))) : notify(firstError(r.data), 'warning');
 				});
 			},
 			categoryName: function (id) {
@@ -237,6 +246,8 @@
 	<section class="cmEditions__form cmFees__block">\
 		<h3>{{ t(\'invoiceTemplate.title\') }}</h3>\
 		<p class="cmEditions__note">{{ t(\'invoiceTemplate.description\') }}</p>\
+		<label class="cmEditions__check"><input type="checkbox" v-model="personalTaxId" @change="savePersonalTaxId"> {{ t(\'payer.taxIdSetting\') }}</label>\
+		<p class="cmEditions__note">{{ t(\'payer.taxIdSettingHelp\') }}</p>\
 		<table class="cmEditions__table">\
 			<tbody><tr v-for="tpl in templates" :key="tpl.kind">\
 				<td><strong>{{ t(\'invoiceTemplate.kind.\' + tpl.kind) }}</strong></td>\

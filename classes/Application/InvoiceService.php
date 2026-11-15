@@ -20,6 +20,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Payment\AmountInWords;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Invoice;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceItem;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceStatus;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PayerDetails;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentMode;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentRepository;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentRule;
@@ -33,6 +34,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Shared\LocalizedText;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\TextTemplate;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\ValidationErrors;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
+use APP\plugins\generic\conferenceManager\classes\Jurisdiction\Generic\GenericProfile;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionProfile;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
 use DateTimeImmutable;
@@ -56,6 +58,7 @@ final class InvoiceService
     public const EXISTS = 'exists';
     public const NOT_FOUND = 'notFound';
     public const KEPT = 'kept';
+    private const SETTING_TAX_ID = 'payerTaxIdRequired';
 
     public function __construct(
         private readonly PaymentRepository $payments,
@@ -70,7 +73,82 @@ final class InvoiceService
         /** @var (\Closure(string, array<string, mixed>, string): string)|null translates a key with params into a locale */
         private readonly ?\Closure $translate = null,
         private readonly ?JurisdictionRegistry $jurisdictions = null,
+        private readonly ?SettingsStore $settings = null,
     ) {
+    }
+
+    /** JUR-05: whether payers who are individuals give their personal tax number (off by default). */
+    public function personalTaxIdEnabled(ContextInfo $context): bool
+    {
+        return filter_var($this->settings?->get($context->id, self::SETTING_TAX_ID), FILTER_VALIDATE_BOOLEAN);
+    }
+
+    public function setPersonalTaxIdEnabled(ContextInfo $context, bool $on, ?int $actorId): void
+    {
+        $this->settings?->set($context->id, self::SETTING_TAX_ID, $on);
+        $this->audit?->log($context->id, $actorId, 'invoice_settings', null, 'update', null, ['personalTaxId' => $on]);
+    }
+
+    /**
+     * JUR-05: labels of the payer fields in the jurisdiction of the journal.
+     *
+     * @return array{legalId: string, taxId: string, taxIdEnabled: bool}
+     */
+    public function payerFields(ContextInfo $context): array
+    {
+        $rules = $this->jurisdiction(($this->institution)($context)) ?? new GenericProfile();
+        return ['legalId' => $rules->getLegalIdLabelKey(), 'taxId' => $rules->getPersonalTaxIdLabelKey(), 'taxIdEnabled' => $this->personalTaxIdEnabled($context)];
+    }
+
+    /**
+     * JUR-05: the payer of an open, unpaid invoice gives who pays: they
+     * themselves or an organisation with its legal id. The details are
+     * kept for the next invoices and written into this one; the payment
+     * journal records the change. Null when the invoice is not theirs.
+     *
+     * @param array<string, mixed> $input kind, organization, legalId, taxId
+     */
+    public function savePayerDetails(ContextInfo $context, int $invoiceId, ?int $userId, string $email, array $input, DateTimeImmutable $now): ?ValidationErrors
+    {
+        $invoice = $this->payments->findInvoice($context->id, $invoiceId);
+        if ($invoice === null || !$this->isPayer($invoice, $userId, $email)) {
+            return null;
+        }
+        $errors = new ValidationErrors();
+        if (!in_array($invoice->status, [InvoiceStatus::Issued, InvoiceStatus::Overdue], true) || $invoice->paidAmount()->minor > 0) {
+            $errors->add('kind', 'plugins.generic.conferenceManager.payer.error.locked');
+            return $errors;
+        }
+        $rules = $this->jurisdiction(($this->institution)($context)) ?? new GenericProfile();
+        [$details, $errors] = PayerDetails::fromInput($input, $rules, $this->personalTaxIdEnabled($context));
+        if ($details === null) {
+            return $errors;
+        }
+        $this->participants->setPayerDetails($invoice->payerParticipantId, $details->toArray());
+        $payer = $this->participants->payer($invoice->payerParticipantId, $context->primaryLocale);
+        if ($payer !== null) {
+            $this->payments->changeStatus($invoice->id ?? 0, $invoice->status, ['payer_snapshot' => self::payerSnapshot($payer)], 'payer_changed', $userId, ['kind' => $details->kind], $now);
+        }
+        return $errors;
+    }
+
+    /**
+     * The payer as copied into an invoice.
+     *
+     * @param array{name: string, email: string, affiliation: string, details?: array<string, string>} $payer
+     * @return array<string, string>
+     */
+    public static function payerSnapshot(array $payer): array
+    {
+        $d = PayerDetails::fromArray($payer['details'] ?? []);
+        $out = ['name' => $payer['name'], 'email' => $payer['email'], 'affiliation' => $payer['affiliation']];
+        if ($d->isOrganization()) {
+            $out = ['name' => $d->organization, 'email' => $payer['email'], 'affiliation' => '', 'kind' => $d->kind,
+                'legalId' => $d->legalId, 'contactName' => $payer['name']];
+        } elseif ($d->taxId !== '') {
+            $out['taxId'] = $d->taxId;
+        }
+        return $out;
     }
 
     public function edition(ContextInfo $context, int $editionId): ?Edition
@@ -212,7 +290,7 @@ final class InvoiceService
             [$item],
             $rule->paymentAccountId,
             dueAt: $edition->date('paymentDeadline'),
-            payer: ['name' => $payer['name'], 'email' => $payer['email'], 'affiliation' => $payer['affiliation']],
+            payer: self::payerSnapshot($payer),
             recipient: $this->recipient($context, $rule, $edition),
             method: $rule->mode->method(),
         )];

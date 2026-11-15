@@ -311,6 +311,60 @@ final class InvoiceFlowTest extends TestCase
         self::assertNull($docs->html($this->ctx, $waiver ?? throw new \LogicException()));
     }
 
+    /** JUR-05: an organisation pays with its ЄДРПОУ; the tax number of a person only when turned on. */
+    public function testPayerDetails(): void
+    {
+        [, $invoice] = $this->openInvoice();
+        $id = (int) $invoice->id;
+        self::assertNull($this->invoices->savePayerDetails($this->ctx, $id, 2, 'stranger@example.org', ['kind' => 'person'], $this->now), 'only the payer');
+
+        $bad = $this->invoices->savePayerDetails($this->ctx, $id, 1, 'olena@example.org', ['kind' => 'organization', 'organization' => 'Ліцей', 'legalId' => '12345679'], $this->now);
+        self::assertSame(['legalId' => ['plugins.generic.conferenceManager.validation.edrpou']], $bad?->toArray());
+        $ok = $this->invoices->savePayerDetails($this->ctx, $id, 1, 'olena@example.org', ['kind' => 'organization', 'organization' => '  Київський   ліцей № 1 ', 'legalId' => '0207 0944'], $this->now);
+        self::assertSame([], $ok?->toArray());
+        $saved = $this->invoices->find($this->ctx, $id);
+        self::assertSame('Київський ліцей № 1', $saved?->payer['name']);
+        self::assertSame('02070944', $saved?->payer['legalId']);
+        self::assertSame('Олена Коваль', $saved?->payer['contactName'] ?? null, 'the person stays as the contact');
+        self::assertContains('payer_changed', array_column($this->invoices->events($this->ctx, $id), 'type'));
+
+        $docs = new InvoiceDocumentService($this->invoices, new MemoryTemplateStore(), null, dirname(__DIR__, 2) . '/templates/invoice');
+        $html = (string) $docs->html($this->ctx, $saved ?? throw new \LogicException());
+        self::assertStringContainsString('Київський ліцей № 1', $html);
+        self::assertStringContainsString('plugins.generic.conferenceManager.jurisdiction.ua.edrpou: 02070944', $html);
+
+        // Without the setting a person gives no tax number, even if sent.
+        self::assertSame([], $this->invoices->savePayerDetails($this->ctx, $id, 1, 'olena@example.org', ['kind' => 'person', 'taxId' => '1234567890'], $this->now)?->toArray());
+        self::assertArrayNotHasKey('taxId', $this->invoices->find($this->ctx, $id)?->payer ?? []);
+
+        // With the setting on, the РНОКПП is required and checked.
+        $settings = new FakeSettings();
+        $withTax = new InvoiceService(
+            new DbPaymentRepository($this->db),
+            new DbFeeRepository($this->db),
+            new DbEditionRepository($this->db),
+            new DbParticipantRepository($this->db),
+            new DbRegistrationRepository($this->db),
+            fn (ContextInfo $c) => (new InstitutionProfileService(new DbInstitutionRepository($this->db), JurisdictionRegistry::withBuiltIns()))->getOrDraft($c),
+            null,
+            new AuditLogger($this->db),
+            null,
+            JurisdictionRegistry::withBuiltIns(),
+            $settings,
+        );
+        $withTax->setPersonalTaxIdEnabled($this->ctx, true, 1);
+        self::assertTrue($withTax->payerFields($this->ctx)['taxIdEnabled']);
+        self::assertTrue($withTax->savePayerDetails($this->ctx, $id, 1, 'olena@example.org', ['kind' => 'person'], $this->now)?->has('taxId'));
+        self::assertTrue($withTax->savePayerDetails($this->ctx, $id, 1, 'olena@example.org', ['kind' => 'person', 'taxId' => '1234567890'], $this->now)?->has('taxId'));
+        $valid = '123456789' . \APP\plugins\generic\conferenceManager\classes\Jurisdiction\UA\Rnokpp::checkDigit('123456789');
+        self::assertSame([], $withTax->savePayerDetails($this->ctx, $id, 1, 'olena@example.org', ['kind' => 'person', 'taxId' => $valid], $this->now)?->toArray());
+        self::assertSame($valid, $withTax->find($this->ctx, $id)?->payer['taxId'] ?? null);
+
+        // A paid invoice keeps its payer.
+        $this->invoices->markPaid($this->ctx, $id, null, null, 1, $this->now);
+        self::assertTrue($this->invoices->savePayerDetails($this->ctx, $id, 1, 'olena@example.org', ['kind' => 'person'], $this->now)?->has('kind'));
+    }
+
     public function testNumbersAreSequentialPerContextAndYear(): void
     {
         $repo = new DbPaymentRepository($this->db);

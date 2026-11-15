@@ -45,4 +45,29 @@ interface CertificateRepository
      * @return list<array<string, mixed>>
      */
     public function ofParticipants(array $participantIds): array;
+
+    /** CRT-09: marks the certificate revoked; false when it already was. */
+    public function revoke(int $id, string $reason, ?int $replacedById, DateTimeImmutable $now): bool;
+
+    /** Links a revoked certificate to the one that replaces it. */
+    public function setReplacedBy(int $id, int $replacedById): void;
+
+    /**
+     * CRT-10: certificates of the type in an edition, optionally only those
+     * not exported yet, oldest first.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function forExport(int $contextId, int $editionId, string $type, bool $onlyNew): array;
+
+    /** @param list<int> $ids */
+    public function markExported(array $ids, DateTimeImmutable $now): void;
+
+    /**
+     * CRT-08: issued, not revoked certificates of the type in a context,
+     * newest first.
+     *
+     * @return array{items: list<array<string, mixed>>, itemsMax: int}
+     */
+    public function publicList(int $contextId, string $type, int $count, int $offset): array;
 }

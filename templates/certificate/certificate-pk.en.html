@@ -1,0 +1,44 @@
+<style>
+  body { font-family: dejavusans; color: #1d2b3a; font-size: 10.5pt; }
+  .frame { border: 2.5mm double #1f4e79; padding: 9mm 14mm; height: 172mm; }
+  .institution { text-align: center; font-size: 11pt; font-weight: bold; text-transform: uppercase; }
+  .legal { text-align: center; font-size: 8.5pt; color: #555; }
+  .title { text-align: center; font-size: 24pt; font-weight: bold; color: #1f4e79; margin: 5mm 0 0; letter-spacing: 1pt; }
+  .subtitle { text-align: center; font-size: 11pt; margin-bottom: 1mm; }
+  .number { text-align: center; font-size: 9.5pt; color: #555; }
+  .name { text-align: center; font-size: 19pt; font-weight: bold; margin: 4mm 0 0; }
+  .affiliation { text-align: center; font-size: 9.5pt; color: #555; margin-bottom: 3mm; }
+  table.facts { width: 100%; border-collapse: collapse; }
+  table.facts td { padding: 0.8mm 2mm; vertical-align: top; }
+  table.facts td.k { width: 52mm; color: #555; }
+  .outcomes { font-size: 9.5pt; }
+  table.foot { width: 100%; margin-top: 5mm; }
+  table.foot td { vertical-align: bottom; font-size: 9.5pt; }
+  .sign { border-top: 0.3mm solid #1d2b3a; padding-top: 1mm; width: 75mm; }
+</style>
+<div class="frame">
+  <div class="institution">{institutionName}</div>
+  <div class="legal">Legal entity code {institutionLegalId}</div>
+  <div class="title">CERTIFICATE</div>
+  <div class="subtitle">of professional development</div>
+  <div class="number">№ {number}</div>
+  <div class="name">{recipientName}</div>
+  <div class="affiliation">{recipientAffiliation}</div>
+  <table class="facts">
+    <tr><td class="k">Topic</td><td><b>{conferenceName}</b></td></tr>
+    <tr><td class="k">Form of training</td><td>{eventType}, {eventFormat}</td></tr>
+    <tr><td class="k">Dates</td><td>{eventDates}</td></tr>
+    <tr><td class="k">Workload</td><td>{hours} hours ({ects} ECTS credits)</td></tr>
+    <tr><td class="k">Learning outcomes</td><td class="outcomes">{learningOutcomes}</td></tr>
+    <tr><td class="k">Partial qualifications</td><td class="outcomes">{partialQualifications}</td></tr>
+  </table>
+  <table class="foot"><tr>
+    <td style="width: 45%">
+      <div class="sign">{signerPosition}<br><b>{signerName}</b></div>
+      <div style="margin-top: 2mm">Date of issue: {issueDate}</div>
+      <div>Record of the document: No. {number}</div>
+    </td>
+    <td style="width: 25%"></td>
+    <td style="width: 30%; text-align: right">{qrCode}<br><span style="font-size: 7pt">Verify: {verifyUrl}</span></td>
+  </tr></table>
+</div>

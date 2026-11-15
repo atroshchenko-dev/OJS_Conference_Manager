@@ -373,7 +373,7 @@ final class ParticipantService
         return $out;
     }
 
-    private static function safeCell(string $value): string
+    public static function safeCell(string $value): string
     {
         return $value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true) ? "'" . $value : $value;
     }

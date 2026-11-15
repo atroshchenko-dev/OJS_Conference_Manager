@@ -25,6 +25,9 @@ interface JurisdictionProfile extends JurisdictionRules
     /** Label of the legal id field, e.g. "ЄДРПОУ" for UA. */
     public function getLegalIdLabelKey(): string;
 
+    /** JUR-05: label of the personal tax number of a payer, e.g. "РНОКПП" for UA. */
+    public function getPersonalTaxIdLabelKey(): string;
+
     /**
      * @return array{timezone: ?string, currency: ?string, documentLocale: ?string}
      */

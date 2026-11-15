@@ -24,13 +24,18 @@ use PKP\security\Role;
  * GET  editions/{id}/certificate-candidates      who gets which certificate, or why none
  * POST editions/{id}/certificates                {participationIds} → issued numbers
  * GET  editions/{id}/certificates                issued certificates
+ * POST editions/{id}/certificates/batch          {participationIds?} everyone eligible, in the queue when many (CRT-06)
+ * POST editions/{id}/reviewers                   adds reviewers of the edition's papers (CRT-11)
+ * POST certificates/{id}/revoke                  {reason} (CRT-09)
+ * POST certificates/{id}/reissue                 {reason?} → the new certificate (CRT-09)
+ * GET  editions/{id}/vector-export?all=1         CSV of professional development documents (CRT-10)
  *
  * Journal manager:
  * GET  certificate-templates                     templates per type with the built-in one
  * PUT  certificate-templates/{type}              {html}; empty html returns to the built-in
  * POST certificate-templates/{type}/preview      {html} → HTML with sample values
- * GET  certificate-settings                      {series}
- * PUT  certificate-settings                      {series}
+ * GET  certificate-settings                      {series, vectorEnabled, features}
+ * PUT  certificate-settings                      {series, vectorEnabled?}
  */
 final class CertificateRoutes implements RouteModule
 {
@@ -50,6 +55,11 @@ final class CertificateRoutes implements RouteModule
         Route::get('editions/{editionId}/certificate-candidates', $this->getCertificateCandidates(...))->name('conference.certificates.candidates')->whereNumber('editionId');
         Route::post('editions/{editionId}/certificates', $this->issueCertificates(...))->name('conference.certificates.issue')->whereNumber('editionId');
         Route::get('editions/{editionId}/certificates', $this->getEditionCertificates(...))->name('conference.certificates.list')->whereNumber('editionId');
+        Route::post('editions/{editionId}/certificates/batch', $this->issueCertificateBatch(...))->name('conference.certificates.batch')->whereNumber('editionId');
+        Route::post('editions/{editionId}/reviewers', $this->addEditionReviewers(...))->name('conference.certificates.reviewers')->whereNumber('editionId');
+        Route::post('certificates/{certificateId}/revoke', $this->revokeCertificate(...))->name('conference.certificates.revoke')->whereNumber('certificateId');
+        Route::post('certificates/{certificateId}/reissue', $this->reissueCertificate(...))->name('conference.certificates.reissue')->whereNumber('certificateId');
+        Route::get('editions/{editionId}/vector-export', $this->exportVector(...))->name('conference.certificates.vector')->whereNumber('editionId');
         Route::get('certificate-templates', $this->getCertificateTemplates(...))->name('conference.certificateTemplates.list');
         Route::put('certificate-templates/{type}', $this->editCertificateTemplate(...))->name('conference.certificateTemplates.edit')->where('type', '[a-z]+');
         Route::post('certificate-templates/{type}/preview', $this->previewCertificateTemplate(...))->name('conference.certificateTemplates.preview')->where('type', '[a-z]+');
@@ -190,7 +200,17 @@ final class CertificateRoutes implements RouteModule
         if (!$this->api->canManageRegistrations()) {
             return ConferenceApiController::forbidden();
         }
-        return response()->json(['series' => ServiceFactory::certificates()->series($this->api->contextInfo())], Response::HTTP_OK);
+        return response()->json(self::settingsOf(ServiceFactory::certificates(), $this->api->contextInfo()), Response::HTTP_OK);
+    }
+
+    /** @return array{series: string, vectorEnabled: bool, professionalDevelopment: bool} */
+    private static function settingsOf(\APP\plugins\generic\conferenceManager\classes\Application\CertificateService $service, \APP\plugins\generic\conferenceManager\classes\Application\ContextInfo $context): array
+    {
+        return [
+            'series' => $service->series($context),
+            'vectorEnabled' => $service->vectorEnabled($context),
+            'professionalDevelopment' => $service->professionalDevelopmentAllowed($context),
+        ];
     }
 
     public function editCertificateSettings(Request $r): JsonResponse
@@ -199,7 +219,90 @@ final class CertificateRoutes implements RouteModule
             return ConferenceApiController::forbidden();
         }
         $service = ServiceFactory::certificates();
-        $errors = $service->saveSeries($this->api->contextInfo(), (string) $r->input('series', ''), $this->api->actorId());
-        return $errors->isEmpty() ? response()->json(['series' => $service->series($this->api->contextInfo())], Response::HTTP_OK) : ConferenceApiController::errorResponse($errors);
+        $context = $this->api->contextInfo();
+        $errors = $service->saveSeries($context, (string) $r->input('series', $service->series($context)), $this->api->actorId());
+        if (!$errors->isEmpty()) {
+            return ConferenceApiController::errorResponse($errors);
+        }
+        if ($r->has('vectorEnabled')) {
+            $service->setVectorEnabled($context, filter_var($r->input('vectorEnabled'), FILTER_VALIDATE_BOOLEAN), $this->api->actorId());
+        }
+        return response()->json(self::settingsOf($service, $context), Response::HTTP_OK);
+    }
+
+    public function issueCertificateBatch(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $ids = $r->input('participationIds');
+        $out = ServiceFactory::certificates()->issueBatch(
+            $this->api->contextInfo(),
+            (int) $r->route('editionId'),
+            is_array($ids) ? array_values($ids) : null,
+            new \APP\plugins\generic\conferenceManager\classes\Core\OjsCertificateQueue(),
+            $this->api->actorId(),
+            self::now(),
+            Locale::getLocale(),
+        );
+        return $out === null ? ConferenceApiController::notFound() : response()->json($out, Response::HTTP_OK);
+    }
+
+    public function addEditionReviewers(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $out = ServiceFactory::certificates()->addReviewers($this->api->contextInfo(), (int) $r->route('editionId'), $this->api->actorId(), self::now(), Locale::getLocale());
+        return $out === null ? ConferenceApiController::notFound() : response()->json($out, Response::HTTP_OK);
+    }
+
+    public function revokeCertificate(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $reason = $r->input('reason', '');
+        $errors = ServiceFactory::certificates()->revoke($this->api->contextInfo(), (int) $r->route('certificateId'), is_string($reason) ? $reason : '', $this->api->actorId(), self::now());
+        if ($errors === null) {
+            return ConferenceApiController::notFound();
+        }
+        return $errors->isEmpty() ? response()->json(['revoked' => true], Response::HTTP_OK) : ConferenceApiController::errorResponse($errors);
+    }
+
+    public function reissueCertificate(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $reason = $r->input('reason', '');
+        $out = ServiceFactory::certificates()->reissue($this->api->contextInfo(), (int) $r->route('certificateId'), is_string($reason) ? $reason : '', $this->api->actorId(), self::now());
+        if ($out === null) {
+            return ConferenceApiController::notFound();
+        }
+        [$created, $errors] = $out;
+        return $created === null ? ConferenceApiController::errorResponse($errors) : response()->json($created, Response::HTTP_OK);
+    }
+
+    public function exportVector(Request $r): Response|JsonResponse
+    {
+        if (!$this->isManager()) {
+            return ConferenceApiController::forbidden();
+        }
+        $service = ServiceFactory::certificates();
+        $context = $this->api->contextInfo();
+        if (!$service->vectorEnabled($context)) {
+            return ConferenceApiController::notFound();
+        }
+        $editionId = (int) $r->route('editionId');
+        $csv = $service->vectorCsv($context, $editionId, filter_var($r->query('all', ''), FILTER_VALIDATE_BOOLEAN), $this->api->actorId(), self::now(), Locale::getLocale());
+        if ($csv === null) {
+            return ConferenceApiController::notFound();
+        }
+        return new Response($csv, Response::HTTP_OK, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="vector-' . $editionId . '-' . gmdate('Ymd') . '.csv"',
+            'Cache-Control' => 'no-store',
+        ]);
     }
 }

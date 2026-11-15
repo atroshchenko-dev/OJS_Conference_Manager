@@ -97,6 +97,8 @@ final class InvoiceDocumentService
             'price' => $this->t('price', $locale),
             'amount' => $this->t('amount', $locale),
             'total' => $this->t('total', $locale),
+            'legalId' => $this->raw($this->invoices->payerFields($context)['legalId'], $locale),
+            'taxId' => $this->raw($this->invoices->payerFields($context)['taxId'], $locale),
         ], str_starts_with($locale, 'en') ? '.' : ',');
     }
 
@@ -116,5 +118,10 @@ final class InvoiceDocumentService
     private function t(string $key, string $locale): string
     {
         return $this->translate === null ? $key : ($this->translate)(self::L . $key, [], $locale);
+    }
+
+    private function raw(string $key, string $locale): string
+    {
+        return $this->translate === null ? $key : ($this->translate)($key, [], $locale);
     }
 }

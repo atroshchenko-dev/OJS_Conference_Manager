@@ -2774,3 +2774,243 @@ msgstr "Back to built-in"
 
 msgid "plugins.generic.conferenceManager.certificate.template.resetConfirm"
 msgstr "Go back to the built-in template for this kind? Issued certificates do not change."
+
+msgid "plugins.generic.conferenceManager.certificate.type.pk"
+msgstr "Professional development certificate"
+
+msgid "plugins.generic.conferenceManager.certificate.title.pk"
+msgstr "CERTIFICATE"
+
+msgid "plugins.generic.conferenceManager.certificate.roleText.pk"
+msgstr "of professional development"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.outcomes"
+msgstr "The participant knows current approaches to the topic of the event and can apply them in their work."
+
+msgid "plugins.generic.conferenceManager.certificate.error.reason"
+msgstr "Enter the reason: 1 to 500 characters."
+
+msgid "plugins.generic.conferenceManager.certificate.error.revoked"
+msgstr "This document is already revoked."
+
+msgid "plugins.generic.conferenceManager.certificate.error.replaced"
+msgstr "This document has already been replaced."
+
+msgid "plugins.generic.conferenceManager.certificate.reissuedReason"
+msgstr "Replaced by a corrected document."
+
+msgid "plugins.generic.conferenceManager.certificate.reason.notFound"
+msgstr "The person is not among the participants of the event."
+
+msgid "plugins.generic.conferenceManager.certificate.reason.alreadyIssued"
+msgstr "A document of this kind has already been issued."
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.number"
+msgstr "Document number"
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.issueDate"
+msgstr "Issue date"
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.recipientName"
+msgstr "Full name"
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.email"
+msgstr "Email"
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.programId"
+msgstr "Programme ID"
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.topic"
+msgstr "Topic"
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.eventType"
+msgstr "Kind"
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.eventFormat"
+msgstr "Form"
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.eventDates"
+msgstr "Dates"
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.hours"
+msgstr "Volume, hours"
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.ects"
+msgstr "ECTS credits"
+
+msgid "plugins.generic.conferenceManager.certificate.vector.column.verifyUrl"
+msgstr "Verification link"
+
+msgid "plugins.generic.conferenceManager.editions.field.partialQualifications"
+msgstr "Partial qualifications (if awarded)"
+
+msgid "plugins.generic.conferenceManager.documents.title"
+msgstr "Register of professional development documents"
+
+msgid "plugins.generic.conferenceManager.documents.intro"
+msgstr "Documents issued for professional development (item 13 of the Procedure approved by CMU Resolution No. 800). Click a number to verify the document."
+
+msgid "plugins.generic.conferenceManager.documents.number"
+msgstr "Number"
+
+msgid "plugins.generic.conferenceManager.documents.recipient"
+msgstr "Issued to"
+
+msgid "plugins.generic.conferenceManager.documents.topic"
+msgstr "Topic"
+
+msgid "plugins.generic.conferenceManager.documents.form"
+msgstr "Kind and form"
+
+msgid "plugins.generic.conferenceManager.documents.dates"
+msgstr "Dates"
+
+msgid "plugins.generic.conferenceManager.documents.volume"
+msgstr "Volume"
+
+msgid "plugins.generic.conferenceManager.documents.issued"
+msgstr "Issued"
+
+msgid "plugins.generic.conferenceManager.documents.hours"
+msgstr "{$hours} h ({$ects} ECTS)"
+
+msgid "plugins.generic.conferenceManager.documents.pages"
+msgstr "Register pages"
+
+msgid "plugins.generic.conferenceManager.documents.prev"
+msgstr "← Previous"
+
+msgid "plugins.generic.conferenceManager.documents.next"
+msgstr "Next →"
+
+msgid "plugins.generic.conferenceManager.documents.pageOf"
+msgstr "Page {$page} of {$pages}"
+
+msgid "plugins.generic.conferenceManager.documents.empty"
+msgstr "No documents have been issued yet."
+
+msgid "plugins.generic.conferenceManager.documents.hoursOnly"
+msgstr "{$hours} h"
+
+msgid "plugins.generic.conferenceManager.certificate.downloadIn"
+msgstr "Download ({$language})"
+
+msgid "plugins.generic.conferenceManager.certificate.issueAll"
+msgstr "Issue to everyone eligible ({$count})"
+
+msgid "plugins.generic.conferenceManager.certificate.queued"
+msgstr "Issuing {$count} documents has been queued. The list will refresh by itself."
+
+msgid "plugins.generic.conferenceManager.certificate.addReviewers"
+msgstr "Add the reviewers of the event"
+
+msgid "plugins.generic.conferenceManager.certificate.reviewersAdded"
+msgstr "Reviewers found: {$found}, newly added: {$added}."
+
+msgid "plugins.generic.conferenceManager.certificate.vectorNew"
+msgstr "Export for “Vector” (new)"
+
+msgid "plugins.generic.conferenceManager.certificate.vectorAll"
+msgstr "Export for “Vector” (all)"
+
+msgid "plugins.generic.conferenceManager.certificate.vectorEnabled"
+msgstr "Export for the “Vector” platform"
+
+msgid "plugins.generic.conferenceManager.certificate.issuedList"
+msgstr "Issued documents"
+
+msgid "plugins.generic.conferenceManager.certificate.state"
+msgstr "State"
+
+msgid "plugins.generic.conferenceManager.certificate.valid"
+msgstr "Valid"
+
+msgid "plugins.generic.conferenceManager.certificate.revoked"
+msgstr "Revoked"
+
+msgid "plugins.generic.conferenceManager.certificate.replacedBy"
+msgstr "Replaced by {$number}"
+
+msgid "plugins.generic.conferenceManager.certificate.reissue"
+msgstr "Reissue"
+
+msgid "plugins.generic.conferenceManager.certificate.revoke"
+msgstr "Revoke"
+
+msgid "plugins.generic.conferenceManager.certificate.revokePrompt"
+msgstr "Reason for revoking {$number} (shown on the verification page):"
+
+msgid "plugins.generic.conferenceManager.certificate.reissuePrompt"
+msgstr "{$number} will be revoked and a new document with a new number issued from the current data. Reason (may be left empty):"
+
+msgid "plugins.generic.conferenceManager.certificate.revokedDone"
+msgstr "{$number} has been revoked."
+
+msgid "plugins.generic.conferenceManager.certificate.reissuedDone"
+msgstr "New document {$number} issued."
+
+msgid "plugins.generic.conferenceManager.payer.title"
+msgstr "Payer details"
+
+msgid "plugins.generic.conferenceManager.payer.who"
+msgstr "Who pays the invoice"
+
+msgid "plugins.generic.conferenceManager.payer.person"
+msgstr "I personally"
+
+msgid "plugins.generic.conferenceManager.payer.organization"
+msgstr "An organisation (institution, company)"
+
+msgid "plugins.generic.conferenceManager.payer.organizationName"
+msgstr "Full name of the organisation"
+
+msgid "plugins.generic.conferenceManager.payer.taxId"
+msgstr "Personal tax number"
+
+msgid "plugins.generic.conferenceManager.payer.taxIdHint"
+msgstr "The accounting department asks individuals who pay to give this number."
+
+msgid "plugins.generic.conferenceManager.payer.hint"
+msgstr "The details go into this invoice while it is unpaid, and into the next invoices."
+
+msgid "plugins.generic.conferenceManager.payer.save"
+msgstr "Save the details"
+
+msgid "plugins.generic.conferenceManager.payer.saved"
+msgstr "The payer details have been saved. The invoice has been updated."
+
+msgid "plugins.generic.conferenceManager.payer.taxIdSetting"
+msgstr "Require the personal tax number from individuals who pay"
+
+msgid "plugins.generic.conferenceManager.payer.taxIdSettingHelp"
+msgstr "Off by default. Turn it on only when the accounting department requires it: this is sensitive personal data."
+
+msgid "plugins.generic.conferenceManager.payer.error.kind"
+msgstr "Choose who pays the invoice."
+
+msgid "plugins.generic.conferenceManager.payer.error.organization"
+msgstr "Enter the name of the organisation (up to 255 characters)."
+
+msgid "plugins.generic.conferenceManager.payer.error.legalId"
+msgstr "Enter the code of the organisation."
+
+msgid "plugins.generic.conferenceManager.payer.error.taxId"
+msgstr "Enter the tax number."
+
+msgid "plugins.generic.conferenceManager.payer.error.locked"
+msgstr "The details can be changed only in a valid unpaid invoice."
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.rnokpp"
+msgstr "RNOKPP (tax number)"
+
+msgid "plugins.generic.conferenceManager.validation.rnokpp"
+msgstr "RNOKPP must have 10 digits with a correct check digit."
+
+msgid "plugins.generic.conferenceManager.validation.taxId"
+msgstr "Tax number: 4 to 32 Latin letters, digits or hyphens."
+
+msgid "plugins.generic.conferenceManager.export.column.payerCode"
+msgstr "Payer code (legal id / tax number)"
+
+msgid "plugins.generic.conferenceManager.invoice.event.payer_changed"
+msgstr "Payer details changed"
