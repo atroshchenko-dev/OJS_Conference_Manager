@@ -14,8 +14,11 @@ use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService
 use APP\plugins\generic\conferenceManager\classes\Application\PdfRenderer;
 use APP\plugins\generic\conferenceManager\classes\Application\ProofStore;
 use APP\plugins\generic\conferenceManager\classes\Domain\Institution\InstitutionType;
+use APP\plugins\generic\conferenceManager\classes\Domain\Program\ProgramSession;
+use APP\plugins\generic\conferenceManager\classes\Domain\Program\SessionType;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConsentText;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantFilter;
+use APP\plugins\generic\conferenceManager\classes\Domain\Shared\LocalizedText;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbAttendanceRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbCertificateRepository;
@@ -23,6 +26,7 @@ use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\Db
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbFeeRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbParticipantRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbProgramRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
@@ -95,7 +99,7 @@ final class AttendanceCertificateFlowTest extends TestCase
             $this->pids[$email] = (int) $r['participationId'];
         }
 
-        $this->attendance = new AttendanceService(new DbAttendanceRepository($this->db), new DbEditionRepository($this->db), $this->settings, new AuditLogger($this->db));
+        $this->attendance = new AttendanceService(new DbAttendanceRepository($this->db), new DbEditionRepository($this->db), $this->settings, new AuditLogger($this->db), new DbProgramRepository($this->db));
         $this->certificates = new CertificateService(
             new DbCertificateRepository($this->db),
             new DbAttendanceRepository($this->db),
@@ -110,6 +114,7 @@ final class AttendanceCertificateFlowTest extends TestCase
             $this->settings,
             static fn (string $key, array $params, string $locale): string => $locale . ':' . $key,
             new AuditLogger($this->db),
+            new DbProgramRepository($this->db),
         );
     }
 
@@ -278,6 +283,108 @@ final class AttendanceCertificateFlowTest extends TestCase
         $other = new ContextInfo(2, 'en', ['en']);
         self::assertFalse($this->certificates->professionalDevelopmentAllowed($other));
         self::assertSame(['items' => [], 'itemsMax' => 0], $this->certificates->publicList($other, 1));
+    }
+
+    /** ATT-01, ATT-02 per session; CRT-05, PRG-07: hours of the attended seminars. */
+    public function testSessionAttendanceGivesSeminarHours(): void
+    {
+        $this->db->table('conf_editions')->where('id', $this->edition)->update(['hours' => 16]);
+        $program = new DbProgramRepository($this->db);
+        $at = static fn (string $t): DateTimeImmutable => new DateTimeImmutable('2027-05-20T' . $t . ':00Z');
+        $s1 = (int) $program->saveSession(new ProgramSession(
+            null,
+            $this->edition,
+            SessionType::Seminar,
+            $at('08:00'),
+            $at('11:00'),
+            texts: ['title' => new LocalizedText(['uk' => 'Семінар «Цифрові інструменти»']), 'learningOutcomes' => new LocalizedText(['uk' => 'Уміє готувати онлайн-заняття.'])],
+            hours: 3,
+        ))->id;
+        $s2 = (int) $program->saveSession(new ProgramSession(
+            null,
+            $this->edition,
+            SessionType::Seminar,
+            $at('12:00'),
+            $at('16:00'),
+            texts: ['title' => new LocalizedText(['uk' => 'Майстер-клас «Оцінювання»'])],
+            hours: 4,
+        ))->id;
+        $s3 = (int) $program->saveSession(new ProgramSession(
+            null,
+            $this->edition,
+            SessionType::Section,
+            $at('16:30'),
+            $at('18:00'),
+            texts: ['title' => new LocalizedText(['uk' => 'Секція 1'])],
+        ))->id;
+        $pause = (int) $program->saveSession(new ProgramSession(null, $this->edition, SessionType::Break, $at('11:00'), $at('12:00')))->id;
+        [$a, $b, $c, $d] = [$this->pids['a@example.org'], $this->pids['b@example.org'], $this->pids['c@example.org'], $this->pids['d@example.org']];
+
+        self::assertSame(1, $this->attendance->markSession($this->ctx, $this->edition, $s1, [$a, 99999, $a], true, 1, $this->now), 'unknown ids are ignored');
+        self::assertSame(1, $this->attendance->markSession($this->ctx, $this->edition, $s2, [$a], true, 1, $this->now));
+        self::assertSame(0, $this->attendance->markSession($this->ctx, $this->edition, $s2, [$a], true, 1, $this->now), 'marking again changes nothing');
+        self::assertNull($this->attendance->markSession($this->ctx, $this->edition, $pause, [$a], true, 1, $this->now), 'a break has no attendance');
+        self::assertNull($this->attendance->markSession($this->ctx, 999, $s1, [$a], true, 1, $this->now));
+
+        // The report of seminar 1: three quarters of 180 minutes by default.
+        $sheet = $this->attendance->sessionSheet($this->ctx, $this->edition, $s1, 'uk') ?? [];
+        self::assertSame(135, $sheet['threshold']);
+        $csv = "Name,Email,Duration\nA,a@example.org,10\nB,b@example.org,150\nC,c@example.org,60\nX,x@example.org,170\n";
+        [$preview] = $this->attendance->importSession($this->ctx, $this->edition, $s1, $csv, 135, false, 'uk', 1, $this->now) ?? [null];
+        self::assertSame(1, $preview['present']);
+        self::assertSame('x@example.org', $preview['unmatched'][0]['email']);
+        $byEmail = array_column($preview['matched'], null, 'email');
+        self::assertTrue($byEmail['a@example.org']['keptManual'], 'the presence marked by hand stays');
+        self::assertSame(1, $this->attendance->sessionSheet($this->ctx, $this->edition, $s1, 'uk')['present'], 'a preview saves nothing');
+        $this->attendance->importSession($this->ctx, $this->edition, $s1, $csv, 135, true, 'uk', 1, $this->now);
+        $sheet = $this->attendance->sessionSheet($this->ctx, $this->edition, $s1, 'uk') ?? [];
+        self::assertSame(2, $sheet['present']);
+        $people = array_column($sheet['people'], null, 'email');
+        self::assertSame('manual', $people['a@example.org']['source']);
+        self::assertSame(['import', 150], [$people['b@example.org']['source'], $people['b@example.org']['minutes']]);
+        self::assertFalse($people['c@example.org']['present']);
+        // A second report below the threshold removes only what a report gave.
+        $this->attendance->importSession($this->ctx, $this->edition, $s1, "Email,Duration\na@example.org,5\nb@example.org,5\n", 135, true, 'uk', 1, $this->now);
+        self::assertSame(1, $this->attendance->sessionSheet($this->ctx, $this->edition, $s1, 'uk')['present']);
+        $this->attendance->importSession($this->ctx, $this->edition, $s1, $csv, 135, true, 'uk', 1, $this->now);
+
+        // d was only at a section, c nowhere.
+        $this->attendance->markSession($this->ctx, $this->edition, $s3, [$d], true, 1, $this->now);
+        $cand = array_column($this->certificates->candidates($this->ctx, $this->edition, 'uk') ?? [], null, 'email');
+        self::assertSame(['pk', 7, 2], [$cand['a@example.org']['type'], $cand['a@example.org']['hours'], $cand['a@example.org']['sessions']], 'hours of the seminars, not of the edition');
+        self::assertSame(['pk', 3], [$cand['b@example.org']['type'], $cand['b@example.org']['hours']]);
+        self::assertTrue($cand['d@example.org']['attended'], 'a session counts as presence at the edition');
+        self::assertSame('listener', $cand['d@example.org']['type'], 'no seminar, no professional development document');
+        self::assertNull($cand['c@example.org']['type']);
+        self::assertSame('notAttended', $cand['c@example.org']['reason']);
+
+        $out = $this->certificates->issue($this->ctx, $this->edition, [$a], 1, $this->now, 'uk') ?? [];
+        self::assertSame('issued', $out[0]['status']);
+        $html = $this->pdf->lastHtml;
+        self::assertStringContainsString('7 год', $html);
+        self::assertStringContainsString('0,23', $html, 'ECTS: 3 h → 0,10 and 4 h → 0,13');
+        self::assertStringContainsString('Семінар «Цифрові інструменти»', $html);
+        self::assertStringContainsString('Майстер-клас «Оцінювання»', $html);
+        self::assertStringContainsString('Уміє готувати онлайн-заняття.', $html, 'outcomes of the seminars when the edition has none');
+        $row = $this->db->table('conf_certificates')->where('id', $out[0]['id'])->first();
+        self::assertSame([7, 23], [(int) $row->hours, (int) $row->ects_x100]);
+
+        // The moderator's cabinet.
+        $participant = (int) $this->db->table('conf_participations')->where('id', $d)->value('participant_id');
+        $this->db->table('conf_session_chairs')->insert(['session_id' => $s3, 'participant_id' => $participant, 'created_at' => '2027-01-01 00:00:00', 'updated_at' => '2027-01-01 00:00:00']);
+        self::assertTrue($this->attendance->chairs($s3, [$participant]));
+        self::assertFalse($this->attendance->chairs($s1, [$participant]));
+        $mine = $this->attendance->chairedSessions($this->ctx, [$participant], 'uk');
+        self::assertSame([[$s3, 'Секція 1']], array_map(static fn (array $s): array => [$s['sessionId'], $s['title']], $mine));
+        $sheet = $this->attendance->sessionSheet($this->ctx, $this->edition, $s3, 'uk') ?? [];
+        self::assertSame('d@example.org', $sheet['people'][0]['email'], 'the chair is listed first');
+
+        // Removing a session removes its marks; unmarking by hand removes a report's mark.
+        self::assertSame(1, $this->attendance->markSession($this->ctx, $this->edition, $s1, [$b], false, 1, $this->now));
+        $program->deleteSession($this->edition, $s2);
+        self::assertSame(0, $this->db->table('conf_session_attendance')->where('session_id', $s2)->count());
+        $cand = array_column($this->certificates->candidates($this->ctx, $this->edition, 'uk') ?? [], null, 'email');
+        self::assertSame(3, $cand['a@example.org']['hours']);
     }
 
     public function testRevokeAndReissue(): void

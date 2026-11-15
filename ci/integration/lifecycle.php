@@ -71,6 +71,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'assign-reviewer' => $this->assignReviewer((int) $this->argv[1], (int) $this->argv[2]),
                 'set-affiliation' => $this->setAffiliation((int) $this->argv[1], (int) $this->argv[2], $this->argv[3]),
                 'seed-participants' => $this->seedParticipants($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
+                'add-listener' => $this->addListener($this->argv[1], (int) $this->argv[2], $this->argv[3], $this->argv[4] ?? null),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
         } catch (Throwable $e) {
@@ -398,6 +399,24 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
             DB::table('conf_participations')->insert(['participant_id' => $pid, 'role' => 'listener', 'participation_form' => 'online', 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
         }
         echo "OK seeded {$count}\n";
+    }
+
+    /** A confirmed listener of an edition, linked to an OJS account when a username is given; prints "participantId participationId". */
+    private function addListener(string $path, int $editionId, string $email, ?string $username): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $now = gmdate('Y-m-d H:i:s');
+        $userId = $username === null ? null : DB::table('users')->where('username', $username)->value('user_id');
+        $pid = DB::table('conf_participants')->insertGetId([
+            'context_id' => $context->getId(), 'edition_id' => $editionId, 'user_id' => $userId, 'email' => $email,
+            'affiliation' => 'Коледж', 'confirmation_status' => 'confirmed', 'created_at' => $now, 'updated_at' => $now,
+        ]);
+        DB::table('conf_participant_settings')->insert([
+            ['participant_id' => $pid, 'locale' => 'uk', 'setting_name' => 'givenName', 'setting_value' => 'Ірина'],
+            ['participant_id' => $pid, 'locale' => 'uk', 'setting_name' => 'familyName', 'setting_value' => 'Слухач ' . strtok($email, '@')],
+        ]);
+        $id = DB::table('conf_participations')->insertGetId(['participant_id' => $pid, 'role' => 'listener', 'participation_form' => 'online', 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
+        echo "{$pid} {$id}\n";
     }
 
     /**

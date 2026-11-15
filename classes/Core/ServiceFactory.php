@@ -37,6 +37,7 @@ use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\Db
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbParticipantRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPaymentRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPersonalDataRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbProgramRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbReminderRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
@@ -388,7 +389,7 @@ final class ServiceFactory
     public static function attendance(): AttendanceService
     {
         $db = DB::connection();
-        return new AttendanceService(new DbAttendanceRepository($db), new DbEditionRepository($db), self::settings(), new AuditLogger($db));
+        return new AttendanceService(new DbAttendanceRepository($db), new DbEditionRepository($db), self::settings(), new AuditLogger($db), new DbProgramRepository($db));
     }
 
     public static function certificates(): CertificateService
@@ -409,6 +410,7 @@ final class ServiceFactory
             self::settings(),
             static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
             new AuditLogger($db),
+            new DbProgramRepository($db),
         );
     }
 

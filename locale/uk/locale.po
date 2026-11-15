@@ -4514,3 +4514,93 @@ msgstr "Партнер заходу"
 
 msgid "plugins.generic.conferenceManager.editions.copy.part.partners"
 msgstr "Співорганізатори й партнери з логотипами"
+
+msgid "plugins.generic.conferenceManager.attendance.sessionsShort"
+msgstr "Сесій: {$n}"
+
+msgid "plugins.generic.conferenceManager.certificate.hoursShort"
+msgstr "{$n} год"
+
+msgid "plugins.generic.conferenceManager.certificate.sessionHours"
+msgstr "{$n} год"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.sessions"
+msgstr "Семінар «Цифрові інструменти викладача» — 3 год\nМайстер-клас «Оцінювання навчальних досягнень» — 3 год"
+
+msgid "plugins.generic.conferenceManager.program.session.attendance"
+msgstr "Присутність"
+
+msgid "plugins.generic.conferenceManager.audit.entity.session_attendance"
+msgstr "Присутність на сесії"
+
+msgid "plugins.generic.conferenceManager.my.sessions"
+msgstr "Сесії, які я модерую"
+
+msgid "plugins.generic.conferenceManager.my.sessionsHelp"
+msgstr "Відкрийте сесію, щоб позначити присутніх або завантажити звіт онлайн-зустрічі."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.title"
+msgstr "Присутність на сесії"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.backManager"
+msgstr "← До керування конференціями"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.backMy"
+msgstr "← До особистого кабінету"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.edition"
+msgstr "Захід"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.when"
+msgstr "Час"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.presentCount"
+msgstr "Присутні"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.seminarNote"
+msgstr "Присутні на цьому семінарі отримують {$n} год до свідоцтва про підвищення кваліфікації."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.marks"
+msgstr "Хто був присутній"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.nobody"
+msgstr "У заході ще немає активних учасників."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.filter"
+msgstr "Пошук"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.checkShown"
+msgstr "Позначити показаних"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.uncheckShown"
+msgstr "Зняти позначки з показаних"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.source"
+msgstr "Позначка"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.ofSession"
+msgstr "доповідач або модератор сесії"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.fromReport"
+msgstr "зі звіту, {$minutes} хв"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.byHand"
+msgstr "вручну"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.save"
+msgstr "Зберегти присутність"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.saved"
+msgstr "Збережено змін: {$n}."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.importHelp"
+msgstr "Звіт Teams, Zoom або Google Meet лише цієї сесії (CSV). Сесія триває {$minutes} хв, тому поріг за замовчуванням — три чверті цього часу. Позначок, зроблених вручну, імпорт не змінює."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.previewed"
+msgstr "Перегляд: рядків {$rows}, знайдено {$matched}, присутніх {$present}, не знайдено {$unmatched}. Натисніть «Застосувати», щоб зберегти."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.imported"
+msgstr "Застосовано: рядків {$rows}, знайдено {$matched}, присутніх {$present}, не знайдено {$unmatched}."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.reportTable"
+msgstr "Звіт зустрічі (поріг {$threshold} хв)"

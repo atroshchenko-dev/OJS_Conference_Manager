@@ -32,4 +32,25 @@ interface AttendanceRepository
      * @return array{participationId: int, created: bool}
      */
     public function addStaff(int $contextId, int $editionId, string $role, array $person, DateTimeImmutable $now): array;
+
+    /**
+     * Presence at the sessions of the program (ATT-01 per session).
+     *
+     * @return array<int, list<int>> participation id => ids of the sessions where the person was present
+     */
+    public function sessionPresence(int $editionId): array;
+
+    /**
+     * @return array<int, array{minutes: ?int, source: string, markedAt: string}> participation id => mark at one session
+     */
+    public function ofSession(int $sessionId): array;
+
+    /**
+     * Marks or unmarks presence at a session of the edition. A mark from
+     * an import never replaces or removes a mark made by hand.
+     *
+     * @param list<int> $participationIds of this edition
+     * @return int rows changed
+     */
+    public function markSession(int $editionId, int $sessionId, array $participationIds, bool $attended, ?int $minutes, string $source, ?int $actorId, DateTimeImmutable $now): int;
 }

@@ -252,8 +252,8 @@
 				<td><input type="checkbox" v-if="c.type && !c.issued" :value="c.participationId" v-model="chosen" :aria-label="c.name || c.email"></td>\
 				<td><strong>{{ c.name || c.email }}</strong><div class="cmEditions__path">{{ c.email }}</div><div class="cmEditions__path" v-if="c.paperTitle">{{ c.paperTitle }}</div></td>\
 				<td>{{ c.roleLabel }}</td>\
-				<td>{{ c.attended ? t(\'attendance.present\') : t(\'attendance.absent\') }}<div class="cmEditions__path" v-if="c.minutes !== null">{{ t(\'attendance.minutesShort\', { minutes: c.minutes }) }}</div></td>\
-				<td><template v-if="c.type">{{ c.typeLabel }}</template><span v-else class="cmEditions__path">{{ c.reasonLabel }}</span></td>\
+				<td>{{ c.attended ? t(\'attendance.present\') : t(\'attendance.absent\') }}<div class="cmEditions__path" v-if="c.minutes !== null">{{ t(\'attendance.minutesShort\', { minutes: c.minutes }) }}</div><div class="cmEditions__path" v-if="c.sessions">{{ t(\'attendance.sessionsShort\', { n: c.sessions }) }}</div></td>\
+				<td><template v-if="c.type">{{ c.typeLabel }}<div class="cmEditions__path" v-if="c.hours">{{ t(\'certificate.hoursShort\', { n: c.hours }) }}</div></template><span v-else class="cmEditions__path">{{ c.reasonLabel }}</span></td>\
 				<td><a v-if="c.issued" :href="link(c.issued.id)" target="_blank" rel="noopener">{{ c.issued.number }}</a></td>\
 			</tr></tbody>\
 		</table>\

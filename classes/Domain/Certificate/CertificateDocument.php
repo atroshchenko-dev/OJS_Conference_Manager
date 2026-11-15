@@ -23,11 +23,11 @@ final class CertificateDocument
         'certificateTitle', 'roleText', 'conferenceName', 'eventDates', 'venue', 'eventFormat',
         'paperTitle', 'presentationType', 'hours', 'number', 'issueDate',
         'verifyUrl', 'qrCode', 'signerName', 'signerPosition', 'contextName',
-        'eventType', 'ects', 'learningOutcomes', 'partialQualifications', 'institutionLegalId',
+        'eventType', 'ects', 'learningOutcomes', 'partialQualifications', 'institutionLegalId', 'programSessions',
     ];
 
     /** Kept with their line breaks. */
-    private const MULTILINE = ['learningOutcomes', 'partialQualifications'];
+    private const MULTILINE = ['learningOutcomes', 'partialQualifications', 'programSessions'];
 
     /** Inserted as HTML, not as text. */
     private const RAW = ['qrCode'];

@@ -104,6 +104,8 @@ Participants are matched by email, so a person should join the meeting with the 
 
 Attendance decides whether listeners and speakers receive a certificate.
 
+Attendance at a single session of the programme is marked on the session page: the **Attendance** button in the programme builder opens it, and a session chair reaches it from their cabinet. See the [manager guide](manager.md#attendance-at-single-sessions-of-the-programme).
+
 ## Certificates and mailings
 
 You can issue, revoke and reissue certificates on the **Certificates** page and send mailings to participants on the **Mailings** page. How to do this is described in the [manager guide](manager.md): sections "How to issue certificates" and "How to send a mailing". Certificate templates and the export for "Vector" are set up by the journal manager.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\generic\conferenceManager\classes\Application;
 
 use APP\plugins\generic\conferenceManager\classes\Domain\Attendance\AttendanceRepository;
+use APP\plugins\generic\conferenceManager\classes\Domain\Attendance\SeminarLoad;
 use APP\plugins\generic\conferenceManager\classes\Domain\Certificate\CertificateDocument;
 use APP\plugins\generic\conferenceManager\classes\Domain\Certificate\CertificateNumber;
 use APP\plugins\generic\conferenceManager\classes\Domain\Certificate\CertificateRepository;
@@ -13,6 +14,8 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Certificate\Certificate
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionRepository;
 use APP\plugins\generic\conferenceManager\classes\Domain\Institution\InstitutionProfile;
+use APP\plugins\generic\conferenceManager\classes\Domain\Program\ProgramRepository;
+use APP\plugins\generic\conferenceManager\classes\Domain\Program\ProgramSession;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRole;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationForm;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationStatus;
@@ -32,6 +35,11 @@ use DateTimeZone;
  * comes from the context counter ("{series}-{year}-{seq}"), the PDF is
  * kept privately with its sha256 and made again from the snapshot when
  * the file is missing. The QR code leads to the public verification page.
+ *
+ * Presence at any session of the program counts as presence at the
+ * edition. When the program has seminars with hours, a professional
+ * development document gives the hours of the seminars the person
+ * attended (CRT-05, PRG-07); otherwise the hours of the edition.
  */
 final class CertificateService
 {
@@ -60,7 +68,14 @@ final class CertificateService
         /** @var (\Closure(string, array<string, mixed>, string): string)|null */
         private readonly ?\Closure $translate = null,
         private readonly ?AuditLogger $audit = null,
+        private readonly ?ProgramRepository $program = null,
     ) {
+    }
+
+    /** @return list<ProgramSession> seminars with hours, by start */
+    private function seminars(int $editionId): array
+    {
+        return $this->program === null ? [] : SeminarLoad::seminars($this->program->sessions($editionId));
     }
 
     /** The built-in template: "certificate-{type}.{language}.html" when there is one, else "certificate.{language}.html". */
@@ -196,7 +211,9 @@ final class CertificateService
             return null;
         }
         $people = $this->attendance->ofEdition($context->id, $editionId, $locale);
-        $pk = ($edition->hours ?? 0) > 0 && $this->professionalDevelopmentAllowed($context);
+        $allowed = $this->professionalDevelopmentAllowed($context);
+        $seminars = $this->seminars($editionId);
+        $presence = $this->attendance->sessionPresence($editionId);
         $types = [];
         foreach ($this->registrations->registeredOfEdition($editionId) as $r) {
             $types[$r->submissionId] = $r->presentationType;
@@ -214,10 +231,13 @@ final class CertificateService
             $role = ParticipantRole::tryFrom($p['role']) ?? ParticipantRole::Listener;
             $summary = $p['submissionId'] === null ? null : ($summaries[$p['submissionId']] ?? null);
             $accepted = $summary === null ? null : ($summary['status'] !== EditorialDirectory::STATUS_DECLINED && $summary['stageId'] >= EditorialDirectory::STAGE_EDITING);
+            $sessionIds = $presence[$p['participationId']] ?? [];
+            $load = $seminars === [] ? null : SeminarLoad::of($seminars, $sessionIds);
+            $pk = $allowed && ($load === null ? ($edition->hours ?? 0) > 0 : $load->hours > 0);
             [$type, $reason] = CertificateRules::decide(
                 $role,
                 $p['status'] === ParticipationStatus::Active->value,
-                $p['attended'],
+                $p['attended'] || $sessionIds !== [],
                 ParticipationForm::tryFrom($p['form']) ?? ParticipationForm::InPerson,
                 $p['submissionId'] === null ? null : ($types[$p['submissionId']] ?? null),
                 $accepted,
@@ -232,8 +252,11 @@ final class CertificateService
                 'email' => $p['email'],
                 'role' => $role->value,
                 'roleLabel' => $this->t($role->labelKey(), [], $locale),
-                'attended' => $p['attended'],
+                'attended' => $p['attended'] || $sessionIds !== [],
                 'minutes' => $p['minutes'],
+                'sessions' => count($sessionIds),
+                'hours' => $type === CertificateType::ProfessionalDevelopment ? ($load->hours ?? $edition->hours) : null,
+                'seminarIds' => $type === CertificateType::ProfessionalDevelopment && $load !== null ? array_map(static fn (ProgramSession $s): int => (int) $s->id, $load->sessions) : null,
                 'paperTitle' => $summary['title'] ?? '',
                 'type' => $type?->value,
                 'typeLabel' => $type === null ? '' : $this->t($type->labelKey(), [], $locale),
@@ -270,6 +293,7 @@ final class CertificateService
         $results = [];
         $done = [];
         $affiliations = null;
+        $seminars = null;
         foreach ($wanted as $pid) {
             $c = $byId[$pid] ?? null;
             if ($c === null) {
@@ -292,11 +316,16 @@ final class CertificateService
                 }
             }
             $person = ['name' => $c['name'] !== '' ? $c['name'] : $c['email'], 'affiliation' => $affiliations[$pid] ?? '', 'paperTitle' => (string) $c['paperTitle']];
-            $values = $this->values($context, $profile, $type, $doc, $edition, $person, $now, $uuid);
+            $load = null;
+            if (is_array($c['seminarIds'])) {
+                $seminars ??= $this->seminars($editionId);
+                $load = SeminarLoad::of($seminars, array_values(array_map('intval', $c['seminarIds'])));
+            }
+            $values = $this->values($context, $profile, $type, $doc, $edition, $person, $now, $uuid, $load);
             $snapshot = ['locale' => $doc, 'html' => $template['html'], 'values' => $values, 'participationId' => $pid, 'email' => (string) $c['email']];
             // JUR-04: an English version the participant may choose, from the built-in English template.
             if (strtolower(substr($doc, 0, 2)) !== 'en') {
-                $snapshot['alt'] = ['locale' => 'en', 'html' => $this->builtIn('en', $type), 'values' => $this->values($context, $profile, $type, 'en', $edition, $person, $now, $uuid)];
+                $snapshot['alt'] = ['locale' => 'en', 'html' => $this->builtIn('en', $type), 'values' => $this->values($context, $profile, $type, 'en', $edition, $person, $now, $uuid, $load)];
             }
             $created = $this->certificates->create($context->id, $this->series($context), [
                 'uuid' => $uuid,
@@ -305,7 +334,8 @@ final class CertificateService
                 'template_id' => $template['id'],
                 'template_version' => $template['version'],
                 'type' => $type->value,
-                'hours' => $edition->hours,
+                'hours' => $load->hours ?? $edition->hours,
+                'ects_x100' => $load->ectsX100 ?? $edition->ectsX100,
                 'snapshot' => $snapshot,
             ], $now);
             $this->storePdf($context, $created['id']);
@@ -727,7 +757,7 @@ final class CertificateService
      * @param array{name: string, affiliation: string, paperTitle: string} $person
      * @return array<string, string>
      */
-    private function values(ContextInfo $context, InstitutionProfile $profile, CertificateType $type, string $doc, ?Edition $edition, array $person, DateTimeImmutable $now, string $uuid): array
+    private function values(ContextInfo $context, InstitutionProfile $profile, CertificateType $type, string $doc, ?Edition $edition, array $person, DateTimeImmutable $now, string $uuid, ?SeminarLoad $load = null): array
     {
         $p = $context->primaryLocale;
         $signer = $profile->signerFor($type->documentType());
@@ -735,6 +765,28 @@ final class CertificateService
         $hours = $edition?->hours;
         // ECTS: as set on the edition, else hours / 30 (п. 13 Постанови №800).
         $ects = $edition?->ectsX100 !== null ? $edition->ectsX100 / 100 : ($hours !== null && $hours > 0 ? $hours / 30 : null);
+        $outcomes = $edition === null ? $this->t(self::K . 'sample.outcomes', [], $doc) : $text('learningOutcomes');
+        $sessions = $edition === null && $type === CertificateType::ProfessionalDevelopment ? $this->t(self::K . 'sample.sessions', [], $doc) : '';
+        if ($load !== null) {
+            // PRG-07: the seminars the person attended.
+            $hours = $load->hours;
+            $ects = $load->ectsX100 / 100;
+            $lines = $own = [];
+            foreach ($load->sessions as $s) {
+                $lines[] = $s->text('title')->resolve($doc, $p) . ' — ' . $this->t(self::K . 'sessionHours', ['n' => (int) $s->hours], $doc);
+                $o = trim((string) $s->text('learningOutcomes')->resolve($doc, $p));
+                if ($o !== '') {
+                    $own[] = $o;
+                }
+            }
+            $sessions = implode("\n", $lines);
+            if (trim($outcomes) === '') {
+                $outcomes = implode("\n", $own);
+            }
+        }
+        if ($sessions === '' && $type === CertificateType::ProfessionalDevelopment) {
+            $sessions = '—';
+        }
         return [
             'institutionName' => (string) $profile->text('name')->resolve($doc, $p),
             'institutionShortName' => (string) $profile->text('shortName')->resolve($doc, $p),
@@ -752,7 +804,8 @@ final class CertificateService
             'presentationType' => '',
             'hours' => $hours === null ? ($edition === null ? '6' : '') : (string) $hours,
             'ects' => $ects === null ? ($edition === null ? '0,2' : '') : str_replace('.', ',', rtrim(rtrim(number_format($ects, 2, '.', ''), '0'), '.')),
-            'learningOutcomes' => $edition === null ? $this->t(self::K . 'sample.outcomes', [], $doc) : $text('learningOutcomes'),
+            'learningOutcomes' => $outcomes,
+            'programSessions' => $sessions,
             'partialQualifications' => $text('partialQualifications') !== '' || $type !== CertificateType::ProfessionalDevelopment ? $text('partialQualifications') : '—',
             'issueDate' => $now->setTimezone(new DateTimeZone($edition->timezone ?? 'UTC'))->format('d.m.Y'),
             'verifyUrl' => ($this->verifyUrl)($context, $uuid),

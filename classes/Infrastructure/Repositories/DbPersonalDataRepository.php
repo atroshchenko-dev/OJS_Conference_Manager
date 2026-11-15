@@ -16,6 +16,7 @@ final class DbPersonalDataRepository implements PersonalDataRepository
     public const USER_COLUMNS = [
         ['conf_participants', 'user_id'],
         ['conf_participations', 'attended_by'],
+        ['conf_session_attendance', 'marked_by'],
         ['conf_payment_proofs', 'uploaded_by'],
         ['conf_payment_proofs', 'reviewed_by'],
         ['conf_payment_events', 'actor_user_id'],
@@ -67,6 +68,7 @@ final class DbPersonalDataRepository implements PersonalDataRepository
                 $this->db->table('conf_participant_settings')->whereIn('participant_id', $participantIds)->orderBy('participant_id')->get()->all(),
             ),
             'participations' => $participations,
+            'sessionAttendance' => $rows('conf_session_attendance', 'participation_id', array_map(static fn (array $p): int => (int) $p['id'], $participations)),
             'invoices' => $invoices,
             'invoiceItems' => $rows('conf_invoice_items', 'invoice_id', $invoiceIds),
             'paymentProofs' => $rows('conf_payment_proofs', 'invoice_id', $invoiceIds, ['file_path']),

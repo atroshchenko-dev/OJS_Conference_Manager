@@ -29,6 +29,8 @@
 			/** .../conference/editions/{id} */
 			apiUrl: { type: String, required: true },
 			publicUrl: { type: String, default: '' },
+			/** .../conference/sessionAttendance/{editionId}: presence at a session (ATT-01) */
+			attendanceUrl: { type: String, default: '' },
 			editionName: { type: String, default: '' },
 			csrfToken: { type: String, required: true },
 			locales: { type: Array, required: true },
@@ -87,6 +89,10 @@
 			this.load();
 		},
 		methods: {
+			/** ATT-01: the attendance page of the session (a page of the journal, not of the backend). */
+			openAttendance: function (s) {
+				window.location.href = this.attendanceUrl + '/' + s.id;
+			},
 			t: function (key, params) {
 				var s = this.i18n[key] || key;
 				Object.keys(params || {}).forEach(function (k) { s = s.split('{$' + k + '}').join(params[k]); });
@@ -401,7 +407,7 @@
 							<div><strong>{{ time(s.local.startsAt) }}–{{ time(s.local.endsAt) }}</strong> · {{ typeLabels[s.type] }}<span v-if="s.roomId"> · {{ roomNames[s.roomId] }}</span></div>\
 							<div class="cmProgram__sessionTitle">{{ text(s.title) }}</div>\
 							<div v-if="s.chairs.length" class="cmProgram__paperMeta">{{ t(\'program.session.chairs\') }}: {{ s.chairs.map(function (c) { return peopleNames[c] || (\'#\' + c); }).join(\', \') }}</div>\
-							<div class="cmEditions__actions"><pkp-button @click="editSession(s)">{{ t(\'edit\') }}</pkp-button><pkp-button :is-warnable="true" @click="deleteSession(s)">{{ t(\'delete\') }}</pkp-button></div>\
+							<div class="cmEditions__actions"><pkp-button @click="editSession(s)">{{ t(\'edit\') }}</pkp-button><pkp-button v-if="attendanceUrl && s.type !== \'break\'" @click="openAttendance(s)">{{ t(\'program.session.attendance\') }}</pkp-button><pkp-button :is-warnable="true" @click="deleteSession(s)">{{ t(\'delete\') }}</pkp-button></div>\
 						</header>\
 						<p v-if="s.conflicts.length" class="cmProgram__warn">{{ t(\'program.session.conflict\', { names: s.conflicts.join(\', \') }) }}</p>\
 						<p v-if="s.roomClashes.length" class="cmProgram__warn">{{ t(\'program.session.roomClash\') }}</p>\

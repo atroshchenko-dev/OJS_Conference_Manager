@@ -18,6 +18,8 @@ work="$(mktemp -d)"
 pkg="$("$root/ci/package.sh" "$work")"
 docker cp "$pkg" "$ojs:/tmp/cm.tar.gz"
 run install /tmp/cm.tar.gz
+# The site overview (index/{locale}/conferenceSite) needs the plugin on at site level too.
+run enable-site
 DEMO=1 "$root/ci/integration/segments.sh"
 rm -rf "$work"
 echo "Demo site: http://localhost:${OJS_PORT:-8080}/ (admin / admin12345; journals s1–s5 and sgen)"

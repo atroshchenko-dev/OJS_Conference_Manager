@@ -387,6 +387,17 @@ Click **Participants** next to the edition.
 
 Participants are matched by email. Minutes of several joins are added up. An import never removes attendance marked by hand. Next to each mark you can see how it was set: by hand or from a report, with the minutes.
 
+### Attendance at single sessions of the programme
+
+If the event has a programme, attendance can be marked for each session. In the programme builder, click **Attendance** next to a session. The session page opens:
+
+- **Who was present:** tick the people and click **Save attendance**. Presenters and chairs of the session are at the top. **Search** narrows the list; **Tick the people shown** and **Untick the people shown** act on the visible rows.
+- **Import meeting report:** a Teams, Zoom or Google Meet report of this session only. The default threshold is three quarters of the session's length. Click **Preview**, then **Apply**. Marks made by hand are never changed by an import.
+
+A session chair (set in the **Chairs** field of the session) sees their sessions in the participant cabinet under **Sessions I chair** and marks attendance there without access to management. The chair must be a participant of the event with an account in the journal.
+
+Attendance at any session counts as attendance at the event.
+
 ## How to issue certificates
 
 ### Templates and numbers
@@ -405,6 +416,7 @@ The signature on a document comes from the institution profile signer assigned t
 Click **Certificates** next to the edition. For each participant you can see which document they are entitled to, or why none.
 
 - A listener gets a certificate when attendance is marked (or, in the "Ukraine" profile, a professional development certificate when the event has hours).
+- If the programme has "Seminar" sessions with hours, the professional development certificate goes to those present at one or more of them. Its workload is the sum of the hours of the seminars attended (the hours of the event are then not used); ECTS credits come from each seminar or are hours / 30. The certificate has a **Programme components** line listing the seminars; learning outcomes come from the event or, when it has none, from the seminars. A listener who attended only sections gets a listener certificate.
 - A speaker gets a certificate for an accepted paper and attendance.
 - A co-author gets a certificate of participation.
 - An absentee author gets a certificate after the paper is published.

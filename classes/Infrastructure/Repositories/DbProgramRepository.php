@@ -111,7 +111,7 @@ final class DbProgramRepository implements ProgramRepository
             if (!$this->db->table('conf_sessions')->where('edition_id', $editionId)->where('id', $id)->exists()) {
                 return false;
             }
-            foreach (['conf_session_items', 'conf_session_chairs', 'conf_session_settings'] as $table) {
+            foreach (['conf_session_items', 'conf_session_chairs', 'conf_session_settings', 'conf_session_attendance'] as $table) {
                 $this->db->table($table)->where('session_id', $id)->delete();
             }
             return $this->db->table('conf_sessions')->where('id', $id)->delete() > 0;
@@ -177,6 +177,19 @@ final class DbProgramRepository implements ProgramRepository
         }
         $collator = class_exists(\Collator::class) ? new \Collator($locale) : null;
         usort($out, static fn (array $a, array $b): int => $collator === null ? strcmp($a['name'], $b['name']) : (int) $collator->compare($a['name'], $b['name']));
+        return $out;
+    }
+
+    public function chairedBy(array $participantIds): array
+    {
+        if ($participantIds === []) {
+            return [];
+        }
+        $out = [];
+        foreach ($this->db->table('conf_session_chairs as c')->join('conf_sessions as s', 's.id', '=', 'c.session_id')
+            ->whereIn('c.participant_id', $participantIds)->orderBy('s.starts_at')->orderBy('s.id')->get(['s.id', 's.edition_id'])->all() as $r) {
+            $out[(int) $r->id] = (int) $r->edition_id;
+        }
         return $out;
     }
 

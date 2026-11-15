@@ -120,6 +120,8 @@ When the organizers issue a document, it appears under **My certificates**.
 
 A listener certificate is issued when the organizers mark your attendance. A speaker gets a certificate for an accepted paper and attendance, an absentee author after the paper is published. For online events, attendance is often taken from the meeting report: join the meeting with the same email as in your registration.
 
+If you chair a session, the cabinet has a **Sessions I chair** section. Open a session, tick who was present and click **Save attendance**, or load the online meeting report of that session. At seminars with hours, these marks decide the workload of the professional development certificate.
+
 ### How to download your data
 
 Click **Download my data (JSON)**. You get a file with everything the plugin stores about you in this journal: questionnaires and participations, invoices, payments and receipts, certificates, letters and mailings.

@@ -81,6 +81,7 @@ final class DbCertificateRepository implements CertificateRepository
                 'template_version' => $row['template_version'],
                 'type' => $row['type'],
                 'hours' => $row['hours'] ?? null,
+                'ects_x100' => $row['ects_x100'] ?? null,
                 'issued_at' => $stamp,
                 'snapshot' => json_encode($row['snapshot'] + ['number' => $number, 'uuid' => $uuid], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
                 'created_at' => $stamp,

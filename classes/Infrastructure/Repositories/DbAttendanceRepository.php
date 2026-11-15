@@ -114,4 +114,79 @@ final class DbAttendanceRepository implements AttendanceRepository
             return ['participationId' => $id, 'created' => true];
         });
     }
+
+    public function sessionPresence(int $editionId): array
+    {
+        $out = [];
+        $rows = $this->db->table('conf_session_attendance as a')
+            ->join('conf_sessions as s', 's.id', '=', 'a.session_id')
+            ->where('s.edition_id', $editionId)
+            ->orderBy('s.starts_at')->orderBy('s.id')
+            ->get(['a.participation_id', 'a.session_id'])->all();
+        foreach ($rows as $r) {
+            $out[(int) $r->participation_id][] = (int) $r->session_id;
+        }
+        return $out;
+    }
+
+    public function ofSession(int $sessionId): array
+    {
+        $out = [];
+        foreach ($this->db->table('conf_session_attendance')->where('session_id', $sessionId)->get()->all() as $r) {
+            $out[(int) $r->participation_id] = [
+                'minutes' => $r->minutes === null ? null : (int) $r->minutes,
+                'source' => (string) $r->source,
+                'markedAt' => (string) $r->marked_at,
+            ];
+        }
+        return $out;
+    }
+
+    public function markSession(int $editionId, int $sessionId, array $participationIds, bool $attended, ?int $minutes, string $source, ?int $actorId, DateTimeImmutable $now): int
+    {
+        if ($participationIds === []) {
+            return 0;
+        }
+        return $this->db->transaction(function () use ($editionId, $sessionId, $participationIds, $attended, $minutes, $source, $actorId, $now): int {
+            if (!$this->db->table('conf_sessions')->where('edition_id', $editionId)->where('id', $sessionId)->exists()) {
+                return 0;
+            }
+            $ids = array_map('intval', $this->db->table('conf_participations as pn')
+                ->join('conf_participants as p', 'p.id', '=', 'pn.participant_id')
+                ->where('p.edition_id', $editionId)->whereIn('pn.id', $participationIds)->pluck('pn.id')->all());
+            if ($ids === []) {
+                return 0;
+            }
+            $existing = [];
+            foreach ($this->db->table('conf_session_attendance')->where('session_id', $sessionId)->whereIn('participation_id', $ids)->get(['participation_id', 'source'])->all() as $r) {
+                $existing[(int) $r->participation_id] = (string) $r->source;
+            }
+            $byHand = 'manual';
+            if (!$attended) {
+                $q = $this->db->table('conf_session_attendance')->where('session_id', $sessionId)->whereIn('participation_id', $ids);
+                if ($source !== $byHand) {
+                    $q->where('source', '<>', $byHand);
+                }
+                return $q->delete();
+            }
+            $stamp = DateInput::toStorage($now);
+            $changed = 0;
+            foreach ($ids as $id) {
+                $old = $existing[$id] ?? null;
+                if ($old === $byHand && $source !== $byHand) {
+                    continue;
+                }
+                $row = ['minutes' => $minutes, 'source' => $source, 'marked_by' => $actorId, 'marked_at' => $stamp];
+                if ($old === null) {
+                    $this->db->table('conf_session_attendance')->insert(['session_id' => $sessionId, 'participation_id' => $id] + $row);
+                } elseif ($source === $byHand && $old === $byHand) {
+                    continue;
+                } else {
+                    $this->db->table('conf_session_attendance')->where('session_id', $sessionId)->where('participation_id', $id)->update($row);
+                }
+                $changed++;
+            }
+            return $changed;
+        });
+    }
 }

@@ -123,6 +123,19 @@
 		</ul>
 	{/if}
 
+	{if $mySessions}
+		<h2 class="cmMy__section">{translate key="plugins.generic.conferenceManager.my.sessions"}</h2>
+		<p>{translate key="plugins.generic.conferenceManager.my.sessionsHelp"}</p>
+		<ul class="cmMy">
+			{foreach from=$mySessions item=s}
+				<li class="cmMy__item">
+					<h3 class="cmMy__title"><a href="{$s.url|escape}">{if $s.title}{$s.title|escape}{else}{$s.typeLabel|escape}{/if}</a></h3>
+					<p>{$s.editionName|escape} · {$s.startsAtText|escape} · {$s.typeLabel|escape}</p>
+				</li>
+			{/foreach}
+		</ul>
+	{/if}
+
 	{if $myCertificates}
 		<h2 class="cmMy__section">{translate key="plugins.generic.conferenceManager.my.certificates"}</h2>
 		<ul class="cmMy">

@@ -169,3 +169,7 @@
 .cmPartnerList__name--text { font-weight: 700; font-size: 1rem; padding: .75rem 0; }
 .cmPartnerList__fees { font-size: .75rem; color: #3d3d3d; }
 @media (max-width: 30em) { .cmPartnerList__item { flex-basis: calc(50% - .5rem); } }
+.cmSessionAttendance__tools { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
+.cmSessionAttendance__meta { font-size: .85em; opacity: .8; overflow-wrap: anywhere; }
+.cmSessionAttendance__import label { display: inline-block; margin: 0 1rem .5rem 0; }
+.cmSessionAttendance .cmBadge { display: inline-block; margin-left: .4em; padding: 0 .45em; border-radius: 3px; font-size: .8em; background: var(--cm-surface); border: 1px solid var(--cm-border); }

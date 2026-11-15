@@ -40,4 +40,12 @@ interface ProgramRepository
 
     /** @return list<array{id: int, name: string}> participants of the edition, by name */
     public function people(int $editionId, string $locale): array;
+
+    /**
+     * ATT-01: sessions that these participants chair.
+     *
+     * @param list<int> $participantIds
+     * @return array<int, int> session id => edition id
+     */
+    public function chairedBy(array $participantIds): array;
 }

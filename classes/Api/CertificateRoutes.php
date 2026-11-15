@@ -21,6 +21,9 @@ use PKP\security\Role;
  * Registration manager or journal manager:
  * PUT  editions/{id}/attendance                  {participationIds, attended}
  * POST editions/{id}/attendance/import           {csv | csvBase64, threshold, apply} → preview or result
+ * GET  editions/{id}/sessions/{sid}/attendance   who was present at a session of the program
+ * PUT  editions/{id}/sessions/{sid}/attendance   {participationIds, attended}
+ * POST editions/{id}/sessions/{sid}/attendance/import  {csv | csvBase64, threshold, apply}
  * GET  editions/{id}/certificate-candidates      who gets which certificate, or why none
  * POST editions/{id}/certificates                {participationIds} → issued numbers
  * GET  editions/{id}/certificates                issued certificates
@@ -52,6 +55,9 @@ final class CertificateRoutes implements RouteModule
     {
         Route::put('editions/{editionId}/attendance', $this->markAttendance(...))->name('conference.attendance.mark')->whereNumber('editionId');
         Route::post('editions/{editionId}/attendance/import', $this->importAttendance(...))->name('conference.attendance.import')->whereNumber('editionId');
+        Route::get('editions/{editionId}/sessions/{sessionId}/attendance', $this->getSessionAttendance(...))->name('conference.attendance.session')->whereNumber(['editionId', 'sessionId']);
+        Route::put('editions/{editionId}/sessions/{sessionId}/attendance', $this->markSessionAttendance(...))->name('conference.attendance.session.mark')->whereNumber(['editionId', 'sessionId']);
+        Route::post('editions/{editionId}/sessions/{sessionId}/attendance/import', $this->importSessionAttendance(...))->name('conference.attendance.session.import')->whereNumber(['editionId', 'sessionId']);
         Route::get('editions/{editionId}/certificate-candidates', $this->getCertificateCandidates(...))->name('conference.certificates.candidates')->whereNumber('editionId');
         Route::post('editions/{editionId}/certificates', $this->issueCertificates(...))->name('conference.certificates.issue')->whereNumber('editionId');
         Route::get('editions/{editionId}/certificates', $this->getEditionCertificates(...))->name('conference.certificates.list')->whereNumber('editionId');
@@ -104,6 +110,63 @@ final class CertificateRoutes implements RouteModule
         $out = ServiceFactory::attendance()->import(
             $this->api->contextInfo(),
             (int) $r->route('editionId'),
+            is_string($csv) ? $csv : '',
+            $r->input('threshold'),
+            filter_var($r->input('apply', false), FILTER_VALIDATE_BOOLEAN),
+            Locale::getLocale(),
+            $this->api->actorId(),
+            self::now(),
+        );
+        if ($out === null) {
+            return ConferenceApiController::notFound();
+        }
+        [$result, $errors] = $out;
+        return $result === null ? ConferenceApiController::errorResponse($errors) : response()->json($result, Response::HTTP_OK);
+    }
+
+    public function getSessionAttendance(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $sheet = ServiceFactory::attendance()->sessionSheet($this->api->contextInfo(), (int) $r->route('editionId'), (int) $r->route('sessionId'), Locale::getLocale());
+        if ($sheet === null) {
+            return ConferenceApiController::notFound();
+        }
+        foreach (['startsAt', 'endsAt'] as $f) {
+            $sheet['session'][$f] = $sheet['session'][$f]->format('Y-m-d\\TH:i:s\\Z');
+        }
+        return response()->json($sheet, Response::HTTP_OK);
+    }
+
+    public function markSessionAttendance(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $changed = ServiceFactory::attendance()->markSession(
+            $this->api->contextInfo(),
+            (int) $r->route('editionId'),
+            (int) $r->route('sessionId'),
+            array_values((array) $r->input('participationIds', [])),
+            filter_var($r->input('attended', false), FILTER_VALIDATE_BOOLEAN),
+            $this->api->actorId(),
+            self::now(),
+        );
+        return $changed === null ? ConferenceApiController::notFound() : response()->json(['changed' => $changed], Response::HTTP_OK);
+    }
+
+    public function importSessionAttendance(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $encoded = $r->input('csvBase64');
+        $csv = is_string($encoded) ? (string) base64_decode($encoded, true) : $r->input('csv', '');
+        $out = ServiceFactory::attendance()->importSession(
+            $this->api->contextInfo(),
+            (int) $r->route('editionId'),
+            (int) $r->route('sessionId'),
             is_string($csv) ? $csv : '',
             $r->input('threshold'),
             filter_var($r->input('apply', false), FILTER_VALIDATE_BOOLEAN),

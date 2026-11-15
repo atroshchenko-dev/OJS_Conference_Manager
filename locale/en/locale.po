@@ -4514,3 +4514,93 @@ msgstr "Event partner"
 
 msgid "plugins.generic.conferenceManager.editions.copy.part.partners"
 msgstr "Co-organisers and partners with logos"
+
+msgid "plugins.generic.conferenceManager.attendance.sessionsShort"
+msgstr "Sessions: {$n}"
+
+msgid "plugins.generic.conferenceManager.certificate.hoursShort"
+msgstr "{$n} h"
+
+msgid "plugins.generic.conferenceManager.certificate.sessionHours"
+msgstr "{$n} h"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.sessions"
+msgstr "Seminar \"Digital tools for teachers\" — 3 h\nWorkshop \"Assessing learning outcomes\" — 3 h"
+
+msgid "plugins.generic.conferenceManager.program.session.attendance"
+msgstr "Attendance"
+
+msgid "plugins.generic.conferenceManager.audit.entity.session_attendance"
+msgstr "Attendance at a session"
+
+msgid "plugins.generic.conferenceManager.my.sessions"
+msgstr "Sessions I chair"
+
+msgid "plugins.generic.conferenceManager.my.sessionsHelp"
+msgstr "Open a session to mark who was present or to load the report of the online meeting."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.title"
+msgstr "Attendance at the session"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.backManager"
+msgstr "← Back to conference management"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.backMy"
+msgstr "← Back to my conferences"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.edition"
+msgstr "Event"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.when"
+msgstr "Time"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.presentCount"
+msgstr "Present"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.seminarNote"
+msgstr "People present at this seminar get {$n} h towards a professional development certificate."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.marks"
+msgstr "Who was present"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.nobody"
+msgstr "The event has no active participants yet."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.filter"
+msgstr "Search"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.checkShown"
+msgstr "Tick the people shown"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.uncheckShown"
+msgstr "Untick the people shown"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.source"
+msgstr "Mark"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.ofSession"
+msgstr "presenter or chair of the session"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.fromReport"
+msgstr "from the report, {$minutes} min"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.byHand"
+msgstr "by hand"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.save"
+msgstr "Save attendance"
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.saved"
+msgstr "Changes saved: {$n}."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.importHelp"
+msgstr "A Teams, Zoom or Google Meet report of this session only (CSV). The session lasts {$minutes} min, so the default threshold is three quarters of that. Marks made by hand are never changed by an import."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.previewed"
+msgstr "Preview: {$rows} rows, {$matched} found, {$present} present, {$unmatched} not found. Press \"Apply\" to save."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.imported"
+msgstr "Applied: {$rows} rows, {$matched} found, {$present} present, {$unmatched} not found."
+
+msgid "plugins.generic.conferenceManager.sessionAttendance.reportTable"
+msgstr "Meeting report (threshold {$threshold} min)"

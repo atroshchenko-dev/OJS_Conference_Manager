@@ -404,6 +404,16 @@ class ConferencePageHandler extends Handler
             ];
         }
 
+        // ATT-01: sessions the person chairs, to mark who was present.
+        $chaired = [];
+        foreach (ServiceFactory::attendance()->chairedSessions($info, $participantIds, $locale) as $s) {
+            $chaired[] = $s + [
+                'url' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'sessionAttendance', [(string) $s['editionId'], (string) $s['sessionId']]),
+                'startsAtText' => $this->formatDate($s['startsAt'], $s['timezone'], $locale),
+                'typeLabel' => __('plugins.generic.conferenceManager.program.session.' . $s['type']),
+            ];
+        }
+
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
         $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
@@ -414,6 +424,7 @@ class ConferencePageHandler extends Handler
             'payerFields' => $payerFields,
             'myDataUrl' => $dispatcher->url($request, Application::ROUTE_API, $context->getPath(), 'conference/me/personal-data'),
             'myCertificates' => $certificates,
+            'mySessions' => $chaired,
             'myMessage' => $message,
             'myUrl' => $myUrl,
             'pageTitle' => 'plugins.generic.conferenceManager.my.title',
@@ -578,6 +589,142 @@ class ConferencePageHandler extends Handler
         header('Cache-Control: private, no-store');
         echo $pdf['content'];
         exit;
+    }
+
+    /**
+     * ATT-01, ATT-02 per session: the chair (moderator) of a session or a
+     * registration manager marks who was present, or loads the meeting
+     * report of the session. URL: conference/sessionAttendance/{editionId}/{sessionId}.
+     *
+     * @param array $args
+     * @param \APP\core\Request $request
+     */
+    public function sessionAttendance($args, $request)
+    {
+        $context = $request->getContext();
+        $user = $request->getUser();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $editionId = (int) ($args[0] ?? 0);
+        $sessionId = (int) ($args[1] ?? 0);
+        $dispatcher = $request->getDispatcher();
+        $pageUrl = $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'sessionAttendance', [(string) $editionId, (string) $sessionId]);
+        if ($user === null) {
+            $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), 'login', null, null, ['source' => $pageUrl]));
+        }
+        $info = ContextGateway::fromContext($context);
+        $locale = Locale::getLocale();
+        $service = ServiceFactory::attendance();
+        $manager = (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId());
+        if (!$manager && !$service->chairs($sessionId, $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail()))) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $sheet = $service->sessionSheet($info, $editionId, $sessionId, $locale);
+        $edition = ServiceFactory::editions()->get($info, $editionId);
+        if ($sheet === null || $edition === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $actor = (int) $user->getId();
+        $message = null;
+        $import = null;
+        $reportData = '';
+        $threshold = (int) $sheet['threshold'];
+        $k = 'plugins.generic.conferenceManager.sessionAttendance.';
+        if ($request->isPost()) {
+            if (!$request->checkCSRF()) {
+                $message = ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.confirm.retry')];
+            } elseif ($request->getUserVar('importReport') !== null) {
+                $threshold = (int) $request->getUserVar('threshold');
+                $content = '';
+                $file = $_FILES['report'] ?? null;
+                if (is_array($file) && ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK && is_uploaded_file((string) $file['tmp_name'])) {
+                    $content = (string) file_get_contents((string) $file['tmp_name']);
+                } elseif (is_string($request->getUserVar('reportData'))) {
+                    $content = (string) base64_decode((string) $request->getUserVar('reportData'), true);
+                }
+                $apply = $request->getUserVar('apply') !== null;
+                [$result, $errors] = $service->importSession($info, $editionId, $sessionId, $content, $request->getUserVar('threshold'), $apply, $locale, $actor, $now) ?? [null, null];
+                if ($result === null) {
+                    $message = ['type' => 'alert', 'text' => $errors === null ? '' : implode(' ', array_map(static fn (string $key): string => __($key), array_merge(...array_values($errors->toArray()))))];
+                } else {
+                    $import = $result;
+                    $reportData = $apply ? '' : base64_encode($content);
+                    $message = ['type' => 'status', 'text' => __($k . ($apply ? 'imported' : 'previewed'), [
+                        'rows' => $result['rows'], 'matched' => count($result['matched']), 'present' => $result['present'], 'unmatched' => count($result['unmatched']),
+                    ])];
+                    if ($apply) {
+                        $sheet = $service->sessionSheet($info, $editionId, $sessionId, $locale) ?? $sheet;
+                    }
+                }
+            } else {
+                // Only what changed on the form, so that marks from a report keep their minutes.
+                $shown = array_flip(array_map('intval', (array) $request->getUserVar('shown')));
+                $checked = array_flip(array_map('intval', (array) $request->getUserVar('present')));
+                $add = $remove = [];
+                foreach ($sheet['people'] as $p) {
+                    $id = $p['participationId'];
+                    if (!isset($shown[$id])) {
+                        continue;
+                    }
+                    if (isset($checked[$id]) && !$p['present']) {
+                        $add[] = $id;
+                    } elseif (!isset($checked[$id]) && $p['present']) {
+                        $remove[] = $id;
+                    }
+                }
+                $changed = (int) $service->markSession($info, $editionId, $sessionId, $add, true, $actor, $now)
+                    + (int) $service->markSession($info, $editionId, $sessionId, $remove, false, $actor, $now);
+                $request->redirectUrl($pageUrl . (str_contains($pageUrl, '?') ? '&' : '?') . 'saved=' . $changed);
+            }
+        } elseif ($request->getUserVar('saved') !== null) {
+            $message = ['type' => 'status', 'text' => __($k . 'saved', ['n' => (int) $request->getUserVar('saved')])];
+        }
+
+        $tz = $edition->timezone;
+        $session = $sheet['session'];
+        $typeLabel = __('plugins.generic.conferenceManager.program.session.' . $session['type']);
+        $title = $session['title'] !== '' ? $session['title'] : $typeLabel;
+        $roles = [];
+        foreach ($sheet['people'] as $i => $p) {
+            $role = \APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRole::tryFrom($p['role']);
+            $roles[$i] = $role === null ? $p['role'] : __($role->labelKey());
+        }
+        $people = [];
+        foreach ($sheet['people'] as $i => $p) {
+            $people[] = $p + ['roleLabel' => $roles[$i]];
+        }
+
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $templateMgr->addJavaScript('conferenceSessionAttendance', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/js/sessionAttendance.js', ['contexts' => 'frontend']);
+        $templateMgr->addHeader('conferenceSessionNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
+        $templateMgr->assign([
+            'saPageUrl' => $pageUrl,
+            'saEditionName' => (string) $edition->text('name')->resolve($locale, $info->primaryLocale),
+            'saEditionUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, $edition->path),
+            'saTitle' => $title,
+            'saTypeLabel' => $typeLabel,
+            'saWhen' => $this->formatDate($session['startsAt'], $tz, $locale) . ' – ' . $session['endsAt']->setTimezone(new DateTimeZone($tz))->format('H:i'),
+            'saHours' => $session['hours'],
+            'saMinutes' => $session['minutes'],
+            'saPresent' => $sheet['present'],
+            'saPeople' => $people,
+            'saTotal' => count($people),
+            'saUnmatched' => $import === null ? 0 : count($import['unmatched']),
+            'saThreshold' => $threshold,
+            'saImport' => $import,
+            'saReportData' => $reportData,
+            'saMessage' => $message,
+            'saManager' => $manager,
+            'saBackUrl' => $manager
+                ? $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), ManageConferenceHandler::PAGE)
+                : $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my'),
+            'pageTitleTranslated' => __($k . 'title') . ': ' . $title,
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/sessionAttendance.tpl'));
     }
 
     /**

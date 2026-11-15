@@ -96,6 +96,19 @@ async function signIn(context, user, password) {
     }
     await a.goto(B + '/index/uk/conferenceSite');
     await audit(a, 'site overview', '.app__main');
+
+    // ATT-01: the attendance page of a session, as the manager sees it.
+    const api = B + '/confa/api/v1/conference/editions';
+    const editions = await (await a.request.get(api + '?count=50')).json();
+    const ed = editions.items.find((e) => e.path === EDITION);
+    const program = ed ? await (await a.request.get(api + '/' + ed.id + '/program-builder')).json() : { sessions: [] };
+    const session = (program.sessions || []).find((s) => s.type !== 'break');
+    if (session) {
+      await a.goto(B + '/confa/uk/conference/sessionAttendance/' + ed.id + '/' + session.id);
+      await audit(a, 'session attendance', '.pkp_structure_main');
+    } else {
+      console.log('SKIP session attendance: no session in ' + EDITION);
+    }
   } finally {
     await browser.close();
   }
