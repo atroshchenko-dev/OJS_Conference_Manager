@@ -25,8 +25,10 @@
 						<dt>{translate key="plugins.generic.conferenceManager.participants.form"}</dt><dd>{$p.formLabel|escape}</dd>
 						{if $p.categoryName}<dt>{translate key="plugins.generic.conferenceManager.participants.category"}</dt><dd>{$p.categoryName|escape}</dd>{/if}
 						{if $p.role !== 'listener'}<dt>{translate key="plugins.generic.conferenceManager.participants.confirmation"}</dt><dd>{$p.confirmationLabel|escape}</dd>{/if}
-						<dt>{translate key="plugins.generic.conferenceManager.participants.status"}</dt><dd>{$p.statusLabel|escape}</dd>
+						<dt>{translate key="plugins.generic.conferenceManager.participants.status"}</dt><dd>{$p.statusLabel|escape}{if $p.waitlistPosition} ({translate key="plugins.generic.conferenceManager.waitlist.position" n=$p.waitlistPosition}){/if}</dd>
+						{if $p.promoCode}<dt>{translate key="plugins.generic.conferenceManager.promo.field"}</dt><dd>{$p.promoCode|escape}</dd>{/if}
 					</dl>
+					{if $p.waitlistPosition}<p class="cmMy__waitlist">{translate key="plugins.generic.conferenceManager.waitlist.help"}</p>{/if}
 					{if $p.ticket}
 						<details class="cmTicket__box">
 							<summary>{translate key="plugins.generic.conferenceManager.my.ticket"}</summary>
@@ -37,6 +39,15 @@
 					{/if}
 					{if $p.letterUrl}
 						<p class="cmMy__letter"><a class="cmEdition__button" href="{$p.letterUrl|escape}" target="_blank" rel="noopener">{translate key="plugins.generic.conferenceManager.invitationLetter.download"}</a> <a href="{$p.letterUrlEn|escape}" target="_blank" rel="noopener">{translate key="plugins.generic.conferenceManager.invitationLetter.downloadEn"}</a></p>
+					{/if}
+					{if $p.canApplyPromo}
+						<form method="post" action="{$myUrl|escape}" class="cmMy__promo">
+							{csrf}
+							<input type="hidden" name="promoParticipationId" value="{$p.participationId|escape}">
+							<label for="cmPromo{$p.participationId|escape}">{translate key="plugins.generic.conferenceManager.promo.field"}</label>
+							<input id="cmPromo{$p.participationId|escape}" type="text" name="promoCode" maxlength="32" autocomplete="off" required>
+							<button type="submit" class="cmConfirm__decline">{translate key="plugins.generic.conferenceManager.promo.apply"}</button>
+						</form>
 					{/if}
 					{if $p.canCancel}
 						<form method="post" action="{$myUrl|escape}" class="cmMy__cancel">

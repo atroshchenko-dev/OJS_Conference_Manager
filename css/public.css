@@ -73,6 +73,11 @@
 .cmRegister__required { color: var(--cm-danger); }
 .cmRegister__consentText { font-size: .9em; max-height: 12rem; overflow: auto; padding: .5rem .75rem; border: 1px solid rgba(0, 0, 0, .15); }
 .cmRegister__trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.cmRegister__full { margin: 0 0 1.25rem; padding: .5rem .75rem; border-left: 3px solid var(--cm-warning); background: rgba(178, 107, 0, .06); }
+.cmMy__promo { margin: .5rem 0; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.cmMy__promo label { font-weight: 600; }
+.cmMy__promo input[type="text"] { max-width: 12rem; padding: .45rem .5rem; border: 1px solid #767676; border-radius: 3px; }
+.cmMy__waitlist { margin: .25rem 0 .5rem; padding: .5rem .75rem; border-left: 3px solid var(--cm-warning); background: rgba(178, 107, 0, .06); }
 .cmMy { list-style: none; padding: 0; }
 .cmMy__item { border-top: 1px solid rgba(0, 0, 0, .12); padding: 1rem 0; }
 .cmMy__item--cancelled { opacity: .7; }

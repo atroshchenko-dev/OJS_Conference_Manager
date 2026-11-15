@@ -243,6 +243,7 @@ class ConferencePageHandler extends Handler
             'consent' => (bool) $request->getUserVar('consent'),
             'minor' => (bool) $request->getUserVar('minor'),
             'guardianConsent' => (bool) $request->getUserVar('guardianConsent'),
+            'promoCode' => mb_substr(trim((string) $request->getUserVar('promoCode')), 0, 32),
         ];
         if ($request->isPost()) {
             if (!$request->checkCSRF()) {
@@ -255,7 +256,11 @@ class ConferencePageHandler extends Handler
                 $person['position'] = $values['position'] === '' ? null : $values['position'];
                 [$result, $validation] = $service->registerListener($info, (int) $edition->id, $person, $values, $consent->version, $now, $request->getRemoteAddr());
                 if ($result !== null) {
-                    $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my', null, ['registered' => $result['participationId']]));
+                    $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my', null, array_filter([
+                        'registered' => $result['participationId'],
+                        'waitlisted' => $result['status'] === \APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationStatus::Waitlisted->value ? 1 : null,
+                        'promoLost' => empty($result['promoLost']) ? null : 1,
+                    ])));
                 }
                 foreach ($validation->toArray() as $field => $keys) {
                     $errors[$field] = array_map(static fn (string $k): string => __($k), $keys);
@@ -272,6 +277,12 @@ class ConferencePageHandler extends Handler
             $categories[] = ['value' => $category->id, 'label' => (string) $category->name->resolve($locale, $info->primaryLocale), 'requiresProof' => $category->requiresProof];
         }
 
+        // REG-11, REG-12: the code field only where codes exist; a note when the seats are taken.
+        $hasPromo = (ServiceFactory::promoCodes()->ofEdition($info, (int) $edition->id) ?? []) !== [];
+        $seats = $service->seats($info, (int) $edition->id, $locale);
+        $full = $seats !== null && $seats['seats'] !== null && $seats['taken'] >= $seats['seats']
+            && in_array(\APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationForm::InPerson, ParticipantService::listenerForms($edition), true);
+
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
         $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
@@ -286,6 +297,9 @@ class ConferencePageHandler extends Handler
             'registerValues' => $values,
             'registerForms' => $forms,
             'registerCategories' => $categories,
+            'registerHasPromo' => $hasPromo,
+            'registerSeatsFull' => $full,
+            'registerQueue' => $full ? count($seats['queue'] ?? []) : 0,
             'registerPerson' => [
                 'name' => $person === null ? '' : trim(($person['givenName'][$locale] ?? (array_values($person['givenName'])[0] ?? '')) . ' ' . ($person['familyName'][$locale] ?? (array_values($person['familyName'])[0] ?? ''))),
                 'email' => $person['email'] ?? '',
@@ -323,7 +337,8 @@ class ConferencePageHandler extends Handler
 
         $message = null;
         if ($request->getUserVar('registered')) {
-            $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.listener.done')];
+            $message = ['type' => 'status', 'text' => __($request->getUserVar('waitlisted') ? 'plugins.generic.conferenceManager.waitlist.done' : 'plugins.generic.conferenceManager.listener.done')
+                . ($request->getUserVar('promoLost') ? ' ' . __('plugins.generic.conferenceManager.promo.error.usedUp') : '')];
         }
         if ($request->isPost()) {
             if (!$request->checkCSRF()) {
@@ -341,6 +356,13 @@ class ConferencePageHandler extends Handler
                 }
                 $message = ['type' => 'alert', 'text' => $errors === null ? __('plugins.generic.conferenceManager.payer.error.locked')
                     : implode(' ', array_map(static fn (string $k): string => __($k), array_merge(...array_values($errors->toArray()))))];
+            } elseif ($request->getUserVar('promoParticipationId')) {
+                // REG-11: a promo code after the registration.
+                [$applied, $promoErrors] = $service->applyPromo($info, (int) $request->getUserVar('promoParticipationId'), (int) $user->getId(), $email, (string) $request->getUserVar('promoCode'), $now);
+                if ($applied) {
+                    $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my', null, ['promo' => 1]));
+                }
+                $message = ['type' => 'alert', 'text' => implode(' ', array_map(static fn (string $k): string => __($k), array_merge(...array_values($promoErrors->toArray()))))];
             } elseif ($request->getUserVar('invoiceId')) {
                 $message = $this->uploadProof($info, (int) $request->getUserVar('invoiceId'), (int) $user->getId(), $email, $now, $locale);
                 if ($message['type'] === 'status') {
@@ -355,6 +377,8 @@ class ConferencePageHandler extends Handler
             }
         } elseif ($request->getUserVar('payer')) {
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.payer.saved')];
+        } elseif ($request->getUserVar('promo')) {
+            $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.promo.applied')];
         } elseif ($request->getUserVar('cancelled')) {
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.participation.cancelled')];
         } elseif ($request->getUserVar('proof')) {

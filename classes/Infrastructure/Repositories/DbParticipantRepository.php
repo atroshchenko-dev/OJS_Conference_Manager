@@ -30,9 +30,9 @@ final class DbParticipantRepository implements ParticipantRepository
     {
     }
 
-    public function addListener(int $contextId, int $editionId, array $person, ?int $categoryId, ParticipationForm $form, string $consentVersion, DateTimeImmutable $now, bool $minor = false): ?array
+    public function addListener(int $contextId, int $editionId, array $person, ?int $categoryId, ParticipationForm $form, string $consentVersion, DateTimeImmutable $now, bool $minor = false, ?int $seats = null): ?array
     {
-        return $this->db->transaction(function () use ($contextId, $editionId, $person, $categoryId, $form, $consentVersion, $now, $minor): ?array {
+        return $this->db->transaction(function () use ($contextId, $editionId, $person, $categoryId, $form, $consentVersion, $now, $minor, $seats): ?array {
             $stamp = DateInput::toStorage($now);
             // EVT-04: a minor keeps the minimum of data; the guardian consent is confirmed now.
             $minorValues = $minor ? ['is_minor' => true, 'guardian_consent_at' => $stamp] : [];
@@ -62,7 +62,8 @@ final class DbParticipantRepository implements ParticipantRepository
             } else {
                 $participantId = (int) $row->id;
                 $active = $this->db->table('conf_participations')->where('participant_id', $participantId)
-                    ->where('role', ParticipantRole::Listener->value)->where('status', ParticipationStatus::Active->value)->exists();
+                    ->where('role', ParticipantRole::Listener->value)
+                    ->whereIn('status', [ParticipationStatus::Active->value, ParticipationStatus::Waitlisted->value])->exists();
                 if ($active) {
                     return null;
                 }
@@ -91,16 +92,25 @@ final class DbParticipantRepository implements ParticipantRepository
                     }
                 }
             }
+            $status = ParticipationStatus::Active;
+            if ($seats !== null && $form === ParticipationForm::InPerson) {
+                // REG-12: the edition row serialises the last seats between parallel registrations.
+                $this->db->table('conf_editions')->where('id', $editionId)->lockForUpdate()->first();
+                if (self::inPersonListeners($this->db, $editionId) >= $seats) {
+                    $status = ParticipationStatus::Waitlisted;
+                }
+            }
             $participationId = (int) $this->db->table('conf_participations')->insertGetId([
                 'participant_id' => $participantId,
                 'submission_id' => null,
                 'role' => ParticipantRole::Listener->value,
                 'participation_form' => $form->value,
-                'status' => ParticipationStatus::Active->value,
+                'status' => $status->value,
+                'waitlisted_at' => $status === ParticipationStatus::Waitlisted ? $stamp : null,
                 'created_at' => $stamp,
                 'updated_at' => $stamp,
             ]);
-            return ['participantId' => $participantId, 'participationId' => $participationId];
+            return ['participantId' => $participantId, 'participationId' => $participationId, 'status' => $status->value];
         });
     }
 
@@ -166,6 +176,18 @@ final class DbParticipantRepository implements ParticipantRepository
             'status' => ParticipationStatus::Cancelled->value,
             'updated_at' => DateInput::toStorage($now),
         ]);
+    }
+
+    /** REG-12: active in-person listeners of an edition, the ones that take seats. */
+    public static function inPersonListeners(\Illuminate\Database\ConnectionInterface $db, int $editionId): int
+    {
+        return $db->table('conf_participations as pn')
+            ->join('conf_participants as p', 'p.id', '=', 'pn.participant_id')
+            ->where('p.edition_id', $editionId)
+            ->where('pn.role', ParticipantRole::Listener->value)
+            ->where('pn.participation_form', ParticipationForm::InPerson->value)
+            ->where('pn.status', ParticipationStatus::Active->value)
+            ->count();
     }
 
     public function hasActiveParticipations(int $participantId): bool

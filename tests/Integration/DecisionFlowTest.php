@@ -834,7 +834,7 @@ final class DecisionFlowTest extends TestCase
         $db->table('email_templates_default_data')->insert(['email_key' => ParticipantMailTexts::INVOICE, 'locale' => 'uk', 'name' => 'x', 'subject' => 'Наш текст', 'body' => 'b']);
         (new Step0008Communication())->up($db->getSchemaBuilder(), $db);
         (new Step0008Communication())->up($db->getSchemaBuilder(), $db);
-        self::assertSame(16, $db->table('email_templates_default_data')->count());
+        self::assertSame(18, $db->table('email_templates_default_data')->count());
         self::assertSame('Наш текст', $db->table('email_templates_default_data')->where('email_key', ParticipantMailTexts::INVOICE)->where('locale', 'uk')->value('subject'));
         foreach (ParticipantMailTexts::all() as $key => $locales) {
             foreach ($locales as $text) {
@@ -978,7 +978,7 @@ final class DecisionFlowTest extends TestCase
         $db->table('email_templates_default_data')->insert(['email_key' => 'CONF_DECISION_ORAL', 'locale' => 'uk', 'name' => 'Свій', 'subject' => 'Свій', 'body' => 'Свій']);
         (new ConferenceSchemaMigration())->usingConnection($db)->up();
         (new ConferenceSchemaMigration())->usingConnection($db)->up();
-        self::assertSame(28, $db->table('email_templates_default_data')->count(), '(6 + 8) letters × 2 languages, once');
+        self::assertSame(30, $db->table('email_templates_default_data')->count(), '(6 + 9) letters × 2 languages, once');
         self::assertSame('Свій', $db->table('email_templates_default_data')->where('email_key', 'CONF_DECISION_ORAL')->where('locale', 'uk')->value('body'));
         self::assertTrue($db->getSchemaBuilder()->hasTable('conf_decision_batch_items'));
     }

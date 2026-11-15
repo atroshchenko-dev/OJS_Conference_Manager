@@ -23,6 +23,9 @@
 			<p class="cmRegister__person">
 				{translate key="plugins.generic.conferenceManager.listener.as" name=$registerPerson.name|escape email=$registerPerson.email|escape}
 			</p>
+			{if $registerSeatsFull}
+				<p class="cmRegister__full" role="status">{translate key="plugins.generic.conferenceManager.waitlist.full" n=$registerQueue}</p>
+			{/if}
 
 			{if $registerCategories}
 				<div class="cmRegister__field">
@@ -75,6 +78,13 @@
 				{foreach from=$registerErrors.consent|default:[] item=e}<p class="cmRegister__error">{$e|escape}</p>{/foreach}
 			</div>
 
+			{if $registerHasPromo}
+				<div class="cmRegister__field">
+					<label for="cmPromoCode">{translate key="plugins.generic.conferenceManager.promo.field"}</label>
+					<input id="cmPromoCode" type="text" name="promoCode" maxlength="32" autocomplete="off" value="{$registerValues.promoCode|escape}" {if $registerErrors.promoCode}aria-invalid="true" aria-describedby="cmPromoError"{/if}>
+					{foreach from=$registerErrors.promoCode|default:[] item=e}<p class="cmRegister__error" id="cmPromoError">{$e|escape}</p>{/foreach}
+				</div>
+			{/if}
 			<button type="submit" class="cmEdition__button">{translate key="plugins.generic.conferenceManager.listener.submit"}</button>
 		</form>
 	{/if}

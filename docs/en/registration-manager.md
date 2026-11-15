@@ -9,6 +9,7 @@ Open the **Conferences** item in the journal's side menu. Next to each edition y
 - **Participants:** the register of participants, attendance, invoicing by hand;
 - **Invoices:** the list of invoices, payments, the payment journal, the export for accounting;
 - **Receipts:** the receipt review queue;
+- **Seats and promo codes:** the in-person listener limit, the waiting list and promo codes (see the [manager guide](manager.md#how-to-limit-seats-and-give-out-promo-codes));
 - **Summary:** the numbers of the event;
 - **Mailings** and **Certificates**.
 
@@ -42,6 +43,8 @@ Choose the new category in the participant's row. An invoice already issued does
 Click **Cancel participation** in the participant's row and confirm. If the person has no other active participation in the event, their unpaid invoices are cancelled and paid ones get the state "refund requested". Accounting returns the money; record the refund on the **Invoices** page with **Record a refund**.
 
 When a presenter's participation is cancelled, the submission is not withdrawn: withdraw it separately in the OJS editorial workflow.
+
+Cancelling an in-person listener frees a seat: the first person on the waiting list gets it automatically. A waitlisted participation can be cancelled too; the person then simply leaves the queue. The **Status** filter has the value "on the waiting list".
 
 ### How to export the register to CSV
 

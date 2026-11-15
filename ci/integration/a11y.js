@@ -15,7 +15,7 @@ const EDITION = 'dec-2027';
 // Buttons that change data are never pressed.
 const UNSAFE = /Видалити|Скасувати|Копіювати|Публічна сторінка/;
 // Buttons inside a screen that only open a form.
-const FORMS = ['Запросити учасника', 'Додати категорію', 'Додати тариф', 'Додати правило', 'Додати сесію', 'Журнал платежів', 'Експорт для бухгалтерії', 'Версії згоди', 'Додати партнера'];
+const FORMS = ['Запросити учасника', 'Додати категорію', 'Додати тариф', 'Додати правило', 'Додати сесію', 'Журнал платежів', 'Експорт для бухгалтерії', 'Версії згоди', 'Додати партнера', 'Додати промокод'];
 let failures = 0;
 
 async function audit(page, name, scope) {
@@ -61,7 +61,7 @@ async function signIn(context, user, password) {
     const readerCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     await signIn(readerCtx, 'group1', 'reader12345');
     const reader = await readerCtx.newPage();
-    for (const url of ['/confa/uk/conference/my', '/confa/uk/conference/documents', '/confa/uk/conference/pay-2027/register']) {
+    for (const url of ['/confa/uk/conference/my', '/confa/uk/conference/documents', '/confa/uk/conference/pay-2027/register', '/confa/uk/conference/listen-2027/register']) {
       await reader.goto(B + url);
       await audit(reader, url, '.pkp_structure_main');
     }

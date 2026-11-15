@@ -54,7 +54,31 @@ final class ParticipantService
         private readonly ?InvoiceService $invoices = null,
         /** sends the invitation (REG-10) */
         private readonly ?ParticipantMailer $mailer = null,
+        /** REG-11 */
+        private readonly ?\APP\plugins\generic\conferenceManager\classes\Domain\Fee\PromoRepository $promos = null,
+        /** REG-12 */
+        private readonly ?\APP\plugins\generic\conferenceManager\classes\Domain\Registration\WaitlistRepository $waitlist = null,
     ) {
+    }
+
+    /**
+     * REG-11: the code a person typed, if it can be used now in this
+     * edition; else the locale key of the problem.
+     *
+     * @return array{0: ?\APP\plugins\generic\conferenceManager\classes\Domain\Fee\PromoCode, 1: ?string}
+     */
+    public function checkPromo(Edition $edition, string $typed, DateTimeImmutable $now): array
+    {
+        $typed = trim($typed);
+        if ($typed === '' || $this->promos === null) {
+            return [null, null];
+        }
+        $code = $this->promos->findByCode((int) $edition->id, $typed);
+        if ($code === null) {
+            return [null, 'plugins.generic.conferenceManager.promo.error.unknown'];
+        }
+        $problem = $code->problemOn($now->setTimezone(new \DateTimeZone($edition->timezone))->format('Y-m-d'));
+        return $problem === null ? [$code, null] : [null, $problem];
     }
 
     /** Roles a manager may invite a person to (REG-10). */
@@ -172,8 +196,8 @@ final class ParticipantService
      *
      * @param array{userId: int, email: string, givenName: array<string, string>, familyName: array<string, string>,
      *   affiliation: ?string, country: ?string, orcid: ?string, position: ?string} $person
-     * @param array{categoryId?: mixed, participationForm?: mixed, consent?: mixed, minor?: mixed, guardianConsent?: mixed} $input
-     * @return array{0: array{participantId: int, participationId: int}|null, 1: ValidationErrors}
+     * @param array{categoryId?: mixed, participationForm?: mixed, consent?: mixed, minor?: mixed, guardianConsent?: mixed, promoCode?: mixed} $input
+     * @return array{0: array{participantId: int, participationId: int, status: string, promoLost?: bool}|null, 1: ValidationErrors}
      */
     public function registerListener(
         ContextInfo $context,
@@ -227,11 +251,16 @@ final class ParticipantService
         if (trim($person['email']) === '') {
             $errors->add('email', self::K . 'email');
         }
+        [$promo, $promoProblem] = $this->checkPromo($edition, (string) ($input['promoCode'] ?? ''), $now);
+        if ($promoProblem !== null) {
+            $errors->add('promoCode', $promoProblem);
+        }
         if (!$errors->isEmpty() || $form === null) {
             return [null, $errors];
         }
 
-        $result = $this->participants->addListener($context->id, $editionId, $person, $categoryId, $form, $consentVersion, $now, $minor);
+        $seats = $this->waitlist?->seats($editionId);
+        $result = $this->participants->addListener($context->id, $editionId, $person, $categoryId, $form, $consentVersion, $now, $minor, $seats);
         if ($result === null) {
             $errors->add('editionId', self::K . 'already');
             return [null, $errors];
@@ -243,7 +272,17 @@ final class ParticipantService
             'participationForm' => $form->value,
             'consentVersion' => $consentVersion,
             'minor' => $minor,
+            'status' => $result['status'],
+            'promoCode' => $promo?->code,
         ], $ip);
+        // A code used up by a parallel registration meanwhile does not stop the registration.
+        if ($promo !== null && $promo->id !== null && $this->promos !== null && !$this->promos->redeem($promo->id, $result['participationId'], $now)) {
+            $result['promoLost'] = true;
+        }
+        if ($result['status'] === ParticipationStatus::Waitlisted->value) {
+            // REG-12: no invoice before a seat is given.
+            return [$result, $errors];
+        }
         try {
             $this->invoices?->issueFor($context, $result['participationId'], null, $person['userId'], $now);
         } catch (\Throwable $e) {
@@ -291,7 +330,13 @@ final class ParticipantService
                 'statusLabel' => $this->t($status->labelKey()),
                 'confirmationLabel' => $this->t((ConfirmationStatus::tryFrom($p['confirmationStatus']) ?? ConfirmationStatus::Pending)->labelKey()),
                 'formLabel' => $this->t((ParticipationForm::tryFrom($p['participationForm']) ?? ParticipationForm::InPerson)->labelKey()),
-                'canCancel' => $status === ParticipationStatus::Active && $this->beforeDeadline($edition, $now),
+                'canCancel' => ($status === ParticipationStatus::Active || $status === ParticipationStatus::Waitlisted) && $this->beforeDeadline($edition, $now),
+                'waitlistPosition' => $status === ParticipationStatus::Waitlisted ? $this->waitlistPosition($editionId, (int) $p['participationId'], $locale) : null,
+                'promoCode' => $this->promos?->ofParticipation((int) $p['participationId'])?->code,
+                'canApplyPromo' => $this->promos !== null && $p['role'] === ParticipantRole::Listener->value
+                    && ($status === ParticipationStatus::Active || $status === ParticipationStatus::Waitlisted)
+                    && $this->promos->ofParticipation((int) $p['participationId']) === null
+                    && $this->beforeDeadline($edition, $now) && $this->promos->ofEdition($editionId) !== [],
                 'cancelDeadline' => DateInput::toIsoUtc(self::cancelDeadline($edition)),
             ];
         }
@@ -324,7 +369,7 @@ final class ParticipantService
         if (!$own && !$isManager) {
             return ['result' => self::FORBIDDEN];
         }
-        if ($p['status'] !== ParticipationStatus::Active->value) {
+        if ($p['status'] !== ParticipationStatus::Active->value && $p['status'] !== ParticipationStatus::Waitlisted->value) {
             return ['result' => self::ALREADY];
         }
         $edition = $this->edition($context, $p['editionId']);
@@ -345,6 +390,11 @@ final class ParticipantService
             'by' => $own ? 'participant' : 'manager',
             'invoices' => $invoices,
         ], $ip);
+        // REG-12: a seat given back goes to the first in the waiting list.
+        if ($p['status'] === ParticipationStatus::Active->value && $p['role'] === ParticipantRole::Listener->value
+            && $p['participationForm'] === ParticipationForm::InPerson->value) {
+            $this->fillSeats($context, $p['editionId'], $userId, $now);
+        }
         return ['result' => self::CANCELLED, 'invoices' => $invoices];
     }
 
@@ -468,5 +518,157 @@ final class ParticipantService
     public static function safeCell(string $value): string
     {
         return $value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true) ? "'" . $value : $value;
+    }
+
+    /** REG-12: 1-based place in the waiting list. */
+    private function waitlistPosition(int $editionId, int $participationId, string $locale): ?int
+    {
+        foreach ($this->waitlist?->queue($editionId, $locale) ?? [] as $i => $w) {
+            if ($w['participationId'] === $participationId) {
+                return $i + 1;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * REG-12: seats of an edition, how many are taken and the waiting list.
+     *
+     * @return array{seats: ?int, taken: int, queue: list<array<string, mixed>>}|null
+     */
+    public function seats(ContextInfo $context, int $editionId, string $locale): ?array
+    {
+        if ($this->edition($context, $editionId) === null || $this->waitlist === null) {
+            return null;
+        }
+        return [
+            'seats' => $this->waitlist->seats($editionId),
+            'taken' => $this->waitlist->taken($editionId),
+            'queue' => $this->waitlist->queue($editionId, $locale),
+        ];
+    }
+
+    /**
+     * REG-12: sets the number of in-person listener seats (null: no limit).
+     * More seats are given to the waiting list at once.
+     *
+     * @return array{0: ?list<int>, 1: ValidationErrors} participations that got a seat
+     */
+    public function setSeats(ContextInfo $context, int $editionId, mixed $seats, ?int $actorId, DateTimeImmutable $now): array
+    {
+        $errors = new ValidationErrors();
+        $edition = $this->edition($context, $editionId);
+        if ($edition === null || $this->waitlist === null) {
+            $errors->add('editionId', self::K . 'edition');
+            return [null, $errors];
+        }
+        $value = null;
+        if ($seats !== null && $seats !== '') {
+            $value = filter_var($seats, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 1000000]]);
+            if ($value === false) {
+                $errors->add('seats', 'plugins.generic.conferenceManager.seats.error.number');
+                return [null, $errors];
+            }
+        }
+        $old = $this->waitlist->seats($editionId);
+        $this->waitlist->setSeats($editionId, $value);
+        $this->audit?->log($context->id, $actorId, 'edition', $editionId, 'seats_changed', ['seats' => $old], ['seats' => $value]);
+        return [$this->fillSeats($context, $editionId, $actorId, $now), $errors];
+    }
+
+    /**
+     * REG-12: while seats are free, the first in the waiting list becomes
+     * an active participant, gets the invoice and a letter.
+     *
+     * @return list<int> participations that got a seat
+     */
+    public function fillSeats(ContextInfo $context, int $editionId, ?int $actorId, DateTimeImmutable $now): array
+    {
+        $given = [];
+        $edition = $this->edition($context, $editionId);
+        if ($edition === null || $this->waitlist === null) {
+            return [];
+        }
+        $locale = $context->primaryLocale;
+        for ($i = 0; $i < 500; $i++) {
+            $queue = $this->waitlist->queue($editionId, $locale);
+            $participationId = $this->waitlist->promoteNext($editionId, $now);
+            if ($participationId === null) {
+                break;
+            }
+            $given[] = $participationId;
+            $this->audit?->log($context->id, $actorId, 'participation', $participationId, 'seat_given', ['status' => ParticipationStatus::Waitlisted->value], ['status' => ParticipationStatus::Active->value]);
+            try {
+                $this->invoices?->issueFor($context, $participationId, null, $actorId, $now);
+            } catch (\Throwable $e) {
+                error_log('conferenceManager: invoice after a seat was given failed: ' . $e->getMessage());
+            }
+            $person = array_values(array_filter($queue, static fn (array $w): bool => $w['participationId'] === $participationId))[0] ?? null;
+            if ($person !== null && $this->mailer !== null) {
+                try {
+                    $name = trim($person['givenName'] . ' ' . $person['familyName']);
+                    $this->mailer->sendTemplate($context, ParticipantMailTexts::SEAT, $person['email'], $name === '' ? null : $name, [
+                        'recipientName' => $name === '' ? $person['email'] : $name,
+                        'conferenceName' => (string) $edition->text('name')->resolve($locale, $locale),
+                        'eventUrl' => $this->mailer->editionUrl($context, $edition->path),
+                    ], $locale);
+                } catch (\Throwable $e) {
+                    error_log('conferenceManager: waiting list letter failed: ' . $e->getMessage());
+                }
+            }
+        }
+        return $given;
+    }
+
+    /**
+     * REG-11: the participant applies a promo code in the cabinet, before
+     * the deadline and before paying. An unpaid invoice is issued anew
+     * with the discount.
+     *
+     * @return array{0: bool, 1: ValidationErrors}
+     */
+    public function applyPromo(ContextInfo $context, int $participationId, ?int $userId, string $email, string $typed, DateTimeImmutable $now): array
+    {
+        $errors = new ValidationErrors();
+        $p = $this->participants->findParticipation($context->id, $participationId);
+        $own = $p !== null && (($userId !== null && $p['userId'] === $userId)
+            || ($email !== '' && mb_strtolower(trim($email)) === mb_strtolower($p['email'])));
+        $edition = $own ? $this->edition($context, $p['editionId']) : null;
+        if ($p === null || $edition === null || $this->promos === null || $p['role'] !== ParticipantRole::Listener->value
+            || ($p['status'] !== ParticipationStatus::Active->value && $p['status'] !== ParticipationStatus::Waitlisted->value)) {
+            $errors->add('promoCode', 'plugins.generic.conferenceManager.promo.error.notHere');
+            return [false, $errors];
+        }
+        if ($this->promos->ofParticipation($participationId) !== null) {
+            $errors->add('promoCode', 'plugins.generic.conferenceManager.promo.error.already');
+            return [false, $errors];
+        }
+        if (!$this->beforeDeadline($edition, $now)) {
+            $errors->add('promoCode', 'plugins.generic.conferenceManager.promo.error.late');
+            return [false, $errors];
+        }
+        $current = $this->invoices?->currentFor($participationId);
+        if ($current !== null && (!$current->status->isOpen() || !$current->paidAmount()->isZero())) {
+            $errors->add('promoCode', 'plugins.generic.conferenceManager.promo.error.paid');
+            return [false, $errors];
+        }
+        [$promo, $problem] = $this->checkPromo($edition, $typed, $now);
+        if ($promo === null || $promo->id === null) {
+            $errors->add('promoCode', $problem ?? 'plugins.generic.conferenceManager.promo.error.unknown');
+            return [false, $errors];
+        }
+        if (!$this->promos->redeem($promo->id, $participationId, $now)) {
+            $errors->add('promoCode', 'plugins.generic.conferenceManager.promo.error.usedUp');
+            return [false, $errors];
+        }
+        $this->audit?->log($context->id, $userId, 'participation', $participationId, 'promo_applied', null, ['promoCode' => $promo->code]);
+        if ($current !== null && $current->id !== null) {
+            try {
+                $this->invoices?->reissue($context, $current->id, null, $userId, $now);
+            } catch (\Throwable $e) {
+                error_log('conferenceManager: invoice with a promo code failed: ' . $e->getMessage());
+            }
+        }
+        return [true, $errors];
     }
 }

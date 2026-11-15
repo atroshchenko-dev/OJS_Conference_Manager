@@ -131,6 +131,18 @@ final class ServiceFactory
             static fn (string $key): string => __($key),
             self::invoices(),
             new MailGateway(),
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPromoRepository($db),
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbWaitlistRepository($db),
+        );
+    }
+
+    public static function promoCodes(): \APP\plugins\generic\conferenceManager\classes\Application\PromoService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\PromoService(
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPromoRepository($db),
+            new DbEditionRepository($db),
+            new AuditLogger($db),
         );
     }
 
@@ -149,6 +161,7 @@ final class ServiceFactory
             static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
             self::jurisdictions(),
             self::settings(),
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPromoRepository($db),
         );
     }
 

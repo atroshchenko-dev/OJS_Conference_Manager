@@ -4691,3 +4691,216 @@ msgstr "Open the ticket full screen"
 
 msgid "plugins.generic.conferenceManager.my.ticketHelp"
 msgstr "Show this code at the registration desk: it is scanned to mark your attendance. The code is personal."
+
+msgid "plugins.generic.conferenceManager.participation.status.waitlisted"
+msgstr "on the waiting list"
+
+msgid "plugins.generic.conferenceManager.invoice.promoSuffix"
+msgstr " — with the discount of promo code {$code} ({$discount}, full price {$full})"
+
+msgid "plugins.generic.conferenceManager.invoice.promoReason"
+msgstr "100 % discount by promo code {$code}"
+
+msgid "plugins.generic.conferenceManager.mailable.seat.name"
+msgstr "Seat from the waiting list"
+
+msgid "plugins.generic.conferenceManager.mailable.seat.description"
+msgstr "Letter to a listener on the waiting list who got an in-person seat."
+
+msgid "plugins.generic.conferenceManager.audit.entity.promo_code"
+msgstr "Promo code"
+
+msgid "plugins.generic.conferenceManager.promo.open"
+msgstr "Seats and promo codes"
+
+msgid "plugins.generic.conferenceManager.promo.title"
+msgstr "Seats and promo codes"
+
+msgid "plugins.generic.conferenceManager.promo.codes"
+msgstr "Promo codes"
+
+msgid "plugins.generic.conferenceManager.promo.help"
+msgstr "A promo code lowers the fee by a percentage or an amount. The participant types it when registering as a listener or later in the cabinet, as long as the invoice is not paid. A cancelled participation gives the use back."
+
+msgid "plugins.generic.conferenceManager.promo.empty"
+msgstr "No promo codes yet."
+
+msgid "plugins.generic.conferenceManager.promo.code"
+msgstr "Code"
+
+msgid "plugins.generic.conferenceManager.promo.discount"
+msgstr "Discount"
+
+msgid "plugins.generic.conferenceManager.promo.uses"
+msgstr "Used"
+
+msgid "plugins.generic.conferenceManager.promo.usesOf"
+msgstr "{$uses} of {$max}"
+
+msgid "plugins.generic.conferenceManager.promo.period"
+msgstr "Valid"
+
+msgid "plugins.generic.conferenceManager.promo.state"
+msgstr "State"
+
+msgid "plugins.generic.conferenceManager.promo.actions"
+msgstr "Actions"
+
+msgid "plugins.generic.conferenceManager.promo.always"
+msgstr "no limits"
+
+msgid "plugins.generic.conferenceManager.promo.on"
+msgstr "on"
+
+msgid "plugins.generic.conferenceManager.promo.off"
+msgstr "off"
+
+msgid "plugins.generic.conferenceManager.promo.deleteConfirm"
+msgstr "Really delete?"
+
+msgid "plugins.generic.conferenceManager.promo.add"
+msgstr "Add a promo code"
+
+msgid "plugins.generic.conferenceManager.promo.usedHelp"
+msgstr "The code was used, so its name and discount cannot change. You can change the limit, the dates, the note or switch the code off."
+
+msgid "plugins.generic.conferenceManager.promo.codeHelp"
+msgstr "3 to 32 Latin letters, digits, dashes or underscores. Case does not matter."
+
+msgid "plugins.generic.conferenceManager.promo.percentType"
+msgstr "Percentage"
+
+msgid "plugins.generic.conferenceManager.promo.amountType"
+msgstr "Fixed amount"
+
+msgid "plugins.generic.conferenceManager.promo.percent"
+msgstr "Discount, %"
+
+msgid "plugins.generic.conferenceManager.promo.amount"
+msgstr "Discount amount"
+
+msgid "plugins.generic.conferenceManager.promo.currency"
+msgstr "Currency"
+
+msgid "plugins.generic.conferenceManager.promo.maxUses"
+msgstr "How many times it can be used"
+
+msgid "plugins.generic.conferenceManager.promo.unlimited"
+msgstr "no limit"
+
+msgid "plugins.generic.conferenceManager.promo.validFrom"
+msgstr "Valid from"
+
+msgid "plugins.generic.conferenceManager.promo.validUntil"
+msgstr "Valid until (included)"
+
+msgid "plugins.generic.conferenceManager.promo.note"
+msgstr "Note for managers"
+
+msgid "plugins.generic.conferenceManager.promo.active"
+msgstr "The code is on"
+
+msgid "plugins.generic.conferenceManager.promo.field"
+msgstr "Promo code"
+
+msgid "plugins.generic.conferenceManager.promo.apply"
+msgstr "Apply the promo code"
+
+msgid "plugins.generic.conferenceManager.promo.applied"
+msgstr "The promo code was applied. An existing invoice was issued anew with the discount."
+
+msgid "plugins.generic.conferenceManager.promo.error.code"
+msgstr "The code must have 3 to 32 Latin letters, digits, dashes or underscores."
+
+msgid "plugins.generic.conferenceManager.promo.error.amount"
+msgstr "Enter a discount amount above zero."
+
+msgid "plugins.generic.conferenceManager.promo.error.percent"
+msgstr "Enter a percentage from 1 to 100."
+
+msgid "plugins.generic.conferenceManager.promo.error.maxUses"
+msgstr "Enter a whole number from 1 or leave the field empty."
+
+msgid "plugins.generic.conferenceManager.promo.error.date"
+msgstr "Enter the date as YYYY-MM-DD."
+
+msgid "plugins.generic.conferenceManager.promo.error.period"
+msgstr "The end date cannot be before the start date."
+
+msgid "plugins.generic.conferenceManager.promo.error.inactive"
+msgstr "This promo code is switched off."
+
+msgid "plugins.generic.conferenceManager.promo.error.notYet"
+msgstr "This promo code is not valid yet."
+
+msgid "plugins.generic.conferenceManager.promo.error.expired"
+msgstr "This promo code has expired."
+
+msgid "plugins.generic.conferenceManager.promo.error.usedUp"
+msgstr "The promo code has been used the maximum number of times."
+
+msgid "plugins.generic.conferenceManager.promo.error.unknown"
+msgstr "There is no such promo code for this event."
+
+msgid "plugins.generic.conferenceManager.promo.error.duplicate"
+msgstr "This event already has this code."
+
+msgid "plugins.generic.conferenceManager.promo.error.tooMany"
+msgstr "An event can have at most 200 promo codes."
+
+msgid "plugins.generic.conferenceManager.promo.error.usedTerms"
+msgstr "The code was used: its name and discount cannot change."
+
+msgid "plugins.generic.conferenceManager.promo.error.used"
+msgstr "The code was used, so it cannot be deleted. Switch it off instead."
+
+msgid "plugins.generic.conferenceManager.promo.error.notHere"
+msgstr "The promo code cannot be applied to this participation."
+
+msgid "plugins.generic.conferenceManager.promo.error.already"
+msgstr "A promo code was already applied to this participation."
+
+msgid "plugins.generic.conferenceManager.promo.error.late"
+msgstr "The registration deadline has passed; the promo code can no longer be applied."
+
+msgid "plugins.generic.conferenceManager.promo.error.paid"
+msgstr "The invoice is paid in full or in part, so the promo code cannot be applied. Please contact the organizers."
+
+msgid "plugins.generic.conferenceManager.seats.title"
+msgstr "In-person listener seats"
+
+msgid "plugins.generic.conferenceManager.seats.help"
+msgstr "Limits the number of active listeners taking part in person. When the seats run out, new in-person listeners join a waiting list without an invoice. A seat given back goes to the first in the queue automatically: the participation becomes active, with an invoice and a letter. Presenters and online listeners are not limited."
+
+msgid "plugins.generic.conferenceManager.seats.field"
+msgstr "Number of seats"
+
+msgid "plugins.generic.conferenceManager.seats.unlimited"
+msgstr "no limit"
+
+msgid "plugins.generic.conferenceManager.seats.noLimit"
+msgstr "No limit. In-person listeners: {$taken}."
+
+msgid "plugins.generic.conferenceManager.seats.state"
+msgstr "{$taken} of {$seats} taken. On the waiting list: {$queue}."
+
+msgid "plugins.generic.conferenceManager.seats.given"
+msgstr "Saved. Seats given from the waiting list: {$n}."
+
+msgid "plugins.generic.conferenceManager.seats.error.number"
+msgstr "Enter a whole number from 0 or leave the field empty."
+
+msgid "plugins.generic.conferenceManager.waitlist.title"
+msgstr "Waiting list"
+
+msgid "plugins.generic.conferenceManager.waitlist.done"
+msgstr "In-person seats have run out, so you were added to the waiting list. As soon as a seat is free, your participation is confirmed automatically and you get a letter and the invoice."
+
+msgid "plugins.generic.conferenceManager.waitlist.full"
+msgstr "In-person seats have run out. If you choose to take part in person, you join the waiting list (now in the queue: {$n}). Online participation is not limited, if the event offers it."
+
+msgid "plugins.generic.conferenceManager.waitlist.position"
+msgstr "place in the queue: {$n}"
+
+msgid "plugins.generic.conferenceManager.waitlist.help"
+msgstr "You are on the waiting list. No invoice was issued. When a seat is free, your participation is confirmed automatically and you get a letter."

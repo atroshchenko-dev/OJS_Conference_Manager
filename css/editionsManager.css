@@ -304,3 +304,8 @@
 .cmPartners__form .cmFees__field { margin-bottom: .75rem; }
 .cmPartners__form label { display: block; font-weight: 700; margin-bottom: .25rem; }
 .cmPartners__form input[type=text], .cmPartners__form input[type=url], .cmPartners__form select { width: 100%; max-width: 32rem; padding: .375rem; border: 1px solid #767676; border-radius: 3px; }
+.cmPartners__form input[type=number], .cmPartners__form input[type=date], .cmPromos__seats input[type=number] { padding: .375rem; border: 1px solid #767676; border-radius: 3px; background: #fff; }
+.cmPartners__form input[type=number] { width: 11rem; }
+.cmPromos__seats { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem; }
+.cmPromos__seats label { display: block; font-weight: 700; margin-bottom: .25rem; }
+.cmPromos__seats input[type=number] { width: 10rem; }

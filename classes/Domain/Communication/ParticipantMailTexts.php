@@ -23,6 +23,7 @@ final class ParticipantMailTexts
     public const REMIND_PAPER = 'CONF_REMINDER_PAPER';
     public const REMIND_EVENT = 'CONF_REMINDER_EVENT';
     public const INVITATION = 'CONF_INVITATION';
+    public const SEAT = 'CONF_WAITLIST_SEAT';
 
     public const COMMON = ['recipientName', 'conferenceName', 'cabinetUrl', 'contextName'];
 
@@ -36,6 +37,7 @@ final class ParticipantMailTexts
         self::REMIND_PAPER => ['submissionTitle', 'paperDeadline'],
         self::REMIND_EVENT => ['startsAt', 'venue', 'eventUrl'],
         self::INVITATION => ['participantRole', 'invitationNote', 'eventUrl'],
+        self::SEAT => ['eventUrl'],
     ];
 
     /** @return array<string, array<string, array{name: string, subject: string, body: string}>> key => locale => text */
@@ -69,6 +71,10 @@ final class ParticipantMailTexts
             self::INVITATION => ['Учасники: запрошення', 'Запрошення: {$conferenceName}',
                 '<p>Шановна/шановний {$recipientName}!</p><p>Запрошуємо вас узяти участь у заході «{$conferenceName}». Ваша роль: {$participantRole}. Оргвнесок для вас не стягується.</p>'
                 . '<p>{$invitationNote}</p><p>Програма й подробиці: <a href="{$eventUrl}">{$eventUrl}</a><br>Ваша участь і документи — в особистому кабінеті (увійдіть з цією адресою пошти): <a href="{$cabinetUrl}">{$cabinetUrl}</a></p><p>{$contextName}</p>'],
+            self::SEAT => ['Учасники: місце з листа очікування', 'Для вас звільнилося місце: {$conferenceName}',
+                '<p>Шановна/шановний {$recipientName}!</p><p>Для вас звільнилося місце на заході «{$conferenceName}». Вашу реєстрацію слухачем очно підтверджено.</p>'
+                . '<p>Якщо оргвнесок платний, рахунок уже в особистому кабінеті: <a href="{$cabinetUrl}">{$cabinetUrl}</a>. Якщо ви не зможете прийти, скасуйте участь у кабінеті, щоб місце отримав наступний у черзі.</p>'
+                . '<p>Програма й подробиці: <a href="{$eventUrl}">{$eventUrl}</a></p><p>{$contextName}</p>'],
         ];
         $en = [
             self::CONFIRM => ['Participants: co-authorship confirmation', 'Please confirm your participation: {$conferenceName}',
@@ -98,6 +104,10 @@ final class ParticipantMailTexts
             self::INVITATION => ['Participants: invitation', 'Invitation: {$conferenceName}',
                 '<p>Dear {$recipientName},</p><p>We invite you to take part in “{$conferenceName}”. Your role: {$participantRole}. You pay no participation fee.</p>'
                 . '<p>{$invitationNote}</p><p>Programme and details: <a href="{$eventUrl}">{$eventUrl}</a><br>Your participation and documents are in your cabinet (sign in with this email address): <a href="{$cabinetUrl}">{$cabinetUrl}</a></p><p>{$contextName}</p>'],
+            self::SEAT => ['Participants: seat from the waiting list', 'A seat is free for you: {$conferenceName}',
+                '<p>Dear {$recipientName},</p><p>A seat has become free for you at “{$conferenceName}”. Your in-person listener registration is confirmed.</p>'
+                . '<p>If there is a fee, the invoice is already in your cabinet: <a href="{$cabinetUrl}">{$cabinetUrl}</a>. If you cannot come, please cancel your participation in the cabinet so that the next person in the queue gets the seat.</p>'
+                . '<p>Programme and details: <a href="{$eventUrl}">{$eventUrl}</a></p><p>{$contextName}</p>'],
         ];
         $out = [];
         foreach ($uk as $key => [$name, $subject, $body]) {

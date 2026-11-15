@@ -4691,3 +4691,216 @@ msgstr "Відкрити квиток на весь екран"
 
 msgid "plugins.generic.conferenceManager.my.ticketHelp"
 msgstr "Покажіть цей код на реєстрації: його сканують, щоб відмітити вашу присутність. Код особистий."
+
+msgid "plugins.generic.conferenceManager.participation.status.waitlisted"
+msgstr "у листі очікування"
+
+msgid "plugins.generic.conferenceManager.invoice.promoSuffix"
+msgstr " — зі знижкою за промокодом {$code} ({$discount}, повна вартість {$full})"
+
+msgid "plugins.generic.conferenceManager.invoice.promoReason"
+msgstr "Знижка 100 % за промокодом {$code}"
+
+msgid "plugins.generic.conferenceManager.mailable.seat.name"
+msgstr "Місце з листа очікування"
+
+msgid "plugins.generic.conferenceManager.mailable.seat.description"
+msgstr "Лист слухачеві з листа очікування, якому звільнилося місце на очній участі."
+
+msgid "plugins.generic.conferenceManager.audit.entity.promo_code"
+msgstr "Промокод"
+
+msgid "plugins.generic.conferenceManager.promo.open"
+msgstr "Місця й промокоди"
+
+msgid "plugins.generic.conferenceManager.promo.title"
+msgstr "Місця й промокоди"
+
+msgid "plugins.generic.conferenceManager.promo.codes"
+msgstr "Промокоди"
+
+msgid "plugins.generic.conferenceManager.promo.help"
+msgstr "Промокод знижує оргвнесок на відсоток або на суму. Учасник вводить його під час реєстрації слухачем або пізніше в особистому кабінеті, доки рахунок не оплачено. Скасована участь повертає використання коду."
+
+msgid "plugins.generic.conferenceManager.promo.empty"
+msgstr "Промокодів ще немає."
+
+msgid "plugins.generic.conferenceManager.promo.code"
+msgstr "Код"
+
+msgid "plugins.generic.conferenceManager.promo.discount"
+msgstr "Знижка"
+
+msgid "plugins.generic.conferenceManager.promo.uses"
+msgstr "Використано"
+
+msgid "plugins.generic.conferenceManager.promo.usesOf"
+msgstr "{$uses} з {$max}"
+
+msgid "plugins.generic.conferenceManager.promo.period"
+msgstr "Діє"
+
+msgid "plugins.generic.conferenceManager.promo.state"
+msgstr "Стан"
+
+msgid "plugins.generic.conferenceManager.promo.actions"
+msgstr "Дії"
+
+msgid "plugins.generic.conferenceManager.promo.always"
+msgstr "без обмежень"
+
+msgid "plugins.generic.conferenceManager.promo.on"
+msgstr "увімкнено"
+
+msgid "plugins.generic.conferenceManager.promo.off"
+msgstr "вимкнено"
+
+msgid "plugins.generic.conferenceManager.promo.deleteConfirm"
+msgstr "Точно видалити?"
+
+msgid "plugins.generic.conferenceManager.promo.add"
+msgstr "Додати промокод"
+
+msgid "plugins.generic.conferenceManager.promo.usedHelp"
+msgstr "Код уже використали, тому його назву й знижку змінити не можна. Можна змінити ліміт, строк дії, примітку або вимкнути код."
+
+msgid "plugins.generic.conferenceManager.promo.codeHelp"
+msgstr "Від 3 до 32 латинських літер, цифр, дефісів чи підкреслень. Регістр літер не важливий."
+
+msgid "plugins.generic.conferenceManager.promo.percentType"
+msgstr "Відсоток"
+
+msgid "plugins.generic.conferenceManager.promo.amountType"
+msgstr "Фіксована сума"
+
+msgid "plugins.generic.conferenceManager.promo.percent"
+msgstr "Відсоток знижки"
+
+msgid "plugins.generic.conferenceManager.promo.amount"
+msgstr "Сума знижки"
+
+msgid "plugins.generic.conferenceManager.promo.currency"
+msgstr "Валюта"
+
+msgid "plugins.generic.conferenceManager.promo.maxUses"
+msgstr "Скільки разів можна використати"
+
+msgid "plugins.generic.conferenceManager.promo.unlimited"
+msgstr "без обмежень"
+
+msgid "plugins.generic.conferenceManager.promo.validFrom"
+msgstr "Діє з"
+
+msgid "plugins.generic.conferenceManager.promo.validUntil"
+msgstr "Діє до (включно)"
+
+msgid "plugins.generic.conferenceManager.promo.note"
+msgstr "Примітка для менеджерів"
+
+msgid "plugins.generic.conferenceManager.promo.active"
+msgstr "Код увімкнено"
+
+msgid "plugins.generic.conferenceManager.promo.field"
+msgstr "Промокод"
+
+msgid "plugins.generic.conferenceManager.promo.apply"
+msgstr "Застосувати промокод"
+
+msgid "plugins.generic.conferenceManager.promo.applied"
+msgstr "Промокод застосовано. Якщо рахунок уже був, його виставлено заново зі знижкою."
+
+msgid "plugins.generic.conferenceManager.promo.error.code"
+msgstr "Код має містити від 3 до 32 латинських літер, цифр, дефісів чи підкреслень."
+
+msgid "plugins.generic.conferenceManager.promo.error.amount"
+msgstr "Вкажіть суму знижки більшу за нуль."
+
+msgid "plugins.generic.conferenceManager.promo.error.percent"
+msgstr "Вкажіть відсоток від 1 до 100."
+
+msgid "plugins.generic.conferenceManager.promo.error.maxUses"
+msgstr "Вкажіть ціле число від 1 або залиште поле порожнім."
+
+msgid "plugins.generic.conferenceManager.promo.error.date"
+msgstr "Вкажіть дату у форматі РРРР-ММ-ДД."
+
+msgid "plugins.generic.conferenceManager.promo.error.period"
+msgstr "Дата закінчення не може бути раніше дати початку."
+
+msgid "plugins.generic.conferenceManager.promo.error.inactive"
+msgstr "Цей промокод вимкнено."
+
+msgid "plugins.generic.conferenceManager.promo.error.notYet"
+msgstr "Цей промокод ще не діє."
+
+msgid "plugins.generic.conferenceManager.promo.error.expired"
+msgstr "Строк дії цього промокоду минув."
+
+msgid "plugins.generic.conferenceManager.promo.error.usedUp"
+msgstr "Промокод уже використано максимальну кількість разів."
+
+msgid "plugins.generic.conferenceManager.promo.error.unknown"
+msgstr "Такого промокоду для цього заходу немає."
+
+msgid "plugins.generic.conferenceManager.promo.error.duplicate"
+msgstr "Такий код у цьому заході вже є."
+
+msgid "plugins.generic.conferenceManager.promo.error.tooMany"
+msgstr "У заході не може бути більше 200 промокодів."
+
+msgid "plugins.generic.conferenceManager.promo.error.usedTerms"
+msgstr "Код уже використали: його назву й знижку змінити не можна."
+
+msgid "plugins.generic.conferenceManager.promo.error.used"
+msgstr "Код уже використали, тому його не можна видалити. Вимкніть його замість видалення."
+
+msgid "plugins.generic.conferenceManager.promo.error.notHere"
+msgstr "Промокод не можна застосувати до цієї участі."
+
+msgid "plugins.generic.conferenceManager.promo.error.already"
+msgstr "До цієї участі вже застосовано промокод."
+
+msgid "plugins.generic.conferenceManager.promo.error.late"
+msgstr "Строк реєстрації минув, промокод уже не застосувати."
+
+msgid "plugins.generic.conferenceManager.promo.error.paid"
+msgstr "Рахунок уже оплачено повністю чи частково, тому промокод не застосувати. Зверніться до організаторів."
+
+msgid "plugins.generic.conferenceManager.seats.title"
+msgstr "Місця для слухачів очно"
+
+msgid "plugins.generic.conferenceManager.seats.help"
+msgstr "Обмежує кількість активних слухачів з очною формою участі. Коли місця закінчаться, нові слухачі очно потрапляють у лист очікування без рахунку. Звільнене місце автоматично отримує перший у черзі: його участь стає активною, він отримує рахунок і лист. Доповідачів і онлайн-слухачів ліміт не стосується."
+
+msgid "plugins.generic.conferenceManager.seats.field"
+msgstr "Кількість місць"
+
+msgid "plugins.generic.conferenceManager.seats.unlimited"
+msgstr "без обмежень"
+
+msgid "plugins.generic.conferenceManager.seats.noLimit"
+msgstr "Ліміту немає. Слухачів очно: {$taken}."
+
+msgid "plugins.generic.conferenceManager.seats.state"
+msgstr "Зайнято {$taken} з {$seats}. У листі очікування: {$queue}."
+
+msgid "plugins.generic.conferenceManager.seats.given"
+msgstr "Збережено. Місце отримали з листа очікування: {$n}."
+
+msgid "plugins.generic.conferenceManager.seats.error.number"
+msgstr "Вкажіть ціле число від 0 або залиште поле порожнім."
+
+msgid "plugins.generic.conferenceManager.waitlist.title"
+msgstr "Лист очікування"
+
+msgid "plugins.generic.conferenceManager.waitlist.done"
+msgstr "Місця для очної участі закінчилися, тому вас додано до листа очікування. Щойно місце звільниться, участь підтвердиться автоматично, і ви отримаєте лист і рахунок."
+
+msgid "plugins.generic.conferenceManager.waitlist.full"
+msgstr "Місця для очної участі закінчилися. Якщо оберете очну участь, вас буде додано до листа очікування (зараз у черзі: {$n}). Онлайн-участь доступна без обмежень, якщо захід її передбачає."
+
+msgid "plugins.generic.conferenceManager.waitlist.position"
+msgstr "місце в черзі: {$n}"
+
+msgid "plugins.generic.conferenceManager.waitlist.help"
+msgstr "Ви в листі очікування. Рахунок не виставлено. Коли місце звільниться, участь підтвердиться автоматично, і ви отримаєте лист."

@@ -8,6 +8,8 @@ enum ParticipationStatus: string
 {
     case Active = 'active';
     case Cancelled = 'cancelled';
+    /** REG-12: an in-person listener waiting for a seat. */
+    case Waitlisted = 'waitlisted';
 
     public function labelKey(): string
     {

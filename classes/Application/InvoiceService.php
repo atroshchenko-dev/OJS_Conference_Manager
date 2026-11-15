@@ -76,6 +76,8 @@ final class InvoiceService
         private readonly ?\Closure $translate = null,
         private readonly ?JurisdictionRegistry $jurisdictions = null,
         private readonly ?SettingsStore $settings = null,
+        /** REG-11: the promo code a participation used lowers its fee */
+        private readonly ?\APP\plugins\generic\conferenceManager\classes\Domain\Fee\PromoRepository $promos = null,
     ) {
     }
 
@@ -277,10 +279,26 @@ final class InvoiceService
         if ($invited) {
             $total = Money::zero($total->currency);
         }
+        $description = $this->t(self::I . 'item.' . $material->value, ['edition' => $editionName], $locale);
+        $quantity = $perPage ? (int) $quote->pages : 1;
+        $unit = $invited ? $total : ($perPage ? $tariff->amount : $total);
+        // REG-11: one line with the price after the discount and the code in its description.
+        $promo = $invited ? null : $this->promos?->ofParticipation((int) $p['participationId']);
+        if ($promo !== null) {
+            $discounted = $promo->apply($total);
+            if ($discounted->minor !== $total->minor) {
+                $description .= $this->t(self::I . 'promoSuffix', ['code' => $promo->code, 'discount' => $promo->discountText(), 'full' => $total->decimal() . ' ' . $total->currency], $locale);
+                $total = $discounted;
+                $quantity = 1;
+                $unit = $total;
+            } else {
+                $promo = null;
+            }
+        }
         $item = new InvoiceItem(
-            $this->t(self::I . 'item.' . $material->value, ['edition' => $editionName], $locale),
-            $perPage ? (int) $quote->pages : 1,
-            $invited ? $total : ($perPage ? $tariff->amount : $total),
+            $description,
+            $quantity,
+            $unit,
             $total,
             (int) $p['participationId'],
             $p['submissionId'],
@@ -301,6 +319,14 @@ final class InvoiceService
             recipient: $this->recipient($context, $rule, $edition),
             method: $rule->mode->method(),
         );
+        if ($promo !== null && $total->isZero()) {
+            return [self::WAIVED, $invoice->with([
+                'status' => InvoiceStatus::Waived,
+                'method' => 'waiver',
+                'paid' => $total,
+                'waiverReason' => $this->t(self::I . 'promoReason', ['code' => $promo->code], $locale),
+            ])];
+        }
         if ($invited) {
             return [self::WAIVED, $invoice->with([
                 'status' => InvoiceStatus::Waived,
@@ -402,6 +428,12 @@ final class InvoiceService
     }
 
     /** The presenter's current invoice for the submission (DEC-06). */
+    /** The invoice that counts now for a participation (listener) or its submission. */
+    public function currentFor(int $participationId, ?int $submissionId = null): ?Invoice
+    {
+        return $this->payments->currentFor($participationId, $submissionId);
+    }
+
     public function currentForSubmission(int $submissionId): ?Invoice
     {
         $participationId = $this->participants->presenterOf($submissionId);

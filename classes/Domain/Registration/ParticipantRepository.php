@@ -15,12 +15,14 @@ interface ParticipantRepository
     /**
      * Adds a listener participation (REG-05), creating the participant when
      * needed. Returns null when the person already has an active listener
-     * participation in this edition. A minor (EVT-04) is stored with the
-     * guardian consent time and without a job position.
+     * or waitlisted listener participation in this edition. A minor (EVT-04)
+     * is stored with the guardian consent time and without a job position.
+     * REG-12: with $seats set, an in-person listener beyond that number of
+     * active in-person listeners joins the waiting list (status "waitlisted").
      *
      * @param array{userId: int, email: string, givenName: array<string, string>, familyName: array<string, string>,
      *   affiliation: ?string, country: ?string, orcid: ?string, position: ?string} $person
-     * @return array{participantId: int, participationId: int}|null
+     * @return array{participantId: int, participationId: int, status: string}|null
      */
     public function addListener(
         int $contextId,
@@ -31,6 +33,7 @@ interface ParticipantRepository
         string $consentVersion,
         DateTimeImmutable $now,
         bool $minor = false,
+        ?int $seats = null,
     ): ?array;
 
     /**

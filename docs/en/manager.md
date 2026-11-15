@@ -182,6 +182,34 @@ An amount of 0 means free participation. When several tariffs fit, the most spec
 
 To check your setup, use **Check the calculation** and click **Calculate**.
 
+## How to limit seats and give out promo codes
+
+Click **Seats and promo codes** next to the edition. Registration managers see the same page.
+
+### In-person listener seats
+
+Enter how many listeners can attend in person in **Number of seats** and click **Save**. An empty field means "no limit". Above the field you can see how many seats are taken and how many people are on the waiting list.
+
+- When the seats run out, new in-person listeners go to the **waiting list**. They get no invoice.
+- As soon as a seat frees up (a participant cancelled, or you raised the number of seats), the first person in the queue gets it automatically: the participation becomes active, an invoice is issued and the person gets the "A seat is free for you" email. You can change its text in OJS **Email templates**.
+- The limit applies only to in-person listeners. It does not limit presenters, co-authors or online listeners.
+- The queue is shown under the field: name, email and the date the person joined it.
+
+### Promo codes
+
+Click **Add a promo code** and fill in:
+
+- **Code:** 3 to 32 Latin letters, digits, dashes or underscores. The participant may type it in lower case and with spaces, it does not matter.
+- **Discount:** a percentage from 1 to 100 or a fixed amount in the currency of the tariffs. The percentage is rounded in favour of the payer. An amount never takes the fee below zero; if the fee after the discount is zero, the participant gets a waiver with the reason "promo code".
+- **How many times it can be used:** an empty field means no limit.
+- **Valid from** and **Valid until (included)**: dates in the time zone of the edition.
+- **Note for managers**, for example who the code was given to. Participants do not see it.
+- **The code is on:** a code that is off is not accepted.
+
+The participant enters the code when registering as a listener or later in the cabinet, while the invoice is not paid. One code applies to a participation. The invoice shows the code and the discount next to the fee.
+
+A code that was used cannot be deleted, and its name and discount cannot change, so invoices stay clear. You can switch it off or change its limit, period or note. A cancelled participation gives the use back. All changes to codes go to the audit log.
+
 ## How to set up payment rules
 
 Click **Payment** next to the edition. In **How participant categories pay**, click **Add a rule**.

@@ -67,6 +67,14 @@ A co-author participation added earlier appears in your cabinet when you log in 
 
 After registering you land in your cabinet. If participation is paid, the invoice is there right away and a letter arrives by email. You can have only one active listener registration per event.
 
+### Promo code
+
+If the organisers gave you a promo code, type it in the **Promo code** field on the registration page. The discount is applied to the invoice right away, and the code is shown next to the fee. If the code does not work (switched off, expired, used up), the page says so, and you can finish registering without it. You can also apply a code later in the cabinet: click **Apply the promo code** next to the participation while the invoice is not paid. The unpaid invoice is issued again with the discount.
+
+### Waiting list
+
+If in-person seats are limited and have run out, the registration page warns you. You can register in person and join the waiting list, or choose online participation if the event offers it. In the cabinet such a participation shows your place in the queue and has no invoice yet. As soon as a seat frees up, the participation is confirmed automatically and you get an email and an invoice. To leave the queue, click **Cancel participation**.
+
 ## The participant cabinet
 
 Open `/{journal}/conference/my`. It shows all your participations in events of this journal, as a listener, presenter or co-author, with the role, category, form of participation, confirmation state and submission.
