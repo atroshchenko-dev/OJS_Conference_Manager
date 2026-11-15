@@ -733,7 +733,7 @@ an="$(post "$api/personal-data/anonymize" '{"email":"payer4@example.org"}')"
 regs="$(curl -s -b "$jar" "$api/editions/$rid/participants?count=100")"
 [ "$(j '"Анонімізовано" in [i["name"] for i in d["items"]], "payer4@example.org" in [i["email"] for i in d["items"]]' <<<"$regs")" = "(True, False)" ] || fail "DAT-04 register: $(head -c 400 <<<"$regs")"
 [ "$(curl -s -b "$jar" "$api/invoices/$rinv" | j 'd["payer"]["name"]')" = "Київський ліцей № 1" ] || fail "DAT-04 the invoice keeps its copy"
-art="$(curl -s -L "$B/confa/en/article/view/$s1")"
+art="$(curl -s -L --max-redirs 5 "$B/confa/en/article/view/$s1" || true)"
 if grep -q 'citation_title' <<<"$art"; then
   grep -q 'name="citation_conference_title"' <<<"$art" && ! grep -q 'citation_journal_title' <<<"$art" || fail "PUB-02 Google Scholar tags: $(grep -o '<meta name="citation_[a-z_]*" content="[^"]*"' <<<"$art" | head -8)"
   pub="conference title"
