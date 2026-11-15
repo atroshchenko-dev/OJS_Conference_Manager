@@ -36,7 +36,7 @@ id1="$(curl -s -b "$jar" "$A/bids" | py "print([r['userId'] for r in d['reviewer
 
 # Off until the manager opens it.
 login "$j1" bid1 reader12345
-[ "$(curl -s -b "$j1" -o /dev/null -w '%{http_code}' "$page")" = 404 ] || fail "DEC-10 a page before the choice opens"
+[ "$(curl -s -L -c "$j1" -b "$j1" -o /dev/null -w '%{http_code}' "$page")" = 404 ] || fail "DEC-10 a page before the choice opens"
 until="$(date -u -d '+7 days' +%F)"
 [ "$(send PUT "$A/bids/settings" '{"biddingUntil":"2027-02-31"}' -o /dev/null -w '%{http_code}')" = 400 ] || fail "DEC-10 a bad date"
 r="$(send PUT "$A/bids/settings" "{\"biddingUntil\":\"$until\",\"reviewersPerSubmission\":2}")"
@@ -46,7 +46,7 @@ s1="$(py "print([s['id'] for s in d['submissions'] if s['inReview']][0])" <<<"$r
 echo "OK DEC-10 settings: off by default, a bad date refused, the review forms kept"
 
 # Reviewers choose; a manager who is not a reviewer gets nothing.
-[ "$(curl -s -b "$jar" -o /dev/null -w '%{http_code}' "$page")" = 404 ] || fail "DEC-10 the page for a non-reviewer"
+[ "$(curl -s -L -c "$jar" -b "$jar" -o /dev/null -w '%{http_code}' "$page")" = 404 ] || fail "DEC-10 the page for a non-reviewer"
 form="$(curl -s -L -c "$j1" -b "$j1" "$page")"
 grep -q "name=\"bid\[$s1\]\" value=\"eager\"" <<<"$form" || fail "DEC-10 the reviewer's page: $(txt "$form")"
 if grep -q 'cmreviewer\|petro@example.org' <<<"$form"; then fail "DEC-10 authors or reviewers shown to a reviewer"; fi
@@ -74,7 +74,7 @@ echo "OK DEC-10 the proposal assigned in OJS with due dates, the round's files (
 r="$(send POST "$A/bids/invite" '{}')"
 py "assert d['sent'] >= 2, d" <<<"$r" || fail "DEC-10 invitation: $r"
 send PUT "$A/bids/settings" '{"biddingUntil":null}' | py "assert not d['open']" || fail "DEC-10 off again"
-[ "$(curl -s -b "$j1" -o /dev/null -w '%{http_code}' "$page")" = 404 ] || fail "DEC-10 the page after it is off"
+[ "$(curl -s -L -c "$j1" -b "$j1" -o /dev/null -w '%{http_code}' "$page")" = 404 ] || fail "DEC-10 the page after it is off"
 # Open again for the accessibility check of the reviewer's page.
 send PUT "$A/bids/settings" "{\"biddingUntil\":\"$until\"}" >/dev/null
 echo "OK reviewer bids"

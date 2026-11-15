@@ -505,7 +505,8 @@ class ConferencePageHandler extends Handler
         $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
         $service = ServiceFactory::reviewBidding();
         $userId = (int) $user->getId();
-        if ($service->reviewerPage($info, $edition, $userId, $locale, $now) === null) {
+        $page = $service->reviewerPage($info, $edition, $userId, $locale, $now);
+        if ($page === null) {
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
         $message = null;
@@ -523,7 +524,6 @@ class ConferencePageHandler extends Handler
         } elseif ($request->getUserVar('saved') !== null) {
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.bids.saved', ['n' => (int) $request->getUserVar('saved')])];
         }
-        $page = $service->reviewerPage($info, $edition, $userId, $locale, $now);
         $choices = array_map(static fn (\APP\plugins\generic\conferenceManager\classes\Domain\Review\Bid $b): array => ['value' => $b->value, 'label' => __($b->labelKey())], \APP\plugins\generic\conferenceManager\classes\Domain\Review\Bid::cases());
 
         $this->setupTemplate($request);
@@ -534,7 +534,7 @@ class ConferencePageHandler extends Handler
             'bidsEditionName' => (string) $edition->text('name')->resolve($locale, $info->primaryLocale),
             'bidsEditionUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, $edition->path),
             'bidsPage' => $page,
-            'bidsUntil' => $page === null ? '' : (new \IntlDateFormatter($locale, \IntlDateFormatter::LONG, \IntlDateFormatter::NONE, 'UTC'))->format(new DateTimeImmutable($page['until'], new DateTimeZone('UTC'))),
+            'bidsUntil' => (new \IntlDateFormatter($locale, \IntlDateFormatter::LONG, \IntlDateFormatter::NONE, 'UTC'))->format(new DateTimeImmutable($page['until'], new DateTimeZone('UTC'))),
             'bidsChoices' => $choices,
             'bidsUrl' => $url,
             'bidsMessage' => $message,

@@ -182,7 +182,8 @@ final class ReviewerDirectoryGateway implements ReviewerDirectory
         // Every review file of the round, as the editor's form ticks them all by default.
         $files = Repo::submissionFile()->getCollector()->filterBySubmissionIds([$submissionId])->filterByReviewRoundIds([$roundId])
             ->filterByFileStages([SubmissionFile::SUBMISSION_FILE_REVIEW_FILE])->getMany();
-        $reviewFiles = DAORegistry::getDAO('ReviewFilesDAO'); /** @var \PKP\submission\ReviewFilesDAO $reviewFiles */
+        /** @var \PKP\submission\ReviewFilesDAO $reviewFiles */
+        $reviewFiles = DAORegistry::getDAO('ReviewFilesDAO');
         foreach ($files as $file) {
             $reviewFiles->grant($reviewId, $file->getId());
         }
