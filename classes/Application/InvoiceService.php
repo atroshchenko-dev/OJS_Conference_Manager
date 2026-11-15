@@ -17,6 +17,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Institution\DocumentTyp
 use APP\plugins\generic\conferenceManager\classes\Domain\Institution\InstitutionProfile;
 use APP\plugins\generic\conferenceManager\classes\Domain\Institution\PaymentAccount;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\AmountInWords;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\GroupInvoice;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Invoice;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceItem;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceStatus;
@@ -58,6 +59,7 @@ final class InvoiceService
     public const EXISTS = 'exists';
     public const NOT_FOUND = 'notFound';
     public const KEPT = 'kept';
+    public const WAIVED = 'waived';
     private const SETTING_TAX_ID = 'payerTaxIdRequired';
 
     public function __construct(
@@ -232,7 +234,7 @@ final class InvoiceService
         if ($draft === null) {
             return ['result' => $result, 'invoice' => null];
         }
-        return ['result' => self::ISSUED, 'invoice' => $this->create($context, $draft, $actorId, $now)];
+        return ['result' => $result, 'invoice' => $this->create($context, $draft, $actorId, $now)];
     }
 
     /**
@@ -269,17 +271,22 @@ final class InvoiceService
         }
         $perPage = $tariff->pricing === PricingMode::PerPage;
         $locale = $context->primaryLocale;
+        // REG-10: an invited participant gets a waiver with the same item at zero.
+        $invited = $this->participants->isInvited($p['participantId']);
         $editionName = (string) $edition->text('name')->resolve($locale, $locale);
+        if ($invited) {
+            $total = Money::zero($total->currency);
+        }
         $item = new InvoiceItem(
             $this->t(self::I . 'item.' . $material->value, ['edition' => $editionName], $locale),
             $perPage ? (int) $quote->pages : 1,
-            $perPage ? $tariff->amount : $total,
+            $invited ? $total : ($perPage ? $tariff->amount : $total),
             $total,
             (int) $p['participationId'],
             $p['submissionId'],
             $tariff->id,
         );
-        return [self::ISSUED, new Invoice(
+        $invoice = new Invoice(
             null,
             $context->id,
             $edition->id ?? 0,
@@ -293,7 +300,16 @@ final class InvoiceService
             payer: self::payerSnapshot($payer),
             recipient: $this->recipient($context, $rule, $edition),
             method: $rule->mode->method(),
-        )];
+        );
+        if ($invited) {
+            return [self::WAIVED, $invoice->with([
+                'status' => InvoiceStatus::Waived,
+                'method' => 'waiver',
+                'paid' => $total,
+                'waiverReason' => $this->t(self::I . 'invitedReason', [], $locale),
+            ])];
+        }
+        return [self::ISSUED, $invoice];
     }
 
     /** Saves a drafted invoice, logs it and sends the letter to the payer. */
@@ -304,6 +320,10 @@ final class InvoiceService
             'number' => $invoice->number, 'total' => $invoice->total->minor, 'paid' => $invoice->paidAmount()->minor,
         ]);
         try {
+            // A waiver asks for nothing: the invited person gets the invitation instead.
+            if ($invoice->status === InvoiceStatus::Waived) {
+                return $invoice;
+            }
             $this->notifier?->invoiceIssued($context, $invoice, $this->present($context, $invoice, $context->primaryLocale));
         } catch (\Throwable $e) {
             // A failed letter must not undo the invoice: it is in the cabinet.
@@ -333,7 +353,7 @@ final class InvoiceService
         }
         $item = $invoice->items[0] ?? null;
         $p = $item?->participationId === null ? null : $this->participants->findParticipation($context->id, (int) $item->participationId);
-        if ($invoice->isWaiver() || !in_array($invoice->status, [InvoiceStatus::Issued, InvoiceStatus::Overdue, InvoiceStatus::Paid], true)
+        if ($invoice->isWaiver() || GroupInvoice::isGroup($invoice) || !in_array($invoice->status, [InvoiceStatus::Issued, InvoiceStatus::Overdue, InvoiceStatus::Paid], true)
             || $p === null || $p['status'] !== ParticipationStatus::Active->value) {
             $errors->add('status', self::K . 'notReissuable');
             return [null, $errors];
@@ -581,6 +601,157 @@ final class InvoiceService
         return $errors;
     }
 
+    /**
+     * REG-09: one invoice for several participants of the edition, paid by
+     * an organisation. Each member gets an item by their own category and
+     * tariff. Open unpaid invoices of the members are superseded; a member
+     * who paid something, has no fee or is in another group is refused, so
+     * the manager settles them first.
+     *
+     * @param list<int> $participationIds
+     * @param array<string, mixed> $input organization, legalId
+     * @return array{0: ?Invoice, 1: ValidationErrors, 2: array<int, string>} the invoice, errors, refused participations with the reason
+     */
+    public function issueGroup(ContextInfo $context, int $editionId, array $participationIds, int $contactParticipationId, array $input, ?int $actorId, DateTimeImmutable $now): array
+    {
+        $errors = new ValidationErrors();
+        $ids = array_values(array_unique(array_filter(array_map('intval', $participationIds), static fn (int $i): bool => $i > 0)));
+        if (count($ids) < GroupInvoice::MIN || count($ids) > GroupInvoice::MAX) {
+            $errors->add('participationIds', self::K . 'group.count');
+            return [null, $errors, []];
+        }
+        if (!in_array($contactParticipationId, $ids, true)) {
+            $errors->add('contactParticipationId', self::K . 'group.contact');
+        }
+        $rules = $this->jurisdiction(($this->institution)($context)) ?? new GenericProfile();
+        [$details, $detailErrors] = PayerDetails::fromInput(['kind' => PayerDetails::ORGANIZATION] + $input, $rules, false);
+        $errors->merge($detailErrors);
+        if (!$errors->isEmpty() || $details === null) {
+            return [null, $errors, []];
+        }
+
+        $refused = [];
+        $drafts = [];
+        $replaced = [];
+        $contact = null;
+        foreach ($ids as $id) {
+            $p = $this->participants->findParticipation($context->id, $id);
+            if ($p === null || $p['editionId'] !== $editionId || $p['status'] !== ParticipationStatus::Active->value) {
+                $refused[$id] = 'notActive';
+                continue;
+            }
+            $current = $this->payments->currentFor($id, $p['role'] === ParticipantRole::Listener->value ? null : $p['submissionId']);
+            if ($current !== null && (!$current->status->isOpen() || $current->paidAmount()->minor > 0 || GroupInvoice::isGroup($current))) {
+                $refused[$id] = $current->status === InvoiceStatus::Waived ? 'waived' : 'paid';
+                continue;
+            }
+            [$result, $draft] = $this->draft($context, $p, null, $now);
+            if ($draft === null || $result !== self::ISSUED) {
+                $refused[$id] = $result === self::WAIVED ? 'invited' : $result;
+                continue;
+            }
+            $payer = $this->participants->payer($p['participantId'], $context->primaryLocale);
+            $drafts[] = ['invoice' => $draft, 'name' => (string) ($payer['name'] ?? '')];
+            if ($current !== null) {
+                $replaced[] = (int) $current->id;
+            }
+            if ($id === $contactParticipationId) {
+                $contact = ['participantId' => $p['participantId'], 'payer' => $payer];
+            }
+        }
+        if ($refused !== []) {
+            $errors->add('participationIds', self::K . 'group.refused');
+            return [null, $errors, $refused];
+        }
+        if ($contact === null || $contact['payer'] === null) {
+            $errors->add('contactParticipationId', self::K . 'group.contact');
+            return [null, $errors, []];
+        }
+        $snapshot = ['name' => $details->organization, 'email' => $contact['payer']['email'], 'affiliation' => '', 'kind' => PayerDetails::ORGANIZATION,
+            'legalId' => $details->legalId, 'contactName' => $contact['payer']['name']];
+        [$group, $problem] = GroupInvoice::combine($drafts, $contact['participantId'], $snapshot);
+        if ($group === null) {
+            $errors->add('participationIds', self::K . 'group.' . ($problem ?? 'count'));
+            return [null, $errors, []];
+        }
+        foreach ($replaced as $old) {
+            $this->payments->changeStatus($old, InvoiceStatus::Superseded, [], 'superseded', $actorId, ['reason' => 'group'], $now);
+        }
+        $invoice = $this->create($context, $group, $actorId, $now);
+        foreach ($replaced as $old) {
+            $this->audit?->log($context->id, $actorId, 'invoice', $old, 'superseded', null, ['groupInvoice' => $invoice->id]);
+        }
+        $this->audit?->log($context->id, $actorId, 'invoice', $invoice->id, 'group_issued', null, ['participations' => $ids, 'replaced' => $replaced]);
+        return [$invoice, $errors, []];
+    }
+
+    /**
+     * FEE-15: the payer asked for the money back, or the manager records
+     * that they did. The invoice keeps what was paid until the refund.
+     */
+    public function requestRefund(ContextInfo $context, int $invoiceId, string $note, ?int $actorId, DateTimeImmutable $now): ?ValidationErrors
+    {
+        $invoice = $this->payments->findInvoice($context->id, $invoiceId);
+        if ($invoice === null) {
+            return null;
+        }
+        $errors = new ValidationErrors();
+        $paidSomething = $invoice->status === InvoiceStatus::Paid || ($invoice->status->isOpen() && $invoice->paidAmount()->minor > 0);
+        if (!$paidSomething) {
+            $errors->add('status', self::K . 'refund.notPaid');
+            return $errors;
+        }
+        $note = mb_substr(trim($note), 0, 1000);
+        $this->payments->changeStatus($invoiceId, InvoiceStatus::RefundRequested, ['refund_note' => $note === '' ? null : $note], 'refund_requested', $actorId, ['note' => $note], $now);
+        $this->audit?->log($context->id, $actorId, 'invoice', $invoiceId, 'refund_requested', ['status' => $invoice->status->value], ['note' => $note]);
+        return $errors;
+    }
+
+    /**
+     * FEE-15: the money went back. Without an amount all that was paid is
+     * refunded; a smaller amount is a part refund (for example one member
+     * of a group cancelled). The note says why and how; both go to the
+     * export for accounting.
+     */
+    public function refund(ContextInfo $context, int $invoiceId, ?string $amount, string $note, ?int $actorId, DateTimeImmutable $now): ?ValidationErrors
+    {
+        $invoice = $this->payments->findInvoice($context->id, $invoiceId);
+        if ($invoice === null) {
+            return null;
+        }
+        $errors = new ValidationErrors();
+        $paid = $invoice->paidAmount();
+        $left = $paid->minor - $invoice->refundedAmount()->minor;
+        $allowed = in_array($invoice->status, [InvoiceStatus::Paid, InvoiceStatus::RefundRequested], true) || ($invoice->status->isOpen() && $paid->minor > 0);
+        if (!$allowed || $left <= 0) {
+            $errors->add('status', self::K . 'refund.notPaid');
+            return $errors;
+        }
+        $sum = $amount === null || trim($amount) === '' ? new Money($left, $paid->currency) : Money::parse($amount, $paid->currency);
+        if ($sum === null || $sum->minor <= 0 || $sum->minor > $left) {
+            $errors->add('amount', self::K . 'refund.amount');
+            return $errors;
+        }
+        $note = mb_substr(trim($note), 0, 1000);
+        if ($note === '') {
+            $errors->add('note', self::K . 'refund.note');
+            return $errors;
+        }
+        $total = $invoice->refundedAmount()->minor + $sum->minor;
+        $full = $total >= $paid->minor;
+        $this->payments->changeStatus(
+            $invoiceId,
+            $full ? InvoiceStatus::Refunded : ($invoice->status === InvoiceStatus::RefundRequested ? InvoiceStatus::Paid : $invoice->status),
+            ['refunded_minor' => $total, 'refunded_at' => DateInput::toStorage($now), 'refund_note' => $note],
+            $full ? 'refunded' : 'part_refunded',
+            $actorId,
+            ['amount' => $sum->minor, 'note' => $note],
+            $now,
+        );
+        $this->audit?->log($context->id, $actorId, 'invoice', $invoiceId, $full ? 'refunded' : 'part_refunded', ['status' => $invoice->status->value], ['amount' => $sum->minor, 'note' => $note]);
+        return $errors;
+    }
+
     public function find(ContextInfo $context, int $invoiceId): ?Invoice
     {
         return $this->payments->findInvoice($context->id, $invoiceId);
@@ -715,6 +886,12 @@ final class InvoiceService
             'externalUrl' => $r['externalUrl'] ?? null,
             'items' => array_map(static fn (InvoiceItem $i): array => $i->toArray(), $invoice->items),
             'isOpen' => $invoice->status->isOpen(),
+            'isGroup' => GroupInvoice::isGroup($invoice),
+            'refunded' => $invoice->refundedAmount()->toArray(),
+            'refundedAt' => DateInput::toIsoUtc($invoice->refundedAt),
+            'refundNote' => $invoice->refundNote,
+            'canRequestRefund' => $invoice->status === InvoiceStatus::Paid || ($invoice->status->isOpen() && $invoice->paidAmount()->minor > 0),
+            'canRefund' => in_array($invoice->status, [InvoiceStatus::Paid, InvoiceStatus::RefundRequested], true) || ($invoice->status->isOpen() && $invoice->paidAmount()->minor > 0),
         ];
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace APP\plugins\generic\conferenceManager\classes\Application;
 
+use APP\plugins\generic\conferenceManager\classes\Domain\Communication\ParticipantMailTexts;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionRepository;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionWindows;
@@ -32,6 +33,7 @@ use DateTimeImmutable;
 final class ParticipantService
 {
     private const K = 'plugins.generic.conferenceManager.listener.error.';
+    private const I = 'plugins.generic.conferenceManager.invitation.error.';
 
     public const CANCELLED = 'cancelled';
     public const NOT_FOUND = 'notFound';
@@ -50,7 +52,95 @@ final class ParticipantService
         private readonly ?\Closure $translate = null,
         /** issues the listener's invoice right after registration (FEE-04) */
         private readonly ?InvoiceService $invoices = null,
+        /** sends the invitation (REG-10) */
+        private readonly ?ParticipantMailer $mailer = null,
     ) {
+    }
+
+    /** Roles a manager may invite a person to (REG-10). */
+    public const INVITED_ROLES = [ParticipantRole::Presenter, ParticipantRole::Chair, ParticipantRole::Listener];
+
+    /**
+     * REG-10: the manager invites a person, for example a keynote speaker
+     * or a guest. The person pays nothing: their invoices in this edition
+     * are waivers, and open unpaid ones are waived now. They get a letter
+     * with the event page and the cabinet, where they sign in with this
+     * email.
+     *
+     * @param array<string, mixed> $input email, givenName, familyName, affiliation, role, note, sendLetter
+     * @return array{0: array{participantId: int, participationId: int, created: bool, invoiceId: ?int, letter: bool}|null, 1: ValidationErrors}
+     */
+    public function invite(ContextInfo $context, int $editionId, array $input, ?int $actorId, DateTimeImmutable $now): array
+    {
+        $errors = new ValidationErrors();
+        $edition = $this->edition($context, $editionId);
+        if ($edition === null) {
+            $errors->add('editionId', self::K . 'edition');
+            return [null, $errors];
+        }
+        $email = mb_strtolower(trim((string) ($input['email'] ?? '')));
+        if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false || mb_strlen($email) > 255) {
+            $errors->add('email', self::K . 'email');
+        }
+        $given = mb_substr(trim((string) ($input['givenName'] ?? '')), 0, 255);
+        $family = mb_substr(trim((string) ($input['familyName'] ?? '')), 0, 255);
+        if ($given === '') {
+            $errors->add('givenName', self::I . 'givenName');
+        }
+        $role = ParticipantRole::tryFrom((string) ($input['role'] ?? ''));
+        if ($role === null || !in_array($role, self::INVITED_ROLES, true)) {
+            $errors->add('role', self::I . 'role');
+        }
+        $note = mb_substr(trim((string) ($input['note'] ?? '')), 0, 2000);
+        if (!$errors->isEmpty() || $role === null) {
+            return [null, $errors];
+        }
+        $locale = $context->primaryLocale;
+        $affiliation = trim((string) ($input['affiliation'] ?? ''));
+        $result = $this->participants->invite($context->id, $editionId, [
+            'email' => $email,
+            'givenName' => [$locale => $given],
+            'familyName' => $family === '' ? [] : [$locale => $family],
+            'affiliation' => $affiliation === '' ? null : $affiliation,
+            'userId' => null,
+        ], $role, $actorId, $now);
+        $this->audit?->log($context->id, $actorId, 'participation', $result['participationId'], 'invited', null, [
+            'editionId' => $editionId, 'role' => $role->value, 'created' => $result['created'],
+        ]);
+
+        $invoiceId = null;
+        if ($this->invoices !== null) {
+            $reason = $this->t('plugins.generic.conferenceManager.invoice.invitedReason');
+            foreach ($this->invoices->ofParticipants($context, [$result['participantId']], $locale) as $invoice) {
+                if (($invoice['editionId'] ?? null) === $editionId && !empty($invoice['isOpen']) && (int) ($invoice['paid']['minor'] ?? 0) === 0) {
+                    $this->invoices->waive($context, (int) $invoice['id'], $reason, $actorId, $now);
+                }
+            }
+            try {
+                $issued = $this->invoices->issueFor($context, $result['participationId'], null, $actorId, $now);
+                $invoiceId = $issued['invoice']?->id;
+            } catch (\Throwable $e) {
+                error_log('conferenceManager: waiver of an invited participant failed: ' . $e->getMessage());
+            }
+        }
+
+        $letter = false;
+        if ($this->mailer !== null && filter_var($input['sendLetter'] ?? true, FILTER_VALIDATE_BOOLEAN)) {
+            try {
+                $name = trim($given . ' ' . $family);
+                $this->mailer->sendTemplate($context, ParticipantMailTexts::INVITATION, $email, $name, [
+                    'recipientName' => $name,
+                    'conferenceName' => (string) $edition->text('name')->resolve($locale, $locale),
+                    'participantRole' => $this->t($role->labelKey()),
+                    'invitationNote' => $note,
+                    'eventUrl' => $this->mailer->editionUrl($context, $edition->path),
+                ], $locale);
+                $letter = true;
+            } catch (\Throwable $e) {
+                error_log('conferenceManager: invitation letter failed: ' . $e->getMessage());
+            }
+        }
+        return [$result + ['invoiceId' => $invoiceId, 'letter' => $letter], $errors];
     }
 
     private function t(string $key): string

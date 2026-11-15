@@ -6,7 +6,9 @@
  *   ConferenceFeesEditor           categories, tariff matrix, calculator
  *   ConferenceParticipantsRegister register with filters, paging, export,
  *                                  attendance marks and the import of a
- *                                  meeting report (ATT-01, ATT-02)
+ *                                  meeting report (ATT-01, ATT-02), an
+ *                                  invitation (REG-10) and one invoice for
+ *                                  the selected participants (REG-09)
  *
  * Amounts are sent as decimal strings ("150.50"); the server keeps them in
  * minor units, so nothing here does arithmetic with money.
@@ -385,6 +387,15 @@
 				importThreshold: this.threshold,
 				importResult: null,
 				importBusy: false,
+				showInvite: false,
+				invite: { email: '', givenName: '', familyName: '', affiliation: '', role: 'presenter', note: '', sendLetter: true },
+				inviteErrors: {},
+				selectedIds: [],
+				showGroup: false,
+				group: { organization: '', legalId: '', contactParticipationId: '' },
+				groupErrors: {},
+				groupRefused: [],
+				groupBusy: false,
 				items: [],
 				itemsMax: 0,
 				categories: [],
@@ -399,6 +410,14 @@
 			},
 			exportUrl: function () {
 				return this.apiUrl + '/export?' + this.query(false);
+			},
+			baseUrl: function () {
+				var tail = '/participants';
+				return this.apiUrl.slice(-tail.length) === tail ? this.apiUrl.slice(0, -tail.length) : this.apiUrl;
+			},
+			selectedRows: function () {
+				var ids = this.selectedIds;
+				return this.items.filter(function (p) { return ids.indexOf(p.participationId) !== -1; });
 			},
 		},
 		mounted: function () {
@@ -529,6 +548,68 @@
 					}
 				});
 			},
+			toggleSelected: function (p, on) {
+				var i = this.selectedIds.indexOf(p.participationId);
+				if (on && i === -1) {
+					this.selectedIds.push(p.participationId);
+				} else if (!on && i !== -1) {
+					this.selectedIds.splice(i, 1);
+				}
+			},
+			openGroup: function () {
+				this.showGroup = true;
+				this.groupErrors = {};
+				this.groupRefused = [];
+				if (this.selectedIds.indexOf(Number(this.group.contactParticipationId)) === -1) {
+					this.group.contactParticipationId = this.selectedIds.length ? this.selectedIds[0] : '';
+				}
+			},
+			nameOf: function (participationId) {
+				var p = this.items.filter(function (x) { return x.participationId === participationId; })[0];
+				return p ? (p.name || p.email) : '#' + participationId;
+			},
+			issueGroup: function () {
+				var self = this;
+				self.groupBusy = true;
+				self.groupErrors = {};
+				self.groupRefused = [];
+				self.api('POST', self.baseUrl + '/group-invoices', {
+					participationIds: self.selectedIds,
+					contactParticipationId: Number(self.group.contactParticipationId),
+					organization: self.group.organization,
+					legalId: self.group.legalId,
+				}).then(function (r) {
+					self.groupBusy = false;
+					if (!r.ok) {
+						self.groupRefused = r.data.refused || [];
+						var errors = Object.assign({}, r.data);
+						delete errors.refused;
+						self.groupErrors = errors;
+						notify(firstError(errors), 'warning');
+						return;
+					}
+					notify(self.t('group.issued', { number: r.data.number || '', count: (r.data.items || []).length }));
+					self.showGroup = false;
+					self.selectedIds = [];
+					self.group = { organization: '', legalId: '', contactParticipationId: '' };
+					self.load();
+				});
+			},
+			sendInvite: function () {
+				var self = this;
+				self.inviteErrors = {};
+				self.api('POST', self.baseUrl + '/invitations', self.invite).then(function (r) {
+					if (!r.ok) {
+						self.inviteErrors = r.data || {};
+						notify(firstError(r.data), 'warning');
+						return;
+					}
+					notify(self.t(r.data.letter ? 'invite.sent' : 'invite.saved', { email: self.invite.email }));
+					self.invite = { email: '', givenName: '', familyName: '', affiliation: '', role: self.invite.role, note: '', sendLetter: true };
+					self.showInvite = false;
+					self.load();
+				});
+			},
 			cancelParticipation: function (p) {
 				var self = this;
 				if (!window.confirm(self.t('participants.cancelConfirm', { name: p.name || p.email }))) {
@@ -562,7 +643,34 @@
 		<pkp-button @click="search">{{ t(\'participants.find\') }}</pkp-button>\
 		<a class="pkpButton" :href="exportUrl">{{ t(\'participants.export\') }}</a>\
 		<pkp-button v-if="editionUrl" @click="showImport = !showImport">{{ t(\'attendance.import\') }}</pkp-button>\
+		<pkp-button @click="showInvite = !showInvite">{{ t(\'invite.open\') }}</pkp-button>\
 	</form>\
+	<section v-if="showInvite" class="cmInvite" :aria-label="t(\'invite.title\')">\
+		<h3 class="cmFees__title">{{ t(\'invite.title\') }}</h3>\
+		<p class="cmEditions__note">{{ t(\'invite.help\') }}</p>\
+		<form class="cmInvite__form" @submit.prevent="sendInvite">\
+			<label class="cmEditions__filter">{{ t(\'invite.email\') }} *<input class="pkpFormField__input" type="email" required maxlength="255" v-model="invite.email" autocomplete="off"><span class="cmField__error" v-if="inviteErrors.email">{{ inviteErrors.email.join(\' \') }}</span></label>\
+			<label class="cmEditions__filter">{{ t(\'invite.givenName\') }} *<input class="pkpFormField__input" required maxlength="255" v-model="invite.givenName"><span class="cmField__error" v-if="inviteErrors.givenName">{{ inviteErrors.givenName.join(\' \') }}</span></label>\
+			<label class="cmEditions__filter">{{ t(\'invite.familyName\') }}<input class="pkpFormField__input" maxlength="255" v-model="invite.familyName"></label>\
+			<label class="cmEditions__filter">{{ t(\'invite.affiliation\') }}<input class="pkpFormField__input" maxlength="255" v-model="invite.affiliation"></label>\
+			<label class="cmEditions__filter">{{ t(\'participants.role\') }}<select class="pkpFormField__input" v-model="invite.role"><option v-for="o in (options.invitedRoles || [])" :key="o.value" :value="o.value">{{ o.label }}</option></select></label>\
+			<label class="cmEditions__filter cmInvite__note">{{ t(\'invite.note\') }}<textarea class="pkpFormField__input" rows="3" maxlength="2000" v-model="invite.note"></textarea></label>\
+			<label class="cmAttendance"><input type="checkbox" v-model="invite.sendLetter"> {{ t(\'invite.sendLetter\') }}</label>\
+			<div class="cmEditions__buttons"><pkp-button :is-primary="true" @click="sendInvite">{{ t(\'invite.submit\') }}</pkp-button><pkp-button @click="showInvite = false">{{ t(\'cancel\') }}</pkp-button></div>\
+		</form>\
+	</section>\
+	<section v-if="showGroup" class="cmInvite" :aria-label="t(\'group.title\')">\
+		<h3 class="cmFees__title">{{ t(\'group.title\') }}</h3>\
+		<p class="cmEditions__note">{{ t(\'group.help\') }}</p>\
+		<p><strong>{{ t(\'group.selected\', { count: selectedIds.length }) }}</strong> {{ selectedIds.map(nameOf).join(\', \') }}</p>\
+		<form class="cmInvite__form" @submit.prevent="issueGroup">\
+			<label class="cmEditions__filter">{{ t(\'group.organization\') }} *<input class="pkpFormField__input" required maxlength="255" v-model="group.organization"><span class="cmField__error" v-if="groupErrors.organization">{{ groupErrors.organization.join(\' \') }}</span></label>\
+			<label class="cmEditions__filter">{{ options.legalIdLabel || t(\'group.legalId\') }} *<input class="pkpFormField__input" required maxlength="32" v-model="group.legalId"><span class="cmField__error" v-if="groupErrors.legalId">{{ groupErrors.legalId.join(\' \') }}</span></label>\
+			<label class="cmEditions__filter">{{ t(\'group.contact\') }}<select class="pkpFormField__input" v-model="group.contactParticipationId"><option v-for="id in selectedIds" :key="id" :value="id">{{ nameOf(id) }}</option></select><span class="cmEditions__path">{{ t(\'group.contactHelp\') }}</span></label>\
+			<div class="cmEditions__buttons"><pkp-button :is-primary="true" :disabled="groupBusy || selectedIds.length < 2" @click="issueGroup">{{ t(\'group.submit\') }}</pkp-button><pkp-button @click="showGroup = false">{{ t(\'cancel\') }}</pkp-button></div>\
+		</form>\
+		<div v-if="groupRefused.length" class="cmPanel__conflict" role="alert"><p>{{ t(\'group.refusedTitle\') }}</p><ul><li v-for="x in groupRefused" :key="x.participationId">{{ nameOf(x.participationId) }}: {{ x.reasonLabel }}</li></ul></div>\
+	</section>\
 	<section v-if="showImport" class="cmAttendanceImport" :aria-label="t(\'attendance.import\')">\
 		<p class="cmEditions__note">{{ t(\'attendance.importHelp\') }}</p>\
 		<div class="cmEditions__toolbar">\
@@ -583,11 +691,12 @@
 	<div v-if="isLoading" class="cmEditions__loading"><spinner></spinner> {{ t(\'loading\') }}</div>\
 	<p v-else-if="!items.length" class="cmEditions__empty">{{ t(\'participants.empty\') }}</p>\
 	<template v-else>\
-	<div class="cmEditions__toolbar"><p class="cmEditions__note" role="status">{{ t(\'participants.count\', { count: itemsMax }) }}</p><template v-if="editionUrl"><pkp-button @click="markPage(true)">{{ t(\'attendance.markPage\') }}</pkp-button><pkp-button @click="markPage(false)">{{ t(\'attendance.unmarkPage\') }}</pkp-button></template></div>\
+	<div class="cmEditions__toolbar"><p class="cmEditions__note" role="status">{{ t(\'participants.count\', { count: itemsMax }) }}</p><pkp-button :disabled="selectedIds.length < 2" @click="openGroup">{{ t(\'group.open\', { count: selectedIds.length }) }}</pkp-button><template v-if="editionUrl"><pkp-button @click="markPage(true)">{{ t(\'attendance.markPage\') }}</pkp-button><pkp-button @click="markPage(false)">{{ t(\'attendance.unmarkPage\') }}</pkp-button></template></div>\
 	<table class="cmEditions__table">\
-		<thead><tr><th>{{ t(\'participants.name\') }}</th><th>{{ t(\'participants.role\') }}</th><th>{{ t(\'participants.category\') }}</th><th>{{ t(\'participants.confirmation\') }}</th><th>{{ t(\'participants.status\') }}</th><th v-if="editionUrl">{{ t(\'attendance.title\') }}</th><th></th></tr></thead>\
+		<thead><tr><th><span class="cmVisuallyHidden">{{ t(\'group.select\') }}</span></th><th>{{ t(\'participants.name\') }}</th><th>{{ t(\'participants.role\') }}</th><th>{{ t(\'participants.category\') }}</th><th>{{ t(\'participants.confirmation\') }}</th><th>{{ t(\'participants.status\') }}</th><th v-if="editionUrl">{{ t(\'attendance.title\') }}</th><th></th></tr></thead>\
 		<tbody><tr v-for="p in items" :key="p.participationId" :class="{ \'cmParticipants__row--cancelled\': p.status === \'cancelled\' }">\
-			<td><strong>{{ p.name || p.email }}</strong><div class="cmEditions__path">{{ p.email }}</div><div class="cmEditions__path" v-if="p.affiliation">{{ p.affiliation }}<template v-if="p.position">, {{ p.position }}</template></div><div class="cmEditions__path" v-if="p.minor"><span class="cmBadge">{{ t(\'participants.minor\') }}</span></div></td>\
+			<td><input type="checkbox" v-if="p.status === \'active\'" :checked="selectedIds.indexOf(p.participationId) !== -1" @change="toggleSelected(p, $event.target.checked)" :aria-label="t(\'group.selectOne\', { name: p.name || p.email })"></td>\
+			<td><strong>{{ p.name || p.email }}</strong> <span class="cmBadge cmBadge--ok" v-if="p.invited">{{ t(\'invite.badge\') }}</span><div class="cmEditions__path">{{ p.email }}</div><div class="cmEditions__path" v-if="p.affiliation">{{ p.affiliation }}<template v-if="p.position">, {{ p.position }}</template></div><div class="cmEditions__path" v-if="p.minor"><span class="cmBadge">{{ t(\'participants.minor\') }}</span></div></td>\
 			<td>{{ p.roleLabel }}<div class="cmEditions__path">{{ p.formLabel }}<template v-if="p.submissionId"> · #{{ p.submissionId }}</template></div></td>\
 			<td><select class="pkpFormField__input" :value="p.categoryId === null ? \'\' : p.categoryId" @change="setCategory(p, $event.target.value)" :aria-label="t(\'participants.category\')"><option value="">—</option><option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option></select></td>\
 			<td>{{ p.confirmationLabel }}</td>\

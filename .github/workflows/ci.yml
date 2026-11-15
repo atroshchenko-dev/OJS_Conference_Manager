@@ -79,6 +79,7 @@ jobs:
       - run: ci/integration/legacy.sh
       - run: sudo apt-get install -y -q poppler-utils >/dev/null && ci/integration/book.sh
       - run: ci/integration/review.sh
+      - run: ci/integration/groups.sh
       - run: ci/integration/segments.sh
       - if: failure()
         run: docker logs ojs 2>&1 | tail -200

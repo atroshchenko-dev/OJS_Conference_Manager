@@ -4055,3 +4055,189 @@ msgstr "Налаштування рецензування"
 
 msgid "plugins.generic.conferenceManager.mailable.paperDeadline.none"
 msgstr "строку, який повідомить оргкомітет"
+
+msgid "plugins.generic.conferenceManager.payment.error.group.count"
+msgstr "Оберіть від 2 до 200 учасників."
+
+msgid "plugins.generic.conferenceManager.payment.error.group.contact"
+msgstr "Оберіть контактну особу серед обраних учасників."
+
+msgid "plugins.generic.conferenceManager.payment.error.group.refused"
+msgstr "Деяким учасникам не можна виставити спільний рахунок. Перелік нижче."
+
+msgid "plugins.generic.conferenceManager.payment.error.group.currency"
+msgstr "Оргвнески обраних учасників у різних валютах, тому їх не можна об’єднати в один рахунок."
+
+msgid "plugins.generic.conferenceManager.payment.error.group.account"
+msgstr "Оргвнески обраних учасників сплачуються на різні рахунки або в різний спосіб."
+
+msgid "plugins.generic.conferenceManager.payment.error.refund.notPaid"
+msgstr "Повернути можна лише те, що було сплачено."
+
+msgid "plugins.generic.conferenceManager.payment.error.refund.amount"
+msgstr "Сума повернення має бути більшою за нуль і не більшою за сплачене."
+
+msgid "plugins.generic.conferenceManager.payment.error.refund.note"
+msgstr "Вкажіть, як і чому повернуто кошти."
+
+msgid "plugins.generic.conferenceManager.group.refused.notActive"
+msgstr "участь скасовано або вона не з цього заходу"
+
+msgid "plugins.generic.conferenceManager.group.refused.paid"
+msgstr "вже є сплачений, звільнений чи груповий рахунок"
+
+msgid "plugins.generic.conferenceManager.group.refused.waived"
+msgstr "рахунок уже звільнено від оплати"
+
+msgid "plugins.generic.conferenceManager.group.refused.free"
+msgstr "для цього учасника оргвнесок не передбачено"
+
+msgid "plugins.generic.conferenceManager.group.refused.noTariff"
+msgstr "немає тарифу для категорії учасника"
+
+msgid "plugins.generic.conferenceManager.group.refused.pagesRequired"
+msgstr "тариф за сторінки: виставте рахунок окремо з кількістю сторінок"
+
+msgid "plugins.generic.conferenceManager.group.refused.notFound"
+msgstr "учасника не знайдено"
+
+msgid "plugins.generic.conferenceManager.invoice.invitedReason"
+msgstr "Запрошений учасник"
+
+msgid "plugins.generic.conferenceManager.invitation.error.givenName"
+msgstr "Вкажіть ім’я."
+
+msgid "plugins.generic.conferenceManager.invitation.error.role"
+msgstr "Оберіть роль запрошеного."
+
+msgid "plugins.generic.conferenceManager.mailable.invitation.name"
+msgstr "Запрошення учасника"
+
+msgid "plugins.generic.conferenceManager.mailable.invitation.description"
+msgstr "Лист запрошеному учаснику (доповідачу, модератору чи гостю), який не сплачує оргвнесок."
+
+msgid "plugins.generic.conferenceManager.export.column.refunded"
+msgstr "Повернено"
+
+msgid "plugins.generic.conferenceManager.export.column.refundedAt"
+msgstr "Дата повернення"
+
+msgid "plugins.generic.conferenceManager.export.column.refundNote"
+msgstr "Примітка до повернення"
+
+msgid "plugins.generic.conferenceManager.invoice.event.refund_requested"
+msgstr "Запит на повернення"
+
+msgid "plugins.generic.conferenceManager.invoice.event.refunded"
+msgstr "Кошти повернено"
+
+msgid "plugins.generic.conferenceManager.invoice.event.part_refunded"
+msgstr "Частину коштів повернено"
+
+msgid "plugins.generic.conferenceManager.invite.open"
+msgstr "Запросити учасника"
+
+msgid "plugins.generic.conferenceManager.invite.title"
+msgstr "Запрошення учасника"
+
+msgid "plugins.generic.conferenceManager.invite.help"
+msgstr "Запрошений не сплачує оргвнесок: усі його рахунки в цьому заході нульові, з позначкою «Запрошений учасник». Лист містить посилання на сторінку заходу й особистий кабінет, куди людина входить з цією адресою пошти."
+
+msgid "plugins.generic.conferenceManager.invite.email"
+msgstr "Електронна пошта"
+
+msgid "plugins.generic.conferenceManager.invite.givenName"
+msgstr "Ім’я"
+
+msgid "plugins.generic.conferenceManager.invite.familyName"
+msgstr "Прізвище"
+
+msgid "plugins.generic.conferenceManager.invite.affiliation"
+msgstr "Місце роботи"
+
+msgid "plugins.generic.conferenceManager.invite.note"
+msgstr "Текст для листа (необов’язково)"
+
+msgid "plugins.generic.conferenceManager.invite.sendLetter"
+msgstr "Надіслати лист-запрошення"
+
+msgid "plugins.generic.conferenceManager.invite.submit"
+msgstr "Запросити"
+
+msgid "plugins.generic.conferenceManager.invite.sent"
+msgstr "Запрошення надіслано на {$email}."
+
+msgid "plugins.generic.conferenceManager.invite.saved"
+msgstr "Учасника {$email} додано як запрошеного."
+
+msgid "plugins.generic.conferenceManager.invite.badge"
+msgstr "Запрошений"
+
+msgid "plugins.generic.conferenceManager.group.open"
+msgstr "Груповий рахунок ({$count})"
+
+msgid "plugins.generic.conferenceManager.group.title"
+msgstr "Один рахунок для кількох учасників"
+
+msgid "plugins.generic.conferenceManager.group.help"
+msgstr "Організація сплачує за обраних учасників одним рахунком. Кожен учасник має окремий рядок за своєю категорією й тарифом. Неоплачені рахунки цих учасників замінюються груповим. Рахунок бачить у кабінеті контактна особа."
+
+msgid "plugins.generic.conferenceManager.group.selected"
+msgstr "Обрано: {$count}."
+
+msgid "plugins.generic.conferenceManager.group.organization"
+msgstr "Назва організації-платника"
+
+msgid "plugins.generic.conferenceManager.group.legalId"
+msgstr "Код організації"
+
+msgid "plugins.generic.conferenceManager.group.contact"
+msgstr "Контактна особа"
+
+msgid "plugins.generic.conferenceManager.group.contactHelp"
+msgstr "Отримає лист із рахунком і бачитиме його в кабінеті."
+
+msgid "plugins.generic.conferenceManager.group.submit"
+msgstr "Виставити груповий рахунок"
+
+msgid "plugins.generic.conferenceManager.group.refusedTitle"
+msgstr "Цих учасників не можна додати до спільного рахунку:"
+
+msgid "plugins.generic.conferenceManager.group.issued"
+msgstr "Груповий рахунок № {$number} виставлено ({$count} учасників)."
+
+msgid "plugins.generic.conferenceManager.group.select"
+msgstr "Обрати"
+
+msgid "plugins.generic.conferenceManager.group.selectOne"
+msgstr "Обрати {$name} для групового рахунку"
+
+msgid "plugins.generic.conferenceManager.group.badge"
+msgstr "груповий, {$count}"
+
+msgid "plugins.generic.conferenceManager.refund.request"
+msgstr "Запит на повернення"
+
+msgid "plugins.generic.conferenceManager.refund.requestPrompt"
+msgstr "Примітка до запиту (необов’язково): хто й чому просить повернути кошти."
+
+msgid "plugins.generic.conferenceManager.refund.requestDone"
+msgstr "Запит на повернення записано."
+
+msgid "plugins.generic.conferenceManager.refund.record"
+msgstr "Записати повернення"
+
+msgid "plugins.generic.conferenceManager.refund.amountPrompt"
+msgstr "Сума повернення, {$currency}. Залиште порожнім, щоб повернути все сплачене."
+
+msgid "plugins.generic.conferenceManager.refund.notePrompt"
+msgstr "Як і чому повернуто кошти (наприклад, дата й номер платіжного доручення)."
+
+msgid "plugins.generic.conferenceManager.refund.done"
+msgstr "Повернення записано."
+
+msgid "plugins.generic.conferenceManager.refund.refunded"
+msgstr "Повернено: {$amount}"
+
+msgid "plugins.generic.conferenceManager.group.refused.invited"
+msgstr "запрошений учасник, оргвнесок не сплачує"

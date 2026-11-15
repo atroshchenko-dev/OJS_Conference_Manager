@@ -36,6 +36,10 @@ enum AccountingColumn: string
     case Account = 'account';
     case WaiverReason = 'waiverReason';
     case Supersedes = 'supersedes';
+    /** FEE-15: what went back to the payer, when and why. */
+    case Refunded = 'refunded';
+    case RefundedAt = 'refundedAt';
+    case RefundNote = 'refundNote';
 
     public function labelKey(): string
     {
@@ -45,7 +49,7 @@ enum AccountingColumn: string
     /** An amount: a number cell in a spreadsheet. */
     public function isAmount(): bool
     {
-        return in_array($this, [self::Total, self::Paid, self::Due], true);
+        return in_array($this, [self::Total, self::Paid, self::Due, self::Refunded], true);
     }
 
     /** @return list<self> */

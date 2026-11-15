@@ -82,6 +82,9 @@ final class InvoiceRoutes implements RouteModule
         Route::post('invoices/{invoiceId}/waive', $this->waiveInvoice(...))->name('conference.invoices.waive')->whereNumber('invoiceId');
         Route::post('invoices/{invoiceId}/reissue', $this->reissueInvoice(...))->name('conference.invoices.reissue')->whereNumber('invoiceId');
         Route::post('invoices/{invoiceId}/cancel', $this->cancelInvoice(...))->name('conference.invoices.cancel')->whereNumber('invoiceId');
+        Route::post('invoices/{invoiceId}/refund-request', $this->requestRefund(...))->name('conference.invoices.refundRequest')->whereNumber('invoiceId');
+        Route::post('invoices/{invoiceId}/refund', $this->refundInvoice(...))->name('conference.invoices.refund')->whereNumber('invoiceId');
+        Route::post('editions/{editionId}/group-invoices', $this->issueGroupInvoice(...))->name('conference.invoices.group')->whereNumber('editionId');
         Route::get('editions/{editionId}/payment-events', $this->getPaymentJournal(...))->name('conference.payments.journal')->whereNumber('editionId');
         Route::get('exports/accounting/columns', $this->getExportColumns(...))->name('conference.exports.columns');
         Route::put('exports/accounting/columns', $this->editExportColumns(...))->name('conference.exports.columns.edit');
@@ -338,6 +341,78 @@ final class InvoiceRoutes implements RouteModule
         return $waiver === null
             ? ConferenceApiController::errorResponse($errors, $errors->has('status') ? Response::HTTP_CONFLICT : Response::HTTP_BAD_REQUEST)
             : response()->json($service->present($context, $waiver, \PKP\facades\Locale::getLocale()), Response::HTTP_OK);
+    }
+
+    /** FEE-15: the payer asked for the money back. */
+    public function requestRefund(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $context = $this->api->contextInfo();
+        $service = ServiceFactory::invoices();
+        $id = (int) $r->route('invoiceId');
+        $errors = $service->requestRefund($context, $id, (string) $r->input('note', ''), $this->api->actorId(), self::now());
+        return $this->afterChange($context, $id, $errors);
+    }
+
+    /** FEE-15: the money went back, all of it or a part. */
+    public function refundInvoice(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $context = $this->api->contextInfo();
+        $service = ServiceFactory::invoices();
+        $id = (int) $r->route('invoiceId');
+        $amount = $r->input('amount');
+        $errors = $service->refund($context, $id, $amount === null ? null : (string) $amount, (string) $r->input('note', ''), $this->api->actorId(), self::now());
+        return $this->afterChange($context, $id, $errors);
+    }
+
+    /** REG-09: one invoice for several participants, paid by an organisation. */
+    public function issueGroupInvoice(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $context = $this->api->contextInfo();
+        $service = ServiceFactory::invoices();
+        $editionId = (int) $r->route('editionId');
+        if ($service->edition($context, $editionId) === null) {
+            return ConferenceApiController::notFound();
+        }
+        [$invoice, $errors, $refused] = $service->issueGroup(
+            $context,
+            $editionId,
+            array_values(array_map('intval', (array) $r->input('participationIds', []))),
+            (int) $r->input('contactParticipationId', 0),
+            ['organization' => (string) $r->input('organization', ''), 'legalId' => (string) $r->input('legalId', '')],
+            $this->api->actorId(),
+            self::now(),
+        );
+        if ($invoice === null) {
+            $reasons = [];
+            foreach ($refused as $pid => $reason) {
+                $reasons[] = ['participationId' => $pid, 'reason' => $reason, 'reasonLabel' => __('plugins.generic.conferenceManager.group.refused.' . $reason)];
+            }
+            $out = array_map(static fn (array $keys): array => array_map(static fn (string $k): string => __($k), $keys), $errors->toArray());
+            return response()->json($out + ['refused' => $reasons], Response::HTTP_BAD_REQUEST);
+        }
+        return response()->json($service->present($context, $invoice, \PKP\facades\Locale::getLocale()), Response::HTTP_OK);
+    }
+
+    private function afterChange(\APP\plugins\generic\conferenceManager\classes\Application\ContextInfo $context, int $id, ?\APP\plugins\generic\conferenceManager\classes\Domain\Shared\ValidationErrors $errors): JsonResponse
+    {
+        if ($errors === null) {
+            return ConferenceApiController::notFound();
+        }
+        if (!$errors->isEmpty()) {
+            return ConferenceApiController::errorResponse($errors, $errors->has('status') ? Response::HTTP_CONFLICT : Response::HTTP_BAD_REQUEST);
+        }
+        $service = ServiceFactory::invoices();
+        $invoice = $service->find($context, $id);
+        return $invoice === null ? ConferenceApiController::notFound() : response()->json($service->present($context, $invoice, \PKP\facades\Locale::getLocale()), Response::HTTP_OK);
     }
 
     public function reissueInvoice(Request $r): JsonResponse

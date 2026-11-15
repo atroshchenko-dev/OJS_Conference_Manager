@@ -173,7 +173,7 @@ final class DbPaymentRepository implements PaymentRepository
         $stamp = DateInput::toStorage($now);
         $this->db->transaction(function () use ($invoiceId, $to, $changes, $event, $actorId, $payload, $stamp): void {
             $from = $this->db->table('conf_invoices')->where('id', $invoiceId)->lockForUpdate()->value('status');
-            $allowed = ['paid_minor', 'paid_at', 'waiver_reason', 'method', 'payer_snapshot'];
+            $allowed = ['paid_minor', 'paid_at', 'waiver_reason', 'method', 'payer_snapshot', 'refunded_minor', 'refunded_at', 'refund_note'];
             $values = array_intersect_key($changes, array_flip($allowed));
             if (isset($values['payer_snapshot'])) {
                 $values['payer_snapshot'] = json_encode($values['payer_snapshot'], JSON_UNESCAPED_UNICODE);
@@ -474,6 +474,9 @@ final class DbPaymentRepository implements PaymentRepository
                 (array) (json_decode((string) ($r->payer_snapshot ?? '[]'), true) ?: []),
                 (array) (json_decode((string) ($r->recipient_snapshot ?? '[]'), true) ?: []),
                 (string) $r->method,
+                new Money((int) ($r->refunded_minor ?? 0), $currency),
+                $date($r->refunded_at ?? null),
+                ($r->refund_note ?? null) === null ? null : (string) $r->refund_note,
             );
         }
         return $out;

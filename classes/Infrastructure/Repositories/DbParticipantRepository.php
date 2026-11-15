@@ -271,7 +271,7 @@ final class DbParticipantRepository implements ParticipantRepository
         $rows = $query->orderBy('p.id')->orderBy('pn.id')
             ->limit($filter->limit())->offset(max(0, $filter->offset))
             ->get(['pn.id as participation_id', 'p.id as participant_id', 'p.email', 'p.affiliation', 'p.position', 'p.country',
-                'p.category_id', 'p.confirmation_status', 'p.user_id', 'p.is_minor', 'p.guardian_consent_at', 'pn.role', 'pn.status', 'pn.participation_form', 'pn.submission_id', 'pn.created_at',
+                'p.category_id', 'p.confirmation_status', 'p.user_id', 'p.is_minor', 'p.guardian_consent_at', 'p.invited_at', 'pn.role', 'pn.status', 'pn.participation_form', 'pn.submission_id', 'pn.created_at',
                 'pn.attended', 'pn.attended_minutes', 'pn.attendance_source', 'pn.attended_at'])->all();
         $names = $this->names(array_map(static fn (object $r): int => (int) $r->participant_id, $rows), $locale);
         $items = array_map(static fn (object $r): array => [
@@ -287,6 +287,7 @@ final class DbParticipantRepository implements ParticipantRepository
             'hasAccount' => $r->user_id !== null,
             'minor' => (bool) $r->is_minor,
             'guardianConsentAt' => DateInput::toIsoUtc(DateInput::fromStorage($r->guardian_consent_at === null ? null : (string) $r->guardian_consent_at)),
+            'invited' => $r->invited_at !== null,
             'role' => (string) $r->role,
             'status' => (string) $r->status,
             'participationForm' => (string) $r->participation_form,
@@ -370,5 +371,73 @@ final class DbParticipantRepository implements ParticipantRepository
     {
         $value = $value === null ? null : trim($value);
         return $value === null || $value === '' ? null : mb_substr($value, 0, 255);
+    }
+
+    public function invite(int $contextId, int $editionId, array $person, ParticipantRole $role, ?int $actorId, DateTimeImmutable $now): array
+    {
+        return $this->db->transaction(function () use ($contextId, $editionId, $person, $role, $actorId, $now): array {
+            $stamp = DateInput::toStorage($now);
+            $email = mb_strtolower(trim($person['email']));
+            $row = $this->db->table('conf_participants')->where('edition_id', $editionId)->where('email', $email)->lockForUpdate()->first();
+            $created = $row === null;
+            if ($row === null) {
+                $participantId = (int) $this->db->table('conf_participants')->insertGetId([
+                    'context_id' => $contextId,
+                    'edition_id' => $editionId,
+                    'user_id' => $person['userId'],
+                    'email' => $email,
+                    'affiliation' => self::cut($person['affiliation']),
+                    // The person has not confirmed anything yet: consent comes when they sign in.
+                    'confirmation_status' => ConfirmationStatus::Pending->value,
+                    'invited_at' => $stamp,
+                    'invited_by' => $actorId,
+                    'created_at' => $stamp,
+                    'updated_at' => $stamp,
+                ]);
+            } else {
+                $participantId = (int) $row->id;
+                $this->db->table('conf_participants')->where('id', $participantId)->update([
+                    'user_id' => $row->user_id ?? $person['userId'],
+                    'affiliation' => $row->affiliation ?? self::cut($person['affiliation']),
+                    'invited_at' => $row->invited_at ?? $stamp,
+                    'invited_by' => $row->invited_by ?? $actorId,
+                    'updated_at' => $stamp,
+                ]);
+            }
+            foreach (['givenName' => $person['givenName'], 'familyName' => $person['familyName']] as $name => $values) {
+                foreach ($values as $locale => $value) {
+                    $exists = $this->db->table('conf_participant_settings')
+                        ->where('participant_id', $participantId)->where('locale', $locale)->where('setting_name', $name)->exists();
+                    if (trim($value) !== '' && !$exists) {
+                        $this->db->table('conf_participant_settings')->insert(
+                            ['participant_id' => $participantId, 'locale' => $locale, 'setting_name' => $name, 'setting_value' => trim($value)],
+                        );
+                    }
+                }
+            }
+            $active = $this->db->table('conf_participations')->where('participant_id', $participantId)
+                ->where('role', $role->value)->where('status', ParticipationStatus::Active->value)->orderBy('id')->value('id');
+            $participationId = $active === null ? (int) $this->db->table('conf_participations')->insertGetId([
+                'participant_id' => $participantId,
+                'submission_id' => null,
+                'role' => $role->value,
+                'participation_form' => ParticipationForm::InPerson->value,
+                'status' => ParticipationStatus::Active->value,
+                'created_at' => $stamp,
+                'updated_at' => $stamp,
+            ]) : (int) $active;
+            return ['participantId' => $participantId, 'participationId' => $participationId, 'created' => $created];
+        });
+    }
+
+    public function isInvited(int $participantId): bool
+    {
+        return $this->db->table('conf_participants')->where('id', $participantId)->whereNotNull('invited_at')->exists();
+    }
+
+    public function findByEmail(int $editionId, string $email): ?int
+    {
+        $id = $this->db->table('conf_participants')->where('edition_id', $editionId)->where('email', mb_strtolower(trim($email)))->value('id');
+        return $id === null ? null : (int) $id;
     }
 }

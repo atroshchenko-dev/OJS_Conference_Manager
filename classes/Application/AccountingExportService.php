@@ -178,6 +178,9 @@ final class AccountingExportService
                 AccountingColumn::Purpose => (string) $p['purpose'],
                 AccountingColumn::Account => (string) ($account['iban'] ?? ''),
                 AccountingColumn::WaiverReason => (string) $invoice->waiverReason,
+                AccountingColumn::Refunded => $invoice->refundedAmount()->decimal(),
+                AccountingColumn::RefundedAt => $date($invoice->refundedAt),
+                AccountingColumn::RefundNote => (string) $invoice->refundNote,
                 AccountingColumn::Supersedes => $invoice->supersedesId === null ? '' : (string) ($this->payments->findInvoice($context->id, $invoice->supersedesId)->number ?? $invoice->supersedesId),
             };
         }

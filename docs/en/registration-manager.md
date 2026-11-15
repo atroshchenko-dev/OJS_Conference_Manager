@@ -39,7 +39,7 @@ Choose the new category in the participant's row. An invoice already issued does
 
 ### How to cancel a participation
 
-Click **Cancel participation** in the participant's row and confirm. If the person has no other active participation in the event, their unpaid invoices are cancelled and paid ones get the state "refund requested". **The plugin does not return the money itself:** arrange the refund through accounting as usual.
+Click **Cancel participation** in the participant's row and confirm. If the person has no other active participation in the event, their unpaid invoices are cancelled and paid ones get the state "refund requested". Accounting returns the money; record the refund on the **Invoices** page with **Record a refund**.
 
 When a presenter's participation is cancelled, the submission is not withdrawn: withdraw it separately in the OJS editorial workflow.
 

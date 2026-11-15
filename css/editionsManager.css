@@ -240,3 +240,42 @@
 .cmPanel__comment { display: block; margin: .5rem 0; font-size: .875rem; }
 .cmPanel__comment textarea { display: block; width: 100%; box-sizing: border-box; margin-top: .25rem; }
 .cmBulk__votes { white-space: nowrap; font-size: .8125rem; }
+
+/* REG-09, REG-10: invitation and group invoice forms in the register. */
+.cmInvite {
+	margin: 1rem 0;
+	padding: 1rem;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	background: #fafafa;
+}
+.cmInvite__form {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem 1rem;
+	align-items: flex-end;
+}
+.cmInvite__note {
+	flex: 1 1 100%;
+}
+.cmInvite__note textarea {
+	width: 100%;
+	box-sizing: border-box;
+}
+.cmField__error {
+	display: block;
+	color: #d00a0a;
+	font-size: 0.875rem;
+}
+.cmVisuallyHidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+.cmRefund {
+	margin-top: 0.25rem;
+	font-size: 0.875rem;
+}

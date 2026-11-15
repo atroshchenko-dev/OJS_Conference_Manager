@@ -257,6 +257,155 @@ final class InvoiceFlowTest extends TestCase
         self::assertSame(['waived', 'superseded'], array_column($mine, 'status'));
     }
 
+    public function testGroupInvoiceForSeveralParticipants(): void
+    {
+        [$id, $cats] = $this->edition();
+        $this->rule($id, ['mode' => 'bank_transfer', 'paymentAccountId' => $this->bankId]);
+        $this->rule($id, ['mode' => 'free', 'categoryId' => $cats['students']]);
+        $this->tariff($id, $cats['other_faculty'], '150');
+        $this->tariff($id, $cats['own_staff'], '100');
+        $p1 = $this->listener($id, $cats['other_faculty'], 1, 'a@example.org');
+        $p2 = $this->listener($id, $cats['own_staff'], 2, 'b@example.org');
+        $p3 = $this->listener($id, $cats['other_faculty'], 3, 'c@example.org');
+        $student = $this->listener($id, $cats['students'], 3, 'student@example.org');
+        $old = $this->invoices->issueFor($this->ctx, $p1, null, 1, $this->now)['invoice'];
+        $paid = $this->invoices->issueFor($this->ctx, $p3, null, 1, $this->now)['invoice'];
+        $this->invoices->markPaid($this->ctx, (int) $paid?->id, '10', null, 1, $this->now);
+        $org = ['organization' => 'Ліцей № 5', 'legalId' => '02070944'];
+
+        [$none, $e] = $this->invoices->issueGroup($this->ctx, $id, [$p1], $p1, $org, 1, $this->now);
+        self::assertNull($none);
+        self::assertTrue($e->has('participationIds'));
+        [, $e] = $this->invoices->issueGroup($this->ctx, $id, [$p1, $p2], $p3, $org, 1, $this->now);
+        self::assertTrue($e->has('contactParticipationId'));
+        [, $e] = $this->invoices->issueGroup($this->ctx, $id, [$p1, $p2], $p1, ['organization' => '', 'legalId' => '1'], 1, $this->now);
+        self::assertTrue($e->has('organization'));
+        self::assertTrue($e->has('legalId'), 'the legal id is checked by the jurisdiction');
+
+        [, $e, $refused] = $this->invoices->issueGroup($this->ctx, $id, [$p1, $p2, $p3, $student], $p1, $org, 1, $this->now);
+        self::assertSame([$p3 => 'paid', $student => InvoiceService::FREE], $refused);
+        self::assertSame(InvoiceStatus::Issued, $this->invoices->find($this->ctx, (int) $old?->id)?->status, 'nothing changes when refused');
+
+        $sent = count($this->notifier->sent);
+        [$group, $e] = $this->invoices->issueGroup($this->ctx, $id, [$p1, $p2], $p2, $org, 1, $this->now);
+        self::assertSame([], $e->toArray());
+        self::assertSame(25000, $group?->total->minor);
+        self::assertCount(2, $group?->items ?? []);
+        self::assertSame([$p1, $p2], array_map(static fn ($i) => $i->participationId, $group?->items ?? []));
+        self::assertStringEndsWith(' — Олена Коваль', $group?->items[0]->description ?? '');
+        self::assertSame('Ліцей № 5', $group?->payer['name']);
+        self::assertSame('02070944', $group?->payer['legalId']);
+        self::assertSame('b@example.org', $group?->payer['email'], 'the contact gets the letter');
+        self::assertSame((int) $this->db->table('conf_participations')->where('id', $p2)->value('participant_id'), $group?->payerParticipantId);
+        self::assertSame(InvoiceStatus::Superseded, $this->invoices->find($this->ctx, (int) $old?->id)?->status);
+        self::assertCount($sent + 1, $this->notifier->sent);
+        // The group invoice is the current one of each member.
+        self::assertSame(InvoiceService::EXISTS, $this->invoices->issueFor($this->ctx, $p1, null, 1, $this->now)['result']);
+        self::assertSame($group?->id, $this->invoices->issueFor($this->ctx, $p2, null, 1, $this->now)['invoice']?->id);
+        // Not reissued line by line, and not put into another group.
+        [, $e] = $this->invoices->reissue($this->ctx, (int) $group?->id, null, 1, $this->now) ?? [null, null];
+        self::assertTrue($e?->has('status'));
+        $p4 = $this->listener($id, $cats['other_faculty'], 3, 'd@example.org');
+        [, , $refused] = $this->invoices->issueGroup($this->ctx, $id, [$p1, $p4], $p4, $org, 1, $this->now);
+        self::assertSame([$p1 => 'paid'], $refused);
+        self::assertTrue($this->invoices->present($this->ctx, $group ?? throw new \LogicException(), 'uk')['isGroup']);
+    }
+
+    public function testInvitedParticipantPaysNothing(): void
+    {
+        [$id, $cats] = $this->edition();
+        $this->rule($id, ['mode' => 'bank_transfer', 'paymentAccountId' => $this->bankId]);
+        $this->tariff($id, $cats['other_faculty'], '150');
+        $mailer = new FakeMailer();
+        $service = new ParticipantService(
+            new DbParticipantRepository($this->db),
+            new DbEditionRepository($this->db),
+            new DbFeeRepository($this->db),
+            new FakeSubmissions(),
+            new FakeGroups(),
+            new AuditLogger($this->db),
+            null,
+            $this->invoices,
+            $mailer,
+        );
+
+        [$out, $e] = $service->invite($this->ctx, $id, ['email' => 'bad', 'givenName' => '', 'role' => 'reviewer'], 1, $this->now);
+        self::assertNull($out);
+        self::assertSame(['email', 'givenName', 'role'], array_keys($e->toArray()));
+
+        // A guest speaker without a category: nothing to waive, but the letter goes.
+        [$out, $e] = $service->invite($this->ctx, $id, ['email' => 'Keynote@Example.org', 'givenName' => 'Ірина', 'familyName' => 'Мельник', 'role' => 'presenter', 'note' => 'Пленарна доповідь'], 1, $this->now);
+        self::assertSame([], $e->toArray());
+        self::assertTrue($out['created'] ?? false);
+        self::assertTrue($out['letter'] ?? false);
+        self::assertSame('keynote@example.org', $mailer->sent[0]['email']);
+        self::assertSame('CONF_INVITATION', $mailer->sent[0]['template']);
+        self::assertSame('Пленарна доповідь', $mailer->sent[0]['data']['invitationNote']);
+        self::assertSame('https://j.example/conf', $mailer->sent[0]['data']['eventUrl']);
+        $register = $service->register($this->ctx, $id, new ParticipantFilter(search: 'keynote'), 'uk');
+        self::assertTrue($register['items'][0]['invited'] ?? false);
+        self::assertSame('presenter', $register['items'][0]['role'] ?? null);
+
+        // A registered listener with an open invoice is invited later: the invoice is waived.
+        $p = $this->listener($id, $cats['other_faculty'], 1, 'guest@example.org');
+        $open = $this->invoices->issueFor($this->ctx, $p, null, 1, $this->now)['invoice'];
+        $sent = count($this->notifier->sent);
+        [$out, $e] = $service->invite($this->ctx, $id, ['email' => 'guest@example.org', 'givenName' => 'Олена', 'role' => 'listener', 'sendLetter' => false], 1, $this->now);
+        self::assertSame([], $e->toArray());
+        self::assertFalse($out['created'] ?? true);
+        self::assertSame($p, $out['participationId'] ?? null, 'the active listener participation is kept');
+        self::assertFalse($out['letter'] ?? true);
+        self::assertSame(InvoiceStatus::Superseded, $this->invoices->find($this->ctx, (int) $open?->id)?->status);
+        $current = $this->invoices->issueFor($this->ctx, $p, null, 1, $this->now)['invoice'];
+        self::assertSame(InvoiceStatus::Waived, $current?->status);
+        self::assertSame(0, $current?->total->minor);
+        self::assertCount($sent, $this->notifier->sent, 'no invoice letter for a waiver');
+
+        // A new invoice of an invited person is a waiver from the start.
+        $this->db->table('conf_invoices')->where('id', $current?->id)->update(['status' => 'cancelled']);
+        $r = $this->invoices->issueFor($this->ctx, $p, null, 1, $this->now);
+        self::assertSame(InvoiceService::WAIVED, $r['result']);
+        self::assertSame('plugins.generic.conferenceManager.invoice.invitedReason', $r['invoice']?->waiverReason);
+        self::assertTrue($r['invoice']?->isWaiver());
+    }
+
+    public function testRefunds(): void
+    {
+        [$id, $cats] = $this->edition();
+        $this->rule($id, ['mode' => 'bank_transfer', 'paymentAccountId' => $this->bankId]);
+        $this->tariff($id, $cats['other_faculty'], '150');
+        $p = $this->listener($id, $cats['other_faculty'], 1, 'a@example.org');
+        $invoice = $this->invoices->issueFor($this->ctx, $p, null, 1, $this->now)['invoice'];
+        $iid = (int) $invoice?->id;
+
+        self::assertTrue($this->invoices->requestRefund($this->ctx, $iid, '', 1, $this->now)?->has('status'), 'nothing paid yet');
+        self::assertTrue($this->invoices->refund($this->ctx, $iid, null, 'x', 1, $this->now)?->has('status'));
+        $this->invoices->markPaid($this->ctx, $iid, null, null, 1, $this->now);
+
+        self::assertSame([], $this->invoices->requestRefund($this->ctx, $iid, 'Захворіла', 1, $this->now)?->toArray());
+        self::assertSame(InvoiceStatus::RefundRequested, $this->invoices->find($this->ctx, $iid)?->status);
+        self::assertTrue($this->invoices->refund($this->ctx, $iid, '200', 'п/д 15', 1, $this->now)?->has('amount'));
+        self::assertTrue($this->invoices->refund($this->ctx, $iid, '50', '  ', 1, $this->now)?->has('note'));
+
+        // A part refund keeps the invoice paid.
+        self::assertSame([], $this->invoices->refund($this->ctx, $iid, '50', 'п/д 15 від 10.02.2027', 1, $this->now)?->toArray());
+        $part = $this->invoices->find($this->ctx, $iid);
+        self::assertSame(InvoiceStatus::Paid, $part?->status);
+        self::assertSame(5000, $part?->refundedAmount()->minor);
+        // The rest by default.
+        self::assertSame([], $this->invoices->refund($this->ctx, $iid, null, 'п/д 16', 1, $this->now)?->toArray());
+        $done = $this->invoices->find($this->ctx, $iid);
+        self::assertSame(InvoiceStatus::Refunded, $done?->status);
+        self::assertSame(15000, $done?->refundedAmount()->minor);
+        self::assertSame('п/д 16', $done?->refundNote);
+        self::assertNotNull($done?->refundedAt);
+        self::assertTrue($this->invoices->refund($this->ctx, $iid, null, 'ще', 1, $this->now)?->has('status'));
+        self::assertSame(['issued', 'paid', 'refund_requested', 'part_refunded', 'refunded'], array_column($this->invoices->events($this->ctx, $iid), 'type'));
+        $shown = $this->invoices->present($this->ctx, $done ?? throw new \LogicException(), 'uk');
+        self::assertSame('150.00', $shown['refunded']['decimal']);
+        self::assertFalse($shown['canRefund']);
+    }
+
     public function testListenerRegistrationIssuesTheInvoice(): void
     {
         [$id, $cats] = $this->edition();

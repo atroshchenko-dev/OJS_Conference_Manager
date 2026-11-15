@@ -114,6 +114,7 @@ final class ServiceFactory
             new AuditLogger($db),
             static fn (string $key): string => __($key),
             self::invoices(),
+            new MailGateway(),
         );
     }
 

@@ -41,6 +41,9 @@ final class Invoice
         public readonly array $payer = [],
         public readonly array $recipient = [],
         public readonly string $method = 'bank',
+        public readonly Money|null $refunded = null,
+        public readonly ?DateTimeImmutable $refundedAt = null,
+        public readonly ?string $refundNote = null,
     ) {
     }
 
@@ -53,6 +56,11 @@ final class Invoice
     public function due(): Money
     {
         return new Money(max(0, $this->total->minor - $this->paidAmount()->minor), $this->total->currency);
+    }
+
+    public function refundedAmount(): Money
+    {
+        return $this->refunded ?? Money::zero($this->total->currency);
     }
 
     public function isWaiver(): bool

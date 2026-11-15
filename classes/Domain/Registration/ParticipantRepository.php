@@ -84,4 +84,20 @@ interface ParticipantRepository
 
     /** Active presenter participation of a submission (FEE-04). */
     public function presenterOf(int $submissionId): ?int;
+
+    /**
+     * REG-10: the manager invites a person. The participant is found by the
+     * email in the edition or created, marked invited, and gets an active
+     * participation in the role unless they already have one.
+     *
+     * @param array{email: string, givenName: array<string, string>, familyName: array<string, string>, affiliation: ?string, userId: ?int} $person
+     * @return array{participantId: int, participationId: int, created: bool}
+     */
+    public function invite(int $contextId, int $editionId, array $person, ParticipantRole $role, ?int $actorId, DateTimeImmutable $now): array;
+
+    /** REG-10: the participant was invited by the organizers and pays nothing. */
+    public function isInvited(int $participantId): bool;
+
+    /** The participant of an email in the edition, if any. */
+    public function findByEmail(int $editionId, string $email): ?int;
 }

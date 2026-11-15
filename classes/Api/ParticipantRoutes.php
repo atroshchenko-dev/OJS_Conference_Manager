@@ -27,6 +27,7 @@ use PKP\security\Role;
  * GET  editions/{id}/participants/export?…the same filters   CSV of all matching rows
  * PUT  participations/{pid}/category {categoryId|null}
  * POST participations/{pid}/cancel                            at any time
+ * POST editions/{id}/invitations {email, givenName, familyName, affiliation, role, note, sendLetter}   REG-10
  */
 final class ParticipantRoutes implements RouteModule
 {
@@ -47,6 +48,26 @@ final class ParticipantRoutes implements RouteModule
         Route::get('editions/{editionId}/participants/export', $this->exportParticipants(...))->name('conference.participants.export')->whereNumber('editionId');
         Route::put('participations/{participationId}/category', $this->setParticipantCategory(...))->name('conference.participations.category')->whereNumber('participationId');
         Route::post('participations/{participationId}/cancel', $this->cancelParticipation(...))->name('conference.participations.cancel')->whereNumber('participationId');
+        Route::post('editions/{editionId}/invitations', $this->inviteParticipant(...))->name('conference.participants.invite')->whereNumber('editionId');
+    }
+
+    /** REG-10: the manager invites a person who pays nothing. */
+    public function inviteParticipant(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        [$out, $errors] = ServiceFactory::participants()->invite(
+            $this->api->contextInfo(),
+            (int) $r->route('editionId'),
+            (array) $r->all(),
+            $this->api->actorId(),
+            new DateTimeImmutable('now', new DateTimeZone('UTC')),
+        );
+        if ($out === null) {
+            return $errors->has('editionId') ? ConferenceApiController::notFound() : ConferenceApiController::errorResponse($errors);
+        }
+        return response()->json($out, Response::HTTP_OK);
     }
 
     public function getParticipants(Request $r): JsonResponse

@@ -59,6 +59,7 @@ class ManageConferenceHandler extends Handler
         'invoice.event.issued', 'invoice.event.part_paid', 'invoice.event.paid', 'invoice.event.waived', 'invoice.event.superseded',
         'invoice.event.cancelled', 'invoice.event.status_cancelled', 'invoice.event.status_refund_requested',
         'invoice.event.proof_uploaded', 'invoice.event.proof_accepted', 'invoice.event.proof_rejected',
+        'invite.open', 'invite.title', 'invite.help', 'invite.email', 'invite.givenName', 'invite.familyName', 'invite.affiliation', 'invite.note', 'invite.sendLetter', 'invite.submit', 'invite.sent', 'invite.saved', 'invite.badge', 'group.open', 'group.title', 'group.help', 'group.selected', 'group.organization', 'group.legalId', 'group.contact', 'group.contactHelp', 'group.submit', 'group.refusedTitle', 'group.issued', 'group.select', 'group.selectOne', 'group.badge', 'refund.request', 'refund.requestPrompt', 'refund.requestDone', 'refund.record', 'refund.amountPrompt', 'refund.notePrompt', 'refund.done', 'refund.refunded', 'invoice.event.refund_requested', 'invoice.event.refunded', 'invoice.event.part_refunded',
         'proof.title', 'proof.tab.pending', 'proof.status.pending', 'proof.status.accepted', 'proof.status.rejected', 'proof.emptyPending', 'proof.empty',
         'proof.due', 'proof.file', 'proof.duplicate', 'proof.view', 'proof.accept', 'proof.reject', 'proof.acceptDone', 'proof.rejectPrompt',
         'proof.rejectDone',
@@ -214,6 +215,8 @@ class ManageConferenceHandler extends Handler
                 'statuses' => $choices(ParticipationStatus::cases()),
                 'confirmations' => $choices(ConfirmationStatus::cases()),
                 'payments' => $choices(PaymentFilter::cases()),
+                'invitedRoles' => $choices(\APP\plugins\generic\conferenceManager\classes\Application\ParticipantService::INVITED_ROLES),
+                'legalIdLabel' => __(ServiceFactory::invoices()->payerFields($info)['legalId']),
             ],
         ]]]);
 

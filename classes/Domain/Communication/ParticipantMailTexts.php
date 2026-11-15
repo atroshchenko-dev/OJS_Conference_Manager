@@ -22,6 +22,7 @@ final class ParticipantMailTexts
     public const REMIND_PAYMENT = 'CONF_REMINDER_PAYMENT';
     public const REMIND_PAPER = 'CONF_REMINDER_PAPER';
     public const REMIND_EVENT = 'CONF_REMINDER_EVENT';
+    public const INVITATION = 'CONF_INVITATION';
 
     public const COMMON = ['recipientName', 'conferenceName', 'cabinetUrl', 'contextName'];
 
@@ -34,6 +35,7 @@ final class ParticipantMailTexts
         self::REMIND_PAYMENT => ['invoiceNumber', 'amountDue', 'dueDate', 'paymentReference'],
         self::REMIND_PAPER => ['submissionTitle', 'paperDeadline'],
         self::REMIND_EVENT => ['startsAt', 'venue', 'eventUrl'],
+        self::INVITATION => ['participantRole', 'invitationNote', 'eventUrl'],
     ];
 
     /** @return array<string, array<string, array{name: string, subject: string, body: string}>> key => locale => text */
@@ -64,6 +66,9 @@ final class ParticipantMailTexts
             self::REMIND_EVENT => ['Нагадування: початок заходу', 'Скоро початок: {$conferenceName}',
                 '<p>Шановна/шановний {$recipientName}!</p><p>Нагадуємо, що захід «{$conferenceName}» починається {$startsAt}.</p><p>Місце: {$venue}</p>'
                 . '<p>Програма й подробиці: <a href="{$eventUrl}">{$eventUrl}</a><br>Ваша участь і документи — в особистому кабінеті: <a href="{$cabinetUrl}">{$cabinetUrl}</a></p><p>{$contextName}</p>'],
+            self::INVITATION => ['Учасники: запрошення', 'Запрошення: {$conferenceName}',
+                '<p>Шановна/шановний {$recipientName}!</p><p>Запрошуємо вас узяти участь у заході «{$conferenceName}». Ваша роль: {$participantRole}. Оргвнесок для вас не стягується.</p>'
+                . '<p>{$invitationNote}</p><p>Програма й подробиці: <a href="{$eventUrl}">{$eventUrl}</a><br>Ваша участь і документи — в особистому кабінеті (увійдіть з цією адресою пошти): <a href="{$cabinetUrl}">{$cabinetUrl}</a></p><p>{$contextName}</p>'],
         ];
         $en = [
             self::CONFIRM => ['Participants: co-authorship confirmation', 'Please confirm your participation: {$conferenceName}',
@@ -90,6 +95,9 @@ final class ParticipantMailTexts
             self::REMIND_EVENT => ['Reminder: event start', 'Starting soon: {$conferenceName}',
                 '<p>Dear {$recipientName},</p><p>This is a reminder that “{$conferenceName}” starts on {$startsAt}.</p><p>Venue: {$venue}</p>'
                 . '<p>Programme and details: <a href="{$eventUrl}">{$eventUrl}</a><br>Your participation and documents are in your cabinet: <a href="{$cabinetUrl}">{$cabinetUrl}</a></p><p>{$contextName}</p>'],
+            self::INVITATION => ['Participants: invitation', 'Invitation: {$conferenceName}',
+                '<p>Dear {$recipientName},</p><p>We invite you to take part in “{$conferenceName}”. Your role: {$participantRole}. You pay no participation fee.</p>'
+                . '<p>{$invitationNote}</p><p>Programme and details: <a href="{$eventUrl}">{$eventUrl}</a><br>Your participation and documents are in your cabinet (sign in with this email address): <a href="{$cabinetUrl}">{$cabinetUrl}</a></p><p>{$contextName}</p>'],
         ];
         $out = [];
         foreach ($uk as $key => [$name, $subject, $body]) {

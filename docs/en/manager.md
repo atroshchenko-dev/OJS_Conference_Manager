@@ -205,7 +205,30 @@ Click **Invoices** next to the edition to see all invoices. Search by number, pa
 - **Reissue**: a new invoice by the current tariff, category and presentation type. The amount paid is carried over. If more has been paid than the new amount, the invoice is not reissued.
 - Cancel the invoice, download the PDF, see **History**.
 
-A paid invoice can be neither waived nor cancelled. **The plugin does not make refunds:** handle overpayments or refunds after a cancellation by hand.
+A paid invoice can be neither waived nor cancelled.
+
+### Refunds
+Accounting returns the money; the plugin records the refund so that it is in the books and in the export.
+- **Refund request**: mark that the payer asks for the money back and, if needed, write why. When a participant cancels after paying, the invoice gets this state by itself.
+- **Record a refund**: enter the amount and how the money was returned (for example the date and number of the payment order). Without an amount, all that was paid is refunded and the invoice becomes "refunded". A smaller amount is a part refund, for example when one member of a group did not come.
+
+The export for accounting has the columns **Refunded**, **Refund date** and **Refund note**.
+
+### Group invoice
+When one organisation pays for several participants (for example a school for its teachers), issue one invoice for them.
+1. In the **Participants** register select the participants and click **Group invoice**.
+2. Enter the name of the organisation, its code (the legal id of the jurisdiction profile) and the contact person. The contact person gets the invoice letter and sees the invoice in the cabinet.
+3. Click **Issue the group invoice**.
+
+Each participant has a line of their own by their category and tariff. Unpaid invoices of these participants are replaced by the group invoice. Participants who already paid something, are waived, are invited or already have a group invoice are not added; the page lists them with the reason. A group invoice is not reissued: to change the group, cancel it and issue a new one.
+
+### Invited participants
+An invited participant (keynote speaker, chair, guest) pays no fee.
+1. In the **Participants** register click **Invite a participant**.
+2. Enter the email, given name, family name, affiliation and role. Add a text for the letter if needed.
+3. Click **Invite**.
+
+The person gets a letter with links to the event page and to the cabinet, where they sign in with this email. Their unpaid invoices in this event are waived, and new invoices, for example after a paper is accepted, are issued at zero with the reason "Invited participant". The register shows an **Invited** mark next to the name. The letter can be changed in the journal's email templates (**Participant invitation**).
 
 To issue an invoice by hand (for example when a paper is paid per page), use the **Invoice** button in the **Participants** register.
 

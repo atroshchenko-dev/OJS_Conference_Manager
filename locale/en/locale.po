@@ -4055,3 +4055,189 @@ msgstr "Review settings"
 
 msgid "plugins.generic.conferenceManager.mailable.paperDeadline.none"
 msgstr "the deadline the organizers will give you"
+
+msgid "plugins.generic.conferenceManager.payment.error.group.count"
+msgstr "Choose from 2 to 200 participants."
+
+msgid "plugins.generic.conferenceManager.payment.error.group.contact"
+msgstr "Choose the contact person among the selected participants."
+
+msgid "plugins.generic.conferenceManager.payment.error.group.refused"
+msgstr "Some participants cannot be put on a shared invoice. See the list below."
+
+msgid "plugins.generic.conferenceManager.payment.error.group.currency"
+msgstr "The fees of the selected participants are in different currencies, so they cannot go on one invoice."
+
+msgid "plugins.generic.conferenceManager.payment.error.group.account"
+msgstr "The fees of the selected participants go to different accounts or are paid in different ways."
+
+msgid "plugins.generic.conferenceManager.payment.error.refund.notPaid"
+msgstr "Only what was paid can be refunded."
+
+msgid "plugins.generic.conferenceManager.payment.error.refund.amount"
+msgstr "The refund must be more than zero and not more than what was paid."
+
+msgid "plugins.generic.conferenceManager.payment.error.refund.note"
+msgstr "Say how and why the money was returned."
+
+msgid "plugins.generic.conferenceManager.group.refused.notActive"
+msgstr "the participation is cancelled or belongs to another event"
+
+msgid "plugins.generic.conferenceManager.group.refused.paid"
+msgstr "there is already a paid, waived or group invoice"
+
+msgid "plugins.generic.conferenceManager.group.refused.waived"
+msgstr "the invoice is already waived"
+
+msgid "plugins.generic.conferenceManager.group.refused.free"
+msgstr "no fee is due for this participant"
+
+msgid "plugins.generic.conferenceManager.group.refused.noTariff"
+msgstr "no tariff for the participant's category"
+
+msgid "plugins.generic.conferenceManager.group.refused.pagesRequired"
+msgstr "the tariff is per page: issue a separate invoice with the number of pages"
+
+msgid "plugins.generic.conferenceManager.group.refused.notFound"
+msgstr "participant not found"
+
+msgid "plugins.generic.conferenceManager.invoice.invitedReason"
+msgstr "Invited participant"
+
+msgid "plugins.generic.conferenceManager.invitation.error.givenName"
+msgstr "Enter the given name."
+
+msgid "plugins.generic.conferenceManager.invitation.error.role"
+msgstr "Choose the role of the invited person."
+
+msgid "plugins.generic.conferenceManager.mailable.invitation.name"
+msgstr "Participant invitation"
+
+msgid "plugins.generic.conferenceManager.mailable.invitation.description"
+msgstr "A letter to an invited participant (speaker, chair or guest) who pays no fee."
+
+msgid "plugins.generic.conferenceManager.export.column.refunded"
+msgstr "Refunded"
+
+msgid "plugins.generic.conferenceManager.export.column.refundedAt"
+msgstr "Refund date"
+
+msgid "plugins.generic.conferenceManager.export.column.refundNote"
+msgstr "Refund note"
+
+msgid "plugins.generic.conferenceManager.invoice.event.refund_requested"
+msgstr "Refund requested"
+
+msgid "plugins.generic.conferenceManager.invoice.event.refunded"
+msgstr "Refunded"
+
+msgid "plugins.generic.conferenceManager.invoice.event.part_refunded"
+msgstr "Part refunded"
+
+msgid "plugins.generic.conferenceManager.invite.open"
+msgstr "Invite a participant"
+
+msgid "plugins.generic.conferenceManager.invite.title"
+msgstr "Invite a participant"
+
+msgid "plugins.generic.conferenceManager.invite.help"
+msgstr "An invited person pays no fee: all their invoices in this event are zero, marked \"Invited participant\". The letter has links to the event page and to the cabinet, where the person signs in with this email address."
+
+msgid "plugins.generic.conferenceManager.invite.email"
+msgstr "Email"
+
+msgid "plugins.generic.conferenceManager.invite.givenName"
+msgstr "Given name"
+
+msgid "plugins.generic.conferenceManager.invite.familyName"
+msgstr "Family name"
+
+msgid "plugins.generic.conferenceManager.invite.affiliation"
+msgstr "Affiliation"
+
+msgid "plugins.generic.conferenceManager.invite.note"
+msgstr "Text for the letter (optional)"
+
+msgid "plugins.generic.conferenceManager.invite.sendLetter"
+msgstr "Send the invitation letter"
+
+msgid "plugins.generic.conferenceManager.invite.submit"
+msgstr "Invite"
+
+msgid "plugins.generic.conferenceManager.invite.sent"
+msgstr "Invitation sent to {$email}."
+
+msgid "plugins.generic.conferenceManager.invite.saved"
+msgstr "{$email} added as an invited participant."
+
+msgid "plugins.generic.conferenceManager.invite.badge"
+msgstr "Invited"
+
+msgid "plugins.generic.conferenceManager.group.open"
+msgstr "Group invoice ({$count})"
+
+msgid "plugins.generic.conferenceManager.group.title"
+msgstr "One invoice for several participants"
+
+msgid "plugins.generic.conferenceManager.group.help"
+msgstr "An organisation pays for the selected participants with one invoice. Each participant has a line of their own by their category and tariff. Unpaid invoices of these participants are replaced by the group invoice. The contact person sees the invoice in their cabinet."
+
+msgid "plugins.generic.conferenceManager.group.selected"
+msgstr "Selected: {$count}."
+
+msgid "plugins.generic.conferenceManager.group.organization"
+msgstr "Name of the paying organisation"
+
+msgid "plugins.generic.conferenceManager.group.legalId"
+msgstr "Organisation code"
+
+msgid "plugins.generic.conferenceManager.group.contact"
+msgstr "Contact person"
+
+msgid "plugins.generic.conferenceManager.group.contactHelp"
+msgstr "Gets the invoice letter and sees the invoice in the cabinet."
+
+msgid "plugins.generic.conferenceManager.group.submit"
+msgstr "Issue the group invoice"
+
+msgid "plugins.generic.conferenceManager.group.refusedTitle"
+msgstr "These participants cannot go on a shared invoice:"
+
+msgid "plugins.generic.conferenceManager.group.issued"
+msgstr "Group invoice No. {$number} issued ({$count} participants)."
+
+msgid "plugins.generic.conferenceManager.group.select"
+msgstr "Select"
+
+msgid "plugins.generic.conferenceManager.group.selectOne"
+msgstr "Select {$name} for a group invoice"
+
+msgid "plugins.generic.conferenceManager.group.badge"
+msgstr "group, {$count}"
+
+msgid "plugins.generic.conferenceManager.refund.request"
+msgstr "Refund request"
+
+msgid "plugins.generic.conferenceManager.refund.requestPrompt"
+msgstr "Note for the request (optional): who asks for the money back and why."
+
+msgid "plugins.generic.conferenceManager.refund.requestDone"
+msgstr "Refund request recorded."
+
+msgid "plugins.generic.conferenceManager.refund.record"
+msgstr "Record a refund"
+
+msgid "plugins.generic.conferenceManager.refund.amountPrompt"
+msgstr "Refund amount, {$currency}. Leave empty to refund all that was paid."
+
+msgid "plugins.generic.conferenceManager.refund.notePrompt"
+msgstr "How and why the money was returned (for example, the date and number of the payment order)."
+
+msgid "plugins.generic.conferenceManager.refund.done"
+msgstr "Refund recorded."
+
+msgid "plugins.generic.conferenceManager.refund.refunded"
+msgstr "Refunded: {$amount}"
+
+msgid "plugins.generic.conferenceManager.group.refused.invited"
+msgstr "an invited participant who pays no fee"
