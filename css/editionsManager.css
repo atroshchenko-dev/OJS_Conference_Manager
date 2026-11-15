@@ -223,3 +223,10 @@
 .cmLegacy__result { overflow-wrap: anywhere; }
 .cmLegacy__csv { min-height: 8rem; resize: vertical; }
 .cmLegacy .cmEditions__buttons a.pkpButton { display: inline-block; padding: .4375rem .75rem; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; font-weight: 700; font-size: .875rem; line-height: 1.25rem; }
+
+/* Book of abstracts (PUB-04) */
+.cmBook__row { display: flex; flex-wrap: wrap; gap: 1rem; }
+.cmBook__check { display: block; margin: .25rem 0; }
+.cmBook__groups { margin: .5rem 0; padding-left: 1.25rem; }
+.cmBook__missing { margin: .5rem 0; }
+.cmBook textarea.pkpFormField__input { width: 100%; resize: vertical; }

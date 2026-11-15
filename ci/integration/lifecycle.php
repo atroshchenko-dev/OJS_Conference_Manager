@@ -66,6 +66,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'email-log' => $this->emailLog((int) $this->argv[1], $this->argv[2]),
                 'clone-abstracts' => $this->cloneAbstracts($this->argv[1], (int) $this->argv[2], (int) $this->argv[3], (int) $this->argv[4]),
                 'publish-article' => $this->publishArticle((int) $this->argv[1], $this->argv[2], $this->argv[3] ?? null),
+                'set-abstract' => $this->setAbstract((int) $this->argv[1], $this->argv[2], $this->argv[3], $this->argv[4] ?? ''),
                 'seed-participants' => $this->seedParticipants($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
@@ -428,6 +429,15 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
             DB::table('publication_settings')->where('publication_id', $pub)->where('setting_name', 'title')->update(['setting_value' => $title]);
         }
         echo "OK published {$submissionId}\n";
+    }
+
+    /** The abstract and keywords of the current publication, through the OJS repository. */
+    private function setAbstract(int $submissionId, string $locale, string $abstract, string $keywords): void
+    {
+        $publication = \APP\facades\Repo::submission()->get($submissionId)?->getCurrentPublication() ?? throw new RuntimeException('no publication');
+        $words = array_values(array_filter(array_map('trim', explode(',', $keywords))));
+        \APP\facades\Repo::publication()->edit($publication, ['abstract' => [$locale => $abstract], 'keywords' => [$locale => $words]]);
+        echo "OK abstract {$submissionId}\n";
     }
 
     private function steps(): void

@@ -273,6 +273,21 @@ final class ServiceFactory
     }
 
     /** PRG-04 – PRG-08: the program by days, as visitors see it. */
+    public static function abstractBook(): \APP\plugins\generic\conferenceManager\classes\Application\AbstractBookService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\AbstractBookService(
+            new DbEditionRepository($db),
+            self::program(),
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbProgramRepository($db),
+            new PaperDetailsGateway(),
+            new MpdfRenderer(),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
+            self::settings(),
+            new AuditLogger($db),
+        );
+    }
+
     public static function schedule(): \APP\plugins\generic\conferenceManager\classes\Application\PublicScheduleService
     {
         return new \APP\plugins\generic\conferenceManager\classes\Application\PublicScheduleService(

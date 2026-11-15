@@ -166,6 +166,10 @@
 				this.selected = null;
 				this.view = 'certificateTemplates';
 			},
+			openBook: function (edition) {
+				this.selected = edition;
+				this.view = 'book';
+			},
 			openLegacy: function () {
 				this.selected = null;
 				this.view = 'legacy';
@@ -457,6 +461,7 @@
 						<pkp-button @click="openCertificates(e)">{{ t(\'certificates\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions && e.submissionMode !== \'none\'" @click="openDecisions(e)">{{ t(\'decisions\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions" @click="openProgram(e)">{{ t(\'program.builder.open\') }}</pkp-button>\
+						<pkp-button v-if="canEditEditions && e.submissionMode !== \'none\'" @click="openBook(e)">{{ t(\'book.open\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions" @click="copy(e)">{{ t(\'copy\') }}</pkp-button>\
 						<a class="pkpButton" :href="publicLink(e)" target="_blank" rel="noopener">{{ t(\'publicPage\') }}</a>\
 						<pkp-button v-if="canEditEditions" :is-warnable="true" @click="remove(e)">{{ t(\'delete\') }}</pkp-button>\
@@ -477,6 +482,7 @@
 	<conference-certificate-templates v-else-if="view === \'certificateTemplates\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-certificate-templates>\
 	<conference-setup-wizard v-else-if="view === \'setup\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :ui-locale="uiLocale" :default-timezone="defaultTimezone" :i18n="i18n" @back="backToList" @created="setupCreated"></conference-setup-wizard>\
 	<conference-program-builder v-else-if="view === \'program\'" :api-url="apiUrl + \'/\' + selected.id" :public-url="publicLink(selected) + \'/program\'" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :i18n="i18n" @back="backToList"></conference-program-builder>\
+	<conference-abstract-book v-else-if="view === \'book\'" :api-url="apiUrl + \'/\' + selected.id" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-abstract-book>\
 	<conference-legacy-urls v-else-if="view === \'legacy\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-legacy-urls>\
 	<conference-personal-data v-else-if="view === \'privacy\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-personal-data>\
 	<conference-audit-log v-else-if="view === \'audit\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-audit-log>\

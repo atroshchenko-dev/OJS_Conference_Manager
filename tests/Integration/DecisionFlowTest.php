@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace APP\plugins\generic\conferenceManager\tests\Integration;
 
+use APP\plugins\generic\conferenceManager\classes\Application\AbstractBookService;
 use APP\plugins\generic\conferenceManager\classes\Application\AccountingExportService;
+use APP\plugins\generic\conferenceManager\classes\Application\BookPdfRenderer;
 use APP\plugins\generic\conferenceManager\classes\Application\BulkDecisionService;
 use APP\plugins\generic\conferenceManager\classes\Application\CampaignQueue;
 use APP\plugins\generic\conferenceManager\classes\Application\CampaignService;
@@ -18,6 +20,7 @@ use APP\plugins\generic\conferenceManager\classes\Application\EditorialDirectory
 use APP\plugins\generic\conferenceManager\classes\Application\FeeService;
 use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfileService;
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceService;
+use APP\plugins\generic\conferenceManager\classes\Application\PaperDetails;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantMailer;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
 use APP\plugins\generic\conferenceManager\classes\Application\ProgramBuilderService;
@@ -716,6 +719,43 @@ final class DecisionFlowTest extends TestCase
         self::assertSame(1, substr_count((string) $schedule->ical($this->ctx, $ed, 'uk', (int) $s2?->id, 'https://example.org/program', 'example.org', $this->now), 'BEGIN:VEVENT'));
         self::assertNull($schedule->ical($this->ctx, $ed, 'uk', 999, 'https://example.org/program', 'example.org', $this->now));
 
+        // PUB-04: the book of abstracts in the order of the program.
+        $settings = new FakeSettings();
+        $pdf = new FakeBookPdf();
+        $book = new AbstractBookService(
+            new DbEditionRepository($this->db),
+            new ProgramService(new DbEditionRepository($this->db), new DbRegistrationRepository($this->db), $this->editorial),
+            new DbProgramRepository($this->db),
+            new FakePaperDetails(),
+            $pdf,
+            static fn (string $key, array $params, string $locale): string => $key,
+            $settings,
+            new AuditLogger($this->db),
+        );
+        $o = $book->overview($this->ctx, $edition, 'uk') ?? [];
+        self::assertSame(3, $o['count']);
+        self::assertSame([['title' => 'Секція 1', 'count' => 2], ['title' => 'Секція 2', 'count' => 1]], $o['groups']);
+        self::assertSame([3], array_column($o['withoutAbstract'], 'submissionId'));
+        self::assertNull($book->overview(new ContextInfo(2, 'uk', ['uk']), $edition, 'uk'), 'another journal');
+        [$saved, $e] = $book->saveSettings($this->ctx, $edition, ['format' => 'A4', 'order' => 'title', 'title' => 'Збірник', 'authorIndex' => false]) ?? [null, null];
+        self::assertSame([], $e?->toArray());
+        self::assertSame(['A4', 'title', false], [$saved?->format, $saved?->order, $saved?->authorIndex]);
+        [$bad, $e] = $book->saveSettings($this->ctx, $edition, ['format' => 'B5']) ?? [null, null];
+        self::assertNull($bad);
+        self::assertTrue($e?->has('format'));
+        self::assertSame('title', $book->settings($this->ctx, $edition)?->order, 'the bad input is not saved');
+        self::assertSame([['title' => '', 'count' => 3]], ($book->overview($this->ctx, $edition, 'uk') ?? [])['groups']);
+        $file = $book->pdf($this->ctx, $edition, 'uk');
+        self::assertSame('A4', $pdf->format);
+        self::assertStringContainsString('Збірник', $pdf->html);
+        self::assertStringContainsString('<b>Мета</b>', $pdf->html);
+        self::assertStringNotContainsString('book.label.index', $pdf->html, 'no author index');
+        self::assertStringEndsWith('.pdf', (string) ($file['name'] ?? ''));
+        self::assertTrue($book->saveSettings($this->ctx, $edition, ['order' => 'program']) !== null);
+        $book->pdf($this->ctx, $edition, 'uk');
+        self::assertLessThan(strpos($pdf->html, 'Тези 3'), strpos($pdf->html, 'Тези 2'), 'program order');
+        self::assertStringContainsString('Іваненко П.' . "\u{00A0} 1, 2, 3", $pdf->html, 'the index by numbers');
+
         // Taking out, a break, deleting a room and a session.
         self::assertSame([], $builder->move($this->ctx, $edition, 3, null, 0)?->toArray());
         [$s2] = $builder->saveSession($this->ctx, $edition, $s2?->id, $session(['type' => 'break', 'title' => ['uk' => 'Перерва'], 'startsAt' => '2027-05-20 11:00', 'endsAt' => '2027-05-20 11:20', 'roomId' => null])) ?? [null];
@@ -1056,6 +1096,35 @@ final class FakeTypeNotifier implements TypeChangeNotifier
     public function typeChanged(ContextInfo $context, int $submissionId, string $oldLabel, string $newLabel, ?int $editorId): void
     {
         $this->sent[] = [$submissionId, $oldLabel, $newLabel];
+    }
+}
+
+final class FakePaperDetails implements PaperDetails
+{
+    public function details(array $submissionIds, string $locale): array
+    {
+        $out = [];
+        foreach ($submissionIds as $id) {
+            $out[$id] = [
+                'abstract' => $id === 3 ? '' : '<p class="x"><b>Мета</b> дослідження ' . $id . '.</p>',
+                'keywords' => ['освіта'],
+                'authors' => [['name' => 'Петро Іваненко', 'index' => 'Іваненко П.', 'affiliation' => 'Університет']],
+            ];
+        }
+        return $out;
+    }
+}
+
+final class FakeBookPdf implements BookPdfRenderer
+{
+    public string $html = '';
+    public string $format = '';
+
+    public function renderBook(string $html, string $title, string $format): string
+    {
+        $this->html = $html;
+        $this->format = $format;
+        return '%PDF';
     }
 }
 

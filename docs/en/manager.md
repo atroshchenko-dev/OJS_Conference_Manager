@@ -306,6 +306,21 @@ A published program also gives:
 - stream links only for registered participants of the event and managers, and only from the time set in the session or, by default, from the start of the session's day. iCal and PDF files never contain stream links;
 - an **In the conference program** block with the date, time, session and room on the page of a published article.
 
+## How to make the book of abstracts
+
+The book of abstracts is one PDF with the abstracts of the accepted papers of the event: submissions that passed review and were not declined. The text of each abstract, its keywords and the authors with their affiliations come from the submission. To change a text, edit the abstract of the submission and download the book again.
+
+1. Click **Book of abstracts** next to the edition on the **Conferences** page.
+2. Check **What goes into the book**: how many papers and in which groups. **Papers without an abstract** lists those that have no text yet.
+3. Choose the page size (A5 or A4) and the order of papers:
+   - **by the program**: groups are the sessions of the schedule, papers in the order they are presented, papers outside the schedule at the end under "Other papers";
+   - **by journal sections**;
+   - **by title**.
+4. Fill in the title page and the imprint: the lines above the title (ministry, institution), the title, the subtitle, the city, the imprint text (bibliographic description, editorial board, approval of the academic council and so on) and, if needed, a preface. ISBN and UDC come from the edition settings.
+5. Click **Download PDF**. The settings are saved with the download.
+
+The PDF has a title page, an imprint page, contents with page numbers, the abstracts numbered through the book and an author index with the numbers of the abstracts. The margins are mirrored with a wider inner margin for binding, so the file can go to print.
+
 ## How to mark attendance
 
 Click **Participants** next to the edition.

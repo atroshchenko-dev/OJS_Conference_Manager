@@ -3767,3 +3767,138 @@ msgstr "more than 20 templates."
 
 msgid "plugins.generic.conferenceManager.audit.entity.legacy_urls"
 msgstr "Old OCS addresses"
+
+msgid "plugins.generic.conferenceManager.book.open"
+msgstr "Book of abstracts"
+
+msgid "plugins.generic.conferenceManager.book.title"
+msgstr "Book of abstracts"
+
+msgid "plugins.generic.conferenceManager.book.help"
+msgstr "The book is made of the abstracts of the accepted papers of the event: the title page, the imprint page, the contents, the abstracts with authors and affiliations, and an author index. The abstracts are taken from the submissions in the journal; to change a text, edit the abstract of the submission and download the book again."
+
+msgid "plugins.generic.conferenceManager.book.contents"
+msgstr "What goes into the book"
+
+msgid "plugins.generic.conferenceManager.book.count"
+msgstr "Accepted papers: {$n}"
+
+msgid "plugins.generic.conferenceManager.book.empty"
+msgstr "There are no accepted papers yet. The book includes submissions that passed review and were not declined."
+
+msgid "plugins.generic.conferenceManager.book.noGroup"
+msgstr "No group"
+
+msgid "plugins.generic.conferenceManager.book.withoutAbstract"
+msgstr "Papers without an abstract"
+
+msgid "plugins.generic.conferenceManager.book.codes"
+msgstr "ISBN: {$isbn}, UDC: {$udc} (from the event settings)"
+
+msgid "plugins.generic.conferenceManager.book.noCodes"
+msgstr "ISBN and UDC are not set. Add them in the event settings and they will appear on the imprint page."
+
+msgid "plugins.generic.conferenceManager.book.layout"
+msgstr "Format and order"
+
+msgid "plugins.generic.conferenceManager.book.format"
+msgstr "Page size"
+
+msgid "plugins.generic.conferenceManager.book.order"
+msgstr "Order of papers"
+
+msgid "plugins.generic.conferenceManager.book.order.program"
+msgstr "By the program (sessions by time)"
+
+msgid "plugins.generic.conferenceManager.book.order.sections"
+msgstr "By journal sections"
+
+msgid "plugins.generic.conferenceManager.book.order.title"
+msgstr "By title"
+
+msgid "plugins.generic.conferenceManager.book.authorIndex"
+msgstr "Author index at the end"
+
+msgid "plugins.generic.conferenceManager.book.keywords"
+msgstr "Keywords under each abstract"
+
+msgid "plugins.generic.conferenceManager.book.titlePage"
+msgstr "Title page and imprint"
+
+msgid "plugins.generic.conferenceManager.book.field.header"
+msgstr "Above the title"
+
+msgid "plugins.generic.conferenceManager.book.field.title"
+msgstr "Title of the book"
+
+msgid "plugins.generic.conferenceManager.book.field.subtitle"
+msgstr "Subtitle"
+
+msgid "plugins.generic.conferenceManager.book.field.place"
+msgstr "City"
+
+msgid "plugins.generic.conferenceManager.book.field.imprint"
+msgstr "Imprint page"
+
+msgid "plugins.generic.conferenceManager.book.field.preface"
+msgstr "Preface"
+
+msgid "plugins.generic.conferenceManager.book.hint.header"
+msgstr "For example the ministry and the institution, each on a new line."
+
+msgid "plugins.generic.conferenceManager.book.hint.title"
+msgstr "If empty, the name of the event is used."
+
+msgid "plugins.generic.conferenceManager.book.hint.subtitle"
+msgstr "For example: “Proceedings of the International Scientific and Practical Conference, 12–13 May 2027”."
+
+msgid "plugins.generic.conferenceManager.book.hint.place"
+msgstr "The year is taken from the start date of the event."
+
+msgid "plugins.generic.conferenceManager.book.hint.imprint"
+msgstr "Bibliographic description, editorial board, approval of the academic council, a note on the authors' responsibility and so on, as your publishing office requires."
+
+msgid "plugins.generic.conferenceManager.book.hint.preface"
+msgstr "Optional. Separate paragraphs with an empty line."
+
+msgid "plugins.generic.conferenceManager.book.download"
+msgstr "Download PDF"
+
+msgid "plugins.generic.conferenceManager.book.notSaved"
+msgstr "The settings were not saved; check the fields."
+
+msgid "plugins.generic.conferenceManager.book.other"
+msgstr "Other papers"
+
+msgid "plugins.generic.conferenceManager.book.label.contents"
+msgstr "Contents"
+
+msgid "plugins.generic.conferenceManager.book.label.preface"
+msgstr "Preface"
+
+msgid "plugins.generic.conferenceManager.book.label.index"
+msgstr "Author index"
+
+msgid "plugins.generic.conferenceManager.book.label.indexNote"
+msgstr "The numbers after the names are the numbers of the abstracts in the book."
+
+msgid "plugins.generic.conferenceManager.book.label.keywords"
+msgstr "Keywords"
+
+msgid "plugins.generic.conferenceManager.book.label.isbn"
+msgstr "ISBN"
+
+msgid "plugins.generic.conferenceManager.book.label.udc"
+msgstr "UDC"
+
+msgid "plugins.generic.conferenceManager.book.error.format"
+msgstr "Choose A4 or A5."
+
+msgid "plugins.generic.conferenceManager.book.error.order"
+msgstr "Choose the order of papers from the list."
+
+msgid "plugins.generic.conferenceManager.book.error.long"
+msgstr "The text is too long."
+
+msgid "plugins.generic.conferenceManager.audit.entity.abstract_book"
+msgstr "Book of abstracts"

@@ -3767,3 +3767,138 @@ msgstr "шаблонів більше 20."
 
 msgid "plugins.generic.conferenceManager.audit.entity.legacy_urls"
 msgstr "Старі адреси OCS"
+
+msgid "plugins.generic.conferenceManager.book.open"
+msgstr "Збірник тез"
+
+msgid "plugins.generic.conferenceManager.book.title"
+msgstr "Збірник тез"
+
+msgid "plugins.generic.conferenceManager.book.help"
+msgstr "Збірник складається з тез прийнятих доповідей заходу: титул, звороток, зміст, тези з авторами й місцем роботи та покажчик авторів. Тези беруться з анотацій поданих матеріалів у журналі; щоб змінити текст, виправте анотацію в поданні й завантажте збірник ще раз."
+
+msgid "plugins.generic.conferenceManager.book.contents"
+msgstr "Що ввійде до збірника"
+
+msgid "plugins.generic.conferenceManager.book.count"
+msgstr "Прийнятих доповідей: {$n}"
+
+msgid "plugins.generic.conferenceManager.book.empty"
+msgstr "Прийнятих доповідей ще немає. До збірника входять подання, що пройшли рецензування й не відхилені."
+
+msgid "plugins.generic.conferenceManager.book.noGroup"
+msgstr "Без розділу"
+
+msgid "plugins.generic.conferenceManager.book.withoutAbstract"
+msgstr "Доповіді без анотації"
+
+msgid "plugins.generic.conferenceManager.book.codes"
+msgstr "ISBN: {$isbn}, УДК: {$udc} (з налаштувань заходу)"
+
+msgid "plugins.generic.conferenceManager.book.noCodes"
+msgstr "ISBN і УДК не вказано. Їх можна додати в налаштуваннях заходу, і вони з'являться на звороті титулу."
+
+msgid "plugins.generic.conferenceManager.book.layout"
+msgstr "Формат і порядок"
+
+msgid "plugins.generic.conferenceManager.book.format"
+msgstr "Формат сторінки"
+
+msgid "plugins.generic.conferenceManager.book.order"
+msgstr "Порядок доповідей"
+
+msgid "plugins.generic.conferenceManager.book.order.program"
+msgstr "За програмою (сесії за часом)"
+
+msgid "plugins.generic.conferenceManager.book.order.sections"
+msgstr "За секціями журналу"
+
+msgid "plugins.generic.conferenceManager.book.order.title"
+msgstr "За назвою"
+
+msgid "plugins.generic.conferenceManager.book.authorIndex"
+msgstr "Покажчик авторів наприкінці"
+
+msgid "plugins.generic.conferenceManager.book.keywords"
+msgstr "Ключові слова під кожною тезою"
+
+msgid "plugins.generic.conferenceManager.book.titlePage"
+msgstr "Титул і звороток"
+
+msgid "plugins.generic.conferenceManager.book.field.header"
+msgstr "Над назвою"
+
+msgid "plugins.generic.conferenceManager.book.field.title"
+msgstr "Назва збірника"
+
+msgid "plugins.generic.conferenceManager.book.field.subtitle"
+msgstr "Підзаголовок"
+
+msgid "plugins.generic.conferenceManager.book.field.place"
+msgstr "Місто"
+
+msgid "plugins.generic.conferenceManager.book.field.imprint"
+msgstr "Звороток титулу"
+
+msgid "plugins.generic.conferenceManager.book.field.preface"
+msgstr "Передмова"
+
+msgid "plugins.generic.conferenceManager.book.hint.header"
+msgstr "Наприклад, назва міністерства й закладу, кожна з нового рядка."
+
+msgid "plugins.generic.conferenceManager.book.hint.title"
+msgstr "Якщо не вказати, буде назва заходу."
+
+msgid "plugins.generic.conferenceManager.book.hint.subtitle"
+msgstr "Наприклад: «Матеріали Міжнародної науково-практичної конференції, 12–13 травня 2027 р.»"
+
+msgid "plugins.generic.conferenceManager.book.hint.place"
+msgstr "Рік береться з дати початку заходу."
+
+msgid "plugins.generic.conferenceManager.book.hint.imprint"
+msgstr "Бібліографічний опис, редакційна колегія, рекомендація вченої ради, застереження про авторську редакцію тощо, як вимагає ваш видавничий відділ."
+
+msgid "plugins.generic.conferenceManager.book.hint.preface"
+msgstr "Необов'язково. Абзаци розділяйте порожнім рядком."
+
+msgid "plugins.generic.conferenceManager.book.download"
+msgstr "Завантажити PDF"
+
+msgid "plugins.generic.conferenceManager.book.notSaved"
+msgstr "Налаштування не збережено, перевірте поля."
+
+msgid "plugins.generic.conferenceManager.book.other"
+msgstr "Інші доповіді"
+
+msgid "plugins.generic.conferenceManager.book.label.contents"
+msgstr "Зміст"
+
+msgid "plugins.generic.conferenceManager.book.label.preface"
+msgstr "Передмова"
+
+msgid "plugins.generic.conferenceManager.book.label.index"
+msgstr "Покажчик авторів"
+
+msgid "plugins.generic.conferenceManager.book.label.indexNote"
+msgstr "Числа після прізвищ — номери тез у збірнику."
+
+msgid "plugins.generic.conferenceManager.book.label.keywords"
+msgstr "Ключові слова"
+
+msgid "plugins.generic.conferenceManager.book.label.isbn"
+msgstr "ISBN"
+
+msgid "plugins.generic.conferenceManager.book.label.udc"
+msgstr "УДК"
+
+msgid "plugins.generic.conferenceManager.book.error.format"
+msgstr "Оберіть формат A4 або A5."
+
+msgid "plugins.generic.conferenceManager.book.error.order"
+msgstr "Оберіть порядок доповідей зі списку."
+
+msgid "plugins.generic.conferenceManager.book.error.long"
+msgstr "Текст задовгий."
+
+msgid "plugins.generic.conferenceManager.audit.entity.abstract_book"
+msgstr "Збірник тез"
