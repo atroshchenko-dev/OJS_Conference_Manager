@@ -53,6 +53,12 @@ POST editions/{E}/certificates
 POST editions/{E}/certificates/batch
 POST editions/{E}/reviewers
 GET editions/{E}/vector-export
+GET editions/{E}/program-builder
+POST editions/{E}/rooms
+DELETE editions/{E}/rooms/1
+POST editions/{E}/sessions
+PUT editions/{E}/sessions/1
+POST editions/{E}/program-moves
 POST participations/{P}/cancel
 POST participations/{P}/invoice
 PUT participations/{P}/category

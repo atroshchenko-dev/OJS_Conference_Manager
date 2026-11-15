@@ -3380,3 +3380,195 @@ msgstr "Власні набори закладів додавайте в пап�
 
 msgid "plugins.generic.conferenceManager.site.presets.problems"
 msgstr "Ці файли мають помилки, тому майстер їх не пропонує:"
+
+msgid "plugins.generic.conferenceManager.program.builder.open"
+msgstr "Програма"
+
+msgid "plugins.generic.conferenceManager.program.builder.title"
+msgstr "Конструктор програми"
+
+msgid "plugins.generic.conferenceManager.program.builder.preview"
+msgstr "Переглянути на сайті"
+
+msgid "plugins.generic.conferenceManager.program.builder.help"
+msgstr "Створіть зали й сесії, а потім перетягніть прийняті доповіді в сесії або оберіть сесію в списку «Перемістити до». Час указано за часовим поясом видання ({$zone})."
+
+msgid "plugins.generic.conferenceManager.program.conflicts"
+msgstr "Конфлікти в розкладі"
+
+msgid "plugins.generic.conferenceManager.program.conflict"
+msgstr "{$name}: виступає або головує в сесіях, що йдуть одночасно ({$n})."
+
+msgid "plugins.generic.conferenceManager.program.rooms"
+msgstr "Зали"
+
+msgid "plugins.generic.conferenceManager.program.room.name"
+msgstr "Назва залу"
+
+msgid "plugins.generic.conferenceManager.program.room.capacity"
+msgstr "Місткість"
+
+msgid "plugins.generic.conferenceManager.program.room.onlineUrl"
+msgstr "Посилання для онлайн-участі"
+
+msgid "plugins.generic.conferenceManager.program.room.add"
+msgstr "Додати зал"
+
+msgid "plugins.generic.conferenceManager.program.room.deleteConfirm"
+msgstr "Видалити зал «{$name}»? Сесії в ньому залишаться без залу."
+
+msgid "plugins.generic.conferenceManager.program.session.add"
+msgstr "Додати сесію"
+
+msgid "plugins.generic.conferenceManager.program.session.addDay"
+msgstr "Додати сесію в цей день"
+
+msgid "plugins.generic.conferenceManager.program.session.edit"
+msgstr "Редагувати сесію"
+
+msgid "plugins.generic.conferenceManager.program.session.type"
+msgstr "Тип сесії"
+
+msgid "plugins.generic.conferenceManager.program.session.title"
+msgstr "Назва"
+
+msgid "plugins.generic.conferenceManager.program.session.room"
+msgstr "Зал"
+
+msgid "plugins.generic.conferenceManager.program.session.noRoom"
+msgstr "Без залу"
+
+msgid "plugins.generic.conferenceManager.program.session.startsAt"
+msgstr "Початок"
+
+msgid "plugins.generic.conferenceManager.program.session.endsAt"
+msgstr "Завершення"
+
+msgid "plugins.generic.conferenceManager.program.session.slot"
+msgstr "Тривалість доповіді за замовчуванням, хв"
+
+msgid "plugins.generic.conferenceManager.program.session.chairs"
+msgstr "Модератори"
+
+msgid "plugins.generic.conferenceManager.program.session.findChair"
+msgstr "Пошук серед учасників видання"
+
+msgid "plugins.generic.conferenceManager.program.session.removeChair"
+msgstr "Прибрати модератора"
+
+msgid "plugins.generic.conferenceManager.program.session.description"
+msgstr "Опис"
+
+msgid "plugins.generic.conferenceManager.program.session.streamUrl"
+msgstr "Посилання на трансляцію"
+
+msgid "plugins.generic.conferenceManager.program.session.streamVisibleFrom"
+msgstr "Показувати посилання з"
+
+msgid "plugins.generic.conferenceManager.program.session.streamHelp"
+msgstr "Посилання бачать лише зареєстровані учасники. Якщо час не вказано, посилання з'являється в день сесії."
+
+msgid "plugins.generic.conferenceManager.program.session.hours"
+msgstr "Години (для свідоцтва)"
+
+msgid "plugins.generic.conferenceManager.program.session.ects"
+msgstr "Кредити ЄКТС"
+
+msgid "plugins.generic.conferenceManager.program.session.outcomes"
+msgstr "Результати навчання"
+
+msgid "plugins.generic.conferenceManager.program.session.deleteConfirm"
+msgstr "Видалити сесію «{$name}»? Її доповіді повернуться до нерозподілених."
+
+msgid "plugins.generic.conferenceManager.program.session.conflict"
+msgstr "Одночасно в іншій сесії: {$names}."
+
+msgid "plugins.generic.conferenceManager.program.session.roomClash"
+msgstr "У цьому залі в цей час є інша сесія."
+
+msgid "plugins.generic.conferenceManager.program.session.overrun"
+msgstr "Доповіді не вміщуються в сесію: бракує {$minutes} хв."
+
+msgid "plugins.generic.conferenceManager.program.session.plenary"
+msgstr "Пленарне засідання"
+
+msgid "plugins.generic.conferenceManager.program.session.section"
+msgstr "Секційне засідання"
+
+msgid "plugins.generic.conferenceManager.program.session.poster"
+msgstr "Стендова сесія"
+
+msgid "plugins.generic.conferenceManager.program.session.seminar"
+msgstr "Семінар"
+
+msgid "plugins.generic.conferenceManager.program.session.break"
+msgstr "Перерва"
+
+msgid "plugins.generic.conferenceManager.program.unassigned"
+msgstr "Нерозподілені доповіді"
+
+msgid "plugins.generic.conferenceManager.program.unassigned.empty"
+msgstr "Усі прийняті доповіді вже в сесіях."
+
+msgid "plugins.generic.conferenceManager.program.sessions.empty"
+msgstr "Сесій ще немає. Додайте першу."
+
+msgid "plugins.generic.conferenceManager.program.moveTo"
+msgstr "Перемістити до"
+
+msgid "plugins.generic.conferenceManager.program.takeOut"
+msgstr "Прибрати з програми"
+
+msgid "plugins.generic.conferenceManager.program.dropHere"
+msgstr "Перетягніть сюди, щоб додати в кінець"
+
+msgid "plugins.generic.conferenceManager.program.dropFirst"
+msgstr "Перетягніть сюди доповідь"
+
+msgid "plugins.generic.conferenceManager.program.notAccepted"
+msgstr "більше не прийнята"
+
+msgid "plugins.generic.conferenceManager.program.duration"
+msgstr "Тривалість доповіді, хв"
+
+msgid "plugins.generic.conferenceManager.program.minutes"
+msgstr "хв"
+
+msgid "plugins.generic.conferenceManager.program.up"
+msgstr "Вище"
+
+msgid "plugins.generic.conferenceManager.program.down"
+msgstr "Нижче"
+
+msgid "plugins.generic.conferenceManager.program.fix"
+msgstr "Виправте позначені поля"
+
+msgid "plugins.generic.conferenceManager.program.saved"
+msgstr "Збережено"
+
+msgid "plugins.generic.conferenceManager.program.error.capacity"
+msgstr "Місткість: ціле число від 0."
+
+msgid "plugins.generic.conferenceManager.program.error.room"
+msgstr "Оберіть зал цього видання."
+
+msgid "plugins.generic.conferenceManager.program.error.roomBusy"
+msgstr "У цьому залі в цей час уже є інша сесія."
+
+msgid "plugins.generic.conferenceManager.program.error.slot"
+msgstr "Тривалість: від 1 до 480 хвилин."
+
+msgid "plugins.generic.conferenceManager.program.error.chair"
+msgstr "Модератором може бути лише учасник цього видання."
+
+msgid "plugins.generic.conferenceManager.program.error.paper"
+msgstr "Доповідь не прийнята до цього видання."
+
+msgid "plugins.generic.conferenceManager.program.error.session"
+msgstr "У цю сесію не можна додати доповіді."
+
+msgid "plugins.generic.conferenceManager.audit.entity.program_room"
+msgstr "Зал"
+
+msgid "plugins.generic.conferenceManager.audit.entity.program_session"
+msgstr "Сесія програми"

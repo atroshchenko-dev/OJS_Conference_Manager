@@ -34,36 +34,52 @@ final class ProgramService
     }
 
     /**
-     * @return array{sections: list<array{title: string, groups: list<array{type: string, labelKey: string, items: list<array{submissionId: int, title: string, authors: string, published: bool}>}>}>, count: int}|null
+     * Accepted papers of the edition (in editing or later, not declined),
+     * whatever their place in the schedule.
+     *
+     * @return list<array{submissionId: int, title: string, authors: string, section: string, type: string, published: bool}>|null
      */
-    public function program(ContextInfo $context, int $editionId, string $locale): ?array
+    public function papers(ContextInfo $context, int $editionId, string $locale): ?array
     {
-        $edition = $this->editions->find($context->id, $editionId);
-        if ($edition === null) {
+        if ($this->editions->find($context->id, $editionId) === null) {
             return null;
         }
         $regs = $this->registrations->registeredOfEdition($editionId);
         $summaries = $this->editorial->summaries(array_map(static fn ($r): int => $r->submissionId, $regs), $locale);
-        $bySection = [];
-        $count = 0;
+        $out = [];
         foreach ($regs as $r) {
             $s = $summaries[$r->submissionId] ?? null;
             if ($s === null || $s['contextId'] !== $context->id || $s['status'] === EditorialDirectory::STATUS_DECLINED
                 || $s['stageId'] < EditorialDirectory::STAGE_EDITING) {
                 continue;
             }
-            $type = $r->presentationType ?? PresentationType::Oral;
-            $bySection[$s['section']][$type->value][] = [
+            $out[] = [
                 'submissionId' => $r->submissionId,
                 'title' => $s['title'],
                 'authors' => $s['authors'],
+                'section' => (string) $s['section'],
+                'type' => ($r->presentationType ?? PresentationType::Oral)->value,
                 'published' => $s['status'] === self::STATUS_PUBLISHED,
             ];
-            ++$count;
         }
-        $collator = class_exists(\Collator::class) ? new \Collator($locale) : null;
-        $cmp = static fn (string $a, string $b): int => $collator === null ? strcmp($a, $b) : (int) $collator->compare($a, $b);
-        uksort($bySection, $cmp);
+        return $out;
+    }
+
+    /**
+     * @return array{sections: list<array{title: string, groups: list<array{type: string, labelKey: string, items: list<array{submissionId: int, title: string, authors: string, published: bool}>}>}>, count: int}|null
+     */
+    public function program(ContextInfo $context, int $editionId, string $locale): ?array
+    {
+        $papers = $this->papers($context, $editionId, $locale);
+        if ($papers === null) {
+            return null;
+        }
+        $bySection = [];
+        foreach ($papers as $p) {
+            $bySection[$p['section']][$p['type']][] = ['submissionId' => $p['submissionId'], 'title' => $p['title'], 'authors' => $p['authors'], 'published' => $p['published']];
+        }
+        $cmp = self::comparator($locale);
+        uksort($bySection, static fn ($a, $b): int => $cmp((string) $a, (string) $b));
         $sections = [];
         foreach ($bySection as $title => $types) {
             $groups = [];
@@ -77,7 +93,14 @@ final class ProgramService
             }
             $sections[] = ['title' => (string) $title, 'groups' => $groups];
         }
-        return ['sections' => $sections, 'count' => $count];
+        return ['sections' => $sections, 'count' => count($papers)];
+    }
+
+    /** @return callable(string, string): int */
+    public static function comparator(string $locale): callable
+    {
+        $collator = class_exists(\Collator::class) ? new \Collator($locale) : null;
+        return static fn (string $a, string $b): int => $collator === null ? strcmp($a, $b) : (int) $collator->compare($a, $b);
     }
 
     private const STATUS_PUBLISHED = 3;

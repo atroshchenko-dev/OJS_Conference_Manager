@@ -20,6 +20,7 @@ use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfile
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceService;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantMailer;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
+use APP\plugins\generic\conferenceManager\classes\Application\ProgramBuilderService;
 use APP\plugins\generic\conferenceManager\classes\Application\ProgramService;
 use APP\plugins\generic\conferenceManager\classes\Application\ReminderService;
 use APP\plugins\generic\conferenceManager\classes\Application\SettingsStore;
@@ -49,6 +50,7 @@ use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\Db
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbParticipantRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPaymentRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbProgramRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbReminderRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
@@ -633,6 +635,70 @@ final class DecisionFlowTest extends TestCase
         self::assertSame('Пленарне засідання о 10:00', $e->text('programText')->resolve('uk', 'uk'));
         self::assertSame(ProgramService::isPublic($e), $e->status !== EditionStatus::Draft);
         self::assertArrayNotHasKey('programPublished', $e->toCopyInput(), 'a copy starts unpublished');
+    }
+
+    public function testProgramBuilder(): void
+    {
+        [$edition, $cat] = $this->edition();
+        foreach ([1 => 'oral', 2 => 'oral', 3 => 'poster', 4 => 'oral'] as $sid => $type) {
+            $this->submit($sid, $edition, $cat, $type);
+        }
+        $this->editorial->stage = [1 => EditorialDirectory::STAGE_EDITING, 2 => EditorialDirectory::STAGE_EDITING, 3 => EditorialDirectory::STAGE_PRODUCTION, 4 => EditorialDirectory::STAGE_SUBMISSION];
+        $builder = new ProgramBuilderService(
+            new DbEditionRepository($this->db),
+            new DbProgramRepository($this->db),
+            new ProgramService(new DbEditionRepository($this->db), new DbRegistrationRepository($this->db), $this->editorial),
+            new AuditLogger($this->db),
+        );
+        [$a, $e] = $builder->saveRoom($this->ctx, $edition, null, ['name' => 'Аудиторія 101', 'capacity' => '40']) ?? [null, null];
+        self::assertSame([], $e?->toArray());
+        [$b] = $builder->saveRoom($this->ctx, $edition, null, ['name' => 'Онлайн', 'onlineUrl' => 'https://meet.example.org/x']) ?? [null];
+        self::assertTrue(($builder->saveRoom($this->ctx, $edition, null, ['name' => '', 'onlineUrl' => 'javascript:x']) ?? [null, null])[1]?->has('onlineUrl'));
+        self::assertNull($builder->saveRoom(new ContextInfo(2, 'uk', ['uk']), $edition, null, ['name' => 'x']), 'another journal');
+
+        $session = static fn (array $over): array => array_merge(['type' => 'section', 'title' => ['uk' => 'Секція 1'], 'startsAt' => '2027-05-20 10:00', 'endsAt' => '2027-05-20 11:00', 'roomId' => $a?->id], $over);
+        [$s1, $e] = $builder->saveSession($this->ctx, $edition, null, $session([])) ?? [null, null];
+        self::assertSame([], $e?->toArray());
+        [$s2] = $builder->saveSession($this->ctx, $edition, null, $session(['title' => ['uk' => 'Секція 2'], 'startsAt' => '2027-05-20 10:30', 'endsAt' => '2027-05-20 11:30', 'roomId' => $b?->id, 'slotMinutes' => 20])) ?? [null];
+        [, $e] = $builder->saveSession($this->ctx, $edition, null, $session(['startsAt' => '2027-05-20 10:45', 'endsAt' => '2027-05-20 12:00'])) ?? [null, null];
+        self::assertTrue($e?->has('roomId'), 'the room is busy');
+        [, $e] = $builder->saveSession($this->ctx, $edition, null, $session(['title' => [], 'endsAt' => '2027-05-20 09:00'])) ?? [null, null];
+        self::assertTrue($e?->has('title') && $e->has('endsAt'));
+        self::assertSame('2027-05-20T07:00:00Z', $s1?->toArray('Europe/Kyiv')['startsAt'], 'local time of the edition');
+
+        // Moving papers: order, times, a paper not accepted yet.
+        self::assertSame([], $builder->move($this->ctx, $edition, 1, $s1?->id, 0)?->toArray());
+        self::assertSame([], $builder->move($this->ctx, $edition, 2, $s1?->id, 0, '30')?->toArray());
+        self::assertTrue($builder->move($this->ctx, $edition, 4, $s1?->id, 0)?->has('submissionId'), 'still in review');
+        $o = $builder->overview($this->ctx, $edition, 'uk') ?? [];
+        $first = $o['sessions'][0];
+        self::assertSame([2, 1], array_column($first['paperItems'], 'submissionId'));
+        self::assertSame(['2027-05-20T10:00', '2027-05-20T10:30'], array_column($first['paperItems'], 'startsAt'));
+        self::assertSame(0, $first['overrun']);
+        self::assertSame([3], array_column($o['unassigned'], 'submissionId'));
+        self::assertSame([], $o['conflicts']);
+
+        // The same presenter in the second session at the same time: a conflict on both.
+        self::assertSame([], $builder->move($this->ctx, $edition, 3, $s2?->id, 5)?->toArray());
+        self::assertSame([], $builder->move($this->ctx, $edition, 1, $s1?->id, 0, '45')?->toArray());
+        $o = $builder->overview($this->ctx, $edition, 'uk') ?? [];
+        self::assertCount(1, $o['conflicts']);
+        self::assertEqualsCanonicalizing([(int) $s1?->id, (int) $s2?->id], $o['conflicts'][0]['sessionIds']);
+        self::assertNotSame([], $o['sessions'][1]['conflicts']);
+        self::assertSame([1, 2], array_column($o['sessions'][0]['paperItems'], 'submissionId'));
+        self::assertSame(15, $o['sessions'][0]['overrun'], '45 + 30 minutes in one hour');
+
+        // Taking out, a break, deleting a room and a session.
+        self::assertSame([], $builder->move($this->ctx, $edition, 3, null, 0)?->toArray());
+        [$s2] = $builder->saveSession($this->ctx, $edition, $s2?->id, $session(['type' => 'break', 'title' => ['uk' => 'Перерва'], 'startsAt' => '2027-05-20 11:00', 'endsAt' => '2027-05-20 11:20', 'roomId' => null])) ?? [null];
+        self::assertTrue($builder->move($this->ctx, $edition, 3, $s2?->id, 0)?->has('sessionId'), 'no papers in a break');
+        self::assertTrue($builder->deleteRoom($this->ctx, $edition, (int) $a?->id));
+        $o = $builder->overview($this->ctx, $edition, 'uk') ?? [];
+        self::assertNull($o['sessions'][0]['roomId']);
+        self::assertTrue($builder->deleteSession($this->ctx, $edition, (int) $s1?->id));
+        $o = $builder->overview($this->ctx, $edition, 'uk') ?? [];
+        self::assertSame([1, 2, 3], array_column($o['unassigned'], 'submissionId'), 'papers of a deleted session go back');
+        self::assertNull($builder->overview(new ContextInfo(2, 'uk', ['uk']), $edition, 'uk'));
     }
 
     public function testCommunicationStepInstallsLetters(): void

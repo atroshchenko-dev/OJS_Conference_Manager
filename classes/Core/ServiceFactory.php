@@ -243,6 +243,18 @@ final class ServiceFactory
         );
     }
 
+    /** PRG-02, PRG-03: the program builder. */
+    public static function programBuilder(): \APP\plugins\generic\conferenceManager\classes\Application\ProgramBuilderService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\ProgramBuilderService(
+            new DbEditionRepository($db),
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbProgramRepository($db),
+            self::program(),
+            new AuditLogger($db),
+        );
+    }
+
     /** Plan, section 15.2: the load profile of the installation. */
     public static function loadPolicy(): \APP\plugins\generic\conferenceManager\classes\Application\LoadPolicy
     {

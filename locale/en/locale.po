@@ -3380,3 +3380,195 @@ msgstr "Add your own presets to the {$folder} folder on the server; the plugin p
 
 msgid "plugins.generic.conferenceManager.site.presets.problems"
 msgstr "These files have errors, so the wizard does not offer them:"
+
+msgid "plugins.generic.conferenceManager.program.builder.open"
+msgstr "Program"
+
+msgid "plugins.generic.conferenceManager.program.builder.title"
+msgstr "Program builder"
+
+msgid "plugins.generic.conferenceManager.program.builder.preview"
+msgstr "View on the site"
+
+msgid "plugins.generic.conferenceManager.program.builder.help"
+msgstr "Create rooms and sessions, then drag accepted papers into sessions or choose a session in the \"Move to\" list. Times are in the time zone of the edition ({$zone})."
+
+msgid "plugins.generic.conferenceManager.program.conflicts"
+msgstr "Schedule conflicts"
+
+msgid "plugins.generic.conferenceManager.program.conflict"
+msgstr "{$name} presents or chairs in sessions that run at the same time ({$n})."
+
+msgid "plugins.generic.conferenceManager.program.rooms"
+msgstr "Rooms"
+
+msgid "plugins.generic.conferenceManager.program.room.name"
+msgstr "Room name"
+
+msgid "plugins.generic.conferenceManager.program.room.capacity"
+msgstr "Capacity"
+
+msgid "plugins.generic.conferenceManager.program.room.onlineUrl"
+msgstr "Online link"
+
+msgid "plugins.generic.conferenceManager.program.room.add"
+msgstr "Add a room"
+
+msgid "plugins.generic.conferenceManager.program.room.deleteConfirm"
+msgstr "Delete the room \"{$name}\"? Its sessions will stay without a room."
+
+msgid "plugins.generic.conferenceManager.program.session.add"
+msgstr "Add a session"
+
+msgid "plugins.generic.conferenceManager.program.session.addDay"
+msgstr "Add a session on this day"
+
+msgid "plugins.generic.conferenceManager.program.session.edit"
+msgstr "Edit the session"
+
+msgid "plugins.generic.conferenceManager.program.session.type"
+msgstr "Session type"
+
+msgid "plugins.generic.conferenceManager.program.session.title"
+msgstr "Title"
+
+msgid "plugins.generic.conferenceManager.program.session.room"
+msgstr "Room"
+
+msgid "plugins.generic.conferenceManager.program.session.noRoom"
+msgstr "No room"
+
+msgid "plugins.generic.conferenceManager.program.session.startsAt"
+msgstr "Start"
+
+msgid "plugins.generic.conferenceManager.program.session.endsAt"
+msgstr "End"
+
+msgid "plugins.generic.conferenceManager.program.session.slot"
+msgstr "Default paper length, min"
+
+msgid "plugins.generic.conferenceManager.program.session.chairs"
+msgstr "Chairs"
+
+msgid "plugins.generic.conferenceManager.program.session.findChair"
+msgstr "Search the participants of the edition"
+
+msgid "plugins.generic.conferenceManager.program.session.removeChair"
+msgstr "Remove the chair"
+
+msgid "plugins.generic.conferenceManager.program.session.description"
+msgstr "Description"
+
+msgid "plugins.generic.conferenceManager.program.session.streamUrl"
+msgstr "Stream link"
+
+msgid "plugins.generic.conferenceManager.program.session.streamVisibleFrom"
+msgstr "Show the link from"
+
+msgid "plugins.generic.conferenceManager.program.session.streamHelp"
+msgstr "Only registered participants see the link. Without a time, it appears on the day of the session."
+
+msgid "plugins.generic.conferenceManager.program.session.hours"
+msgstr "Hours (for the certificate)"
+
+msgid "plugins.generic.conferenceManager.program.session.ects"
+msgstr "ECTS credits"
+
+msgid "plugins.generic.conferenceManager.program.session.outcomes"
+msgstr "Learning outcomes"
+
+msgid "plugins.generic.conferenceManager.program.session.deleteConfirm"
+msgstr "Delete the session \"{$name}\"? Its papers go back to the unassigned list."
+
+msgid "plugins.generic.conferenceManager.program.session.conflict"
+msgstr "At the same time in another session: {$names}."
+
+msgid "plugins.generic.conferenceManager.program.session.roomClash"
+msgstr "Another session is in this room at this time."
+
+msgid "plugins.generic.conferenceManager.program.session.overrun"
+msgstr "The papers do not fit into the session: {$minutes} min short."
+
+msgid "plugins.generic.conferenceManager.program.session.plenary"
+msgstr "Plenary session"
+
+msgid "plugins.generic.conferenceManager.program.session.section"
+msgstr "Section session"
+
+msgid "plugins.generic.conferenceManager.program.session.poster"
+msgstr "Poster session"
+
+msgid "plugins.generic.conferenceManager.program.session.seminar"
+msgstr "Seminar"
+
+msgid "plugins.generic.conferenceManager.program.session.break"
+msgstr "Break"
+
+msgid "plugins.generic.conferenceManager.program.unassigned"
+msgstr "Unassigned papers"
+
+msgid "plugins.generic.conferenceManager.program.unassigned.empty"
+msgstr "All accepted papers are in sessions."
+
+msgid "plugins.generic.conferenceManager.program.sessions.empty"
+msgstr "No sessions yet. Add the first one."
+
+msgid "plugins.generic.conferenceManager.program.moveTo"
+msgstr "Move to"
+
+msgid "plugins.generic.conferenceManager.program.takeOut"
+msgstr "Take out of the program"
+
+msgid "plugins.generic.conferenceManager.program.dropHere"
+msgstr "Drop here to add at the end"
+
+msgid "plugins.generic.conferenceManager.program.dropFirst"
+msgstr "Drop a paper here"
+
+msgid "plugins.generic.conferenceManager.program.notAccepted"
+msgstr "no longer accepted"
+
+msgid "plugins.generic.conferenceManager.program.duration"
+msgstr "Paper length, min"
+
+msgid "plugins.generic.conferenceManager.program.minutes"
+msgstr "min"
+
+msgid "plugins.generic.conferenceManager.program.up"
+msgstr "Up"
+
+msgid "plugins.generic.conferenceManager.program.down"
+msgstr "Down"
+
+msgid "plugins.generic.conferenceManager.program.fix"
+msgstr "Correct the marked fields"
+
+msgid "plugins.generic.conferenceManager.program.saved"
+msgstr "Saved"
+
+msgid "plugins.generic.conferenceManager.program.error.capacity"
+msgstr "Capacity: a whole number from 0."
+
+msgid "plugins.generic.conferenceManager.program.error.room"
+msgstr "Choose a room of this edition."
+
+msgid "plugins.generic.conferenceManager.program.error.roomBusy"
+msgstr "Another session is already in this room at this time."
+
+msgid "plugins.generic.conferenceManager.program.error.slot"
+msgstr "Length: from 1 to 480 minutes."
+
+msgid "plugins.generic.conferenceManager.program.error.chair"
+msgstr "Only a participant of this edition can chair."
+
+msgid "plugins.generic.conferenceManager.program.error.paper"
+msgstr "The paper is not accepted to this edition."
+
+msgid "plugins.generic.conferenceManager.program.error.session"
+msgstr "Papers cannot be added to this session."
+
+msgid "plugins.generic.conferenceManager.audit.entity.program_room"
+msgstr "Room"
+
+msgid "plugins.generic.conferenceManager.audit.entity.program_session"
+msgstr "Program session"
