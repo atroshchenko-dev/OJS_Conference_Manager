@@ -20,6 +20,7 @@ run assert-tables conf_schema_steps,conf_institutions,conf_institution_settings,
 run migrate-twice
 run assert-column conf_submission_registrations category_id
 run assert-column conf_submission_registrations presenter_minor
+run assert-column conf_participations attended_minutes
 run enable confa
 run enable confb
 run user-groups confa

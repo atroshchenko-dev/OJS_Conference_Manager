@@ -578,6 +578,79 @@ cv="$(curl -s -b "$jar" "$api/consent-versions")"
 [ "$(j 'len(d["items"]) >= 1 and sum(v["agreements"] for v in d["items"]) >= 3 and all(v["texts"] for v in d["items"])' <<<"$cv")" = True ] || fail "DAT-01 consent versions: $(head -c 400 <<<"$cv")"
 ok "DAT-05 audit log; DAT-01 consent versions with their texts"
 
+# Sprint 10: attendance, meeting report import, certificates with QR check
+# (ATT-01, ATT-02, EVT-05, CRT-01, 02, 04, 05, 07).
+rp="$(curl -s -b "$jar" "$api/editions/$rid/participants")"
+rpid="$(j '[p["participationId"] for p in d["items"] if p["email"] == "payer4@example.org"][0]' <<<"$rp")"
+[ "$(put "$api/editions/$rid/attendance" "{\"participationIds\":[$rpid],\"attended\":true}" | head -1 | j 'd["changed"]')" = 1 ] || fail "ATT-01 mark"
+[ "$(curl -s -b "$jar" "$api/editions/$rid/participants?attended=1" | j 'd["itemsMax"], d["items"][0]["attended"], d["items"][0]["attendanceSource"]')" = "(1, True, 'manual')" ] || fail "ATT-01 filter"
+[ "$(curl -s -b "$pj4" -X PUT -H "X-Csrf-Token: $csrf" -H 'Content-Type: application/json' "$api/editions/$rid/attendance" -d '{}' -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader cannot mark attendance"
+ok "ATT-01 manual attendance and the filter"
+
+teams="$(python3 - <<'PY'
+import base64
+rows = ["1. Summary", "Meeting title\tКонференція", "", "2. Participants",
+        "Name\tFirst Join\tLast Leave\tIn-Meeting Duration\tEmail\tRole",
+        "Адмін Сайту\t6/20/27, 9:00\t6/20/27, 9:40\t40m 5s\tAdmin@Example.org\tOrganizer",
+        "Олена Коваль\t6/20/27, 9:00\t6/20/27, 9:10\t10m\tolena@example.org\tPresenter",
+        "Олена Коваль\t6/20/27, 11:00\t6/20/27, 11:15\t15m\tolena@example.org\tPresenter",
+        "Гість\t6/20/27, 9:00\t6/20/27, 10:00\t1h\tguest@elsewhere.org\tAttendee"]
+print(base64.b64encode(b"\xff\xfe" + "\r\n".join(rows).encode("utf-16-le")).decode())
+PY
+)"
+pv="$(post "$api/editions/$did/attendance/import" "{\"csvBase64\":\"$teams\",\"threshold\":30,\"apply\":false}")"
+[ "$(tail -1 <<<"$pv")" = 200 ] || fail "ATT-02 preview: $pv"
+[ "$(head -1 <<<"$pv" | j 'd["applied"], d["rows"], d["present"], sorted((m["email"], m["minutes"], m["attended"]) for m in d["matched"]), [u["email"] for u in d["unmatched"]]')" = "(False, 4, 1, [('admin@example.org', 40, True), ('olena@example.org', 25, False)], ['guest@elsewhere.org'])" ] || fail "ATT-02 preview result: $pv"
+[ "$(curl -s -b "$jar" "$api/editions/$did/participants?attended=1" | j 'd["itemsMax"]')" = 0 ] || fail "preview saves nothing"
+[ "$(post "$api/editions/$did/attendance/import" '{"csv":"name,phone\nA,1","threshold":30}' | tail -1)" = 400 ] || fail "ATT-02 unknown format"
+[ "$(post "$api/editions/$did/attendance/import" "{\"csvBase64\":\"$teams\",\"threshold\":0}" | tail -1)" = 400 ] || fail "ATT-02 bad threshold"
+ap="$(post "$api/editions/$did/attendance/import" "{\"csvBase64\":\"$teams\",\"threshold\":30,\"apply\":true}")"
+[ "$(head -1 <<<"$ap" | j 'd["applied"], d["present"]')" = "(True, 1)" ] || fail "ATT-02 apply: $ap"
+[ "$(curl -s -b "$jar" "$api/editions/$did/participants?attended=1" | j 'sorted(set((p["email"], p["attendedMinutes"], p["attendanceSource"]) for p in d["items"]))')" = "[('admin@example.org', 40, 'import')]" ] || fail "ATT-02 saved"
+ok "ATT-02/EVT-05 Teams report (UTF-16, two joins added up) with a 30 min threshold: preview, then apply"
+
+tp="$(curl -s -b "$jar" "$api/certificate-templates")"
+[ "$(j 'sorted(i["type"] for i in d["items"]), "qrCode" in d["variables"]' <<<"$tp")" = "(['listener', 'organizer', 'participation', 'reviewer', 'speaker'], True)" ] || fail "CRT-01 templates: $(head -c 300 <<<"$tp")"
+[ "$(put "$api/certificate-templates/speaker" '{"html":"<p onclick=\"x()\">{recipientName}</p>"}' | tail -1)" = 400 ] || fail "CRT-01 unsafe template"
+[ "$(put "$api/certificate-templates/speaker" '{"html":"<p>{nope}</p>"}' | tail -1)" = 400 ] || fail "CRT-01 unknown variable"
+[ "$(post "$api/certificate-templates/speaker/preview" '{"html":""}' | head -1 | j '"Олена Петренко" in d["html"] and "data:image/svg+xml;base64," in d["html"]')" = True ] || fail "CRT-01 preview"
+[ "$(curl -s -b "$pj4" "$api/certificate-templates" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no templates"
+[ "$(put "$api/certificate-settings" '{"series":"bad series"}' | tail -1)" = 400 ] || fail "CRT-02 bad series"
+[ "$(put "$api/certificate-settings" '{"series":"conf"}' | head -1 | j 'd["series"]')" = CONF ] || fail "CRT-02 series"
+ok "CRT-01 templates, checks and preview; CRT-02 series"
+
+cc="$(curl -s -b "$jar" "$api/editions/$did/certificate-candidates")"
+want="$(j 'json.dumps([c["participationId"] for c in d["items"] if c["type"] and not c["issued"]])' <<<"$cc")"
+[ "$(j 'any(c["type"] for c in d["items"])' <<<"$cc")" = True ] || fail "CRT-05 candidates: $(j 'json.dumps([(c["email"], c["role"], c["attended"], c["type"], c["reason"]) for c in d["items"]])' <<<"$cc")"
+echo "certificate candidates: $(j 'json.dumps([(c["email"], c["role"], c["type"] or c["reason"]) for c in d["items"]])' <<<"$cc")"
+[ "$(j 'all(c["reasonLabel"] for c in d["items"] if not c["type"])' <<<"$cc")" = True ] || fail "CRT-05 reasons"
+is="$(post "$api/editions/$did/certificates" "{\"participationIds\":$want}")"
+[ "$(head -1 <<<"$is" | j 'len([x for x in d["items"] if x["status"] == "issued"]) >= 1 and all(x["number"].startswith("CONF-") for x in d["items"] if x["status"] == "issued")')" = True ] || fail "CRT-04 issue: $is"
+[ "$(post "$api/editions/$did/certificates" "{\"participationIds\":$want}" | head -1 | j 'set(x["reason"] for x in d["items"])')" = "{'alreadyIssued'}" ] || fail "CRT-04 issued once"
+cl="$(curl -s -b "$jar" "$api/editions/$did/certificates")"
+cert="$(j 'd["items"][0]["id"]' <<<"$cl")"; vurl="$(j 'd["items"][0]["verifyUrl"]' <<<"$cl")"; cnum="$(j 'd["items"][0]["number"]' <<<"$cl")"
+[[ "$vurl" =~ /confa/conference/verify/[0-9a-f-]{36}$ ]] || [[ "$vurl" =~ /confa/[a-z]+/conference/verify/[0-9a-f-]{36}$ ]] || fail "CRT-07 verify URL: $vurl"
+cpdf="$(mktemp)"
+curl -s -L -b "$jar" "$B/confa/uk/conference/certificate/$cert" -D /tmp/cm-ch.txt -o "$cpdf"
+grep -qi 'content-type: application/pdf' /tmp/cm-ch.txt && [ "$(head -c 4 "$cpdf")" = '%PDF' ] || fail "CRT-04 PDF: $(head -c 300 "$cpdf")"
+pdfinfo "$cpdf" 2>/dev/null | grep -q 'Page size: *841.89 x 595.28' || fail "A4 landscape: $(pdfinfo "$cpdf" 2>&1 | grep -i size)"
+[ -n "${CM_SHOTS:-}" ] && cp "$cpdf" "$CM_SHOTS/certificate.pdf"
+[ "$(curl -s -L -b "$pj4" "$B/confa/uk/conference/certificate/$cert" -o /dev/null -w '%{http_code}')" = 404 ] || fail "a stranger cannot download the certificate"
+vpage="$(curl -s "$vurl")"
+grep -q "$cnum" <<<"$vpage" && grep -q 'cmVerify--valid' <<<"$vpage" || fail "CRT-07 public check: $(sed 's/<[^>]*>/ /g' <<<"$vpage" | tr -s ' \n' | head -c 400)"
+[ "$(curl -s "${vurl%/*}/00000000-0000-4000-8000-000000000000" -o /dev/null -w '%{http_code}')" = 404 ] || fail "unknown code"
+lim=""
+for k in $(seq 1 31); do lim="$(curl -s "${vurl%/*}/00000000-0000-4000-8000-00000000000$((k % 10))" -o /dev/null -w '%{http_code}')"; done
+[ "$lim" = 429 ] || fail "CRT-07 rate limit: $lim"
+ok "CRT-04/05 issue with numbers $cnum…, PDF A4 landscape, access; CRT-07 public check with QR link and rate limit"
+
+[ "$(post "$api/editions/$rid/certificates" "{\"participationIds\":[$rpid]}" | head -1 | j 'd["items"][0]["status"]')" = issued ] || fail "listener certificate"
+mycab="$(curl -s -L -b "$pj4" "$B/confa/uk/conference/my")"
+mycert="$(grep -o 'conference/certificate/[0-9]*' <<<"$mycab" | head -1)"
+[ -n "$mycert" ] || fail "CRT-04 certificate in the cabinet"
+[ "$(curl -s -L -b "$pj4" "$B/confa/uk/$mycert" | head -c 4)" = '%PDF' ] || fail "holder downloads the certificate"
+ok "CRT-04 listener certificate in the cabinet"
+
 # FEE-05: parallel numbering gives 1…100 with no gaps or repeats.
 for k in $(seq 1 10); do lc next-numbers confa 2099 10 > "/tmp/cm-num-$k.txt" & done
 wait
