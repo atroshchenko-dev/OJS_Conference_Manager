@@ -58,7 +58,8 @@ listeners="$(curl -s -b "$jar" "$api/editions/$pay/participants?searchPhrase=gro
 own="$(py "print([p['participationId'] for p in d['items'] if p['email'] == 'group1@example.org'][0])" <<<"$listeners")"
 other="$(py "print([p['participationId'] for p in d['items'] if p['email'] == 'group2@example.org'][0])" <<<"$listeners")"
 signin "$pa" group1 reader12345
-my="$(curl -s -b "$pa" "$B/confa/uk/conference/my")"
+# OJS 3.5.0-5 redirects the first signed-in visit of a /uk/ page once for the locale.
+my="$(curl -s -L -c "$pa" -b "$pa" "$B/confa/uk/conference/my")"
 grep -q "invitationLetter/$own" <<<"$my" || fail "COM-04 the link on the participant's page"
 grep -q "pay-2027/$own" <<<"$(text "$pa" "$B/confa/uk/conference/invitationLetter/$own")" || fail "COM-04 the participant downloads their letter"
 [ "$(curl -s -b "$pa" -o /dev/null -w '%{http_code}' "$B/confa/uk/conference/invitationLetter/$other")" = 404 ] || fail "COM-04 not another person's letter"
