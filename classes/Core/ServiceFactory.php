@@ -90,6 +90,20 @@ final class ServiceFactory
         );
     }
 
+    /** EDN-09 */
+    public static function editionCopy(): \APP\plugins\generic\conferenceManager\classes\Application\EditionCopyService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\EditionCopyService(
+            new DbEditionRepository($db),
+            new DbFeeRepository($db),
+            new DbPaymentRepository($db),
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbProgramRepository($db),
+            self::settings(),
+            new AuditLogger($db),
+        );
+    }
+
     public static function upcoming(): UpcomingEditionsQuery
     {
         return new UpcomingEditionsQuery(DB::connection(), 'conferencemanagerplugin');

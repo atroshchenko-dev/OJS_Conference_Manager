@@ -66,3 +66,30 @@ grep -q "pay-2027/$own" <<<"$(text "$pa" "$B/confa/uk/conference/invitationLette
 code="$(curl -s -b "$pa" -o /dev/null -w '%{http_code}' "$api/participations/$own/invitation-letter")"
 [ "$code" = 401 ] || [ "$code" = 403 ] || fail "COM-04 the manager route needs a manager"
 echo "OK COM-04 letters for the manager and the participant, in Ukrainian and English, none before acceptance or for another person"
+
+# EDN-09: a copy of an edition takes its categories, tariffs and payment rules.
+csrf="$(curl -s -L -c "$jar" -b "$jar" "$B/confa/en/management/settings/context" | { grep -o '"csrfToken":"[^"]*"' || true; } | head -1 | cut -d'"' -f4)"
+[ -n "$csrf" ] || fail "no CSRF token"
+path="pay-copy-$RANDOM"
+src="$(curl -s -b "$jar" "$api/editions/$pay")"
+body="$(py "
+local = d.get('local') or {}
+for k in ('id', 'issueId', 'local', 'isbn', 'programPublished'): d.pop(k, None)
+dates = dict(startsAt='2028-06-18T09:00', endsAt='2028-06-19T18:00', cfpOpensAt='2028-01-15T00:00', abstractDeadline='2028-03-01T00:00', paperDeadline='2028-04-01T00:00', registrationClosesAt='2028-06-10T00:00', paymentDeadline='2028-06-10T00:00')
+d.update({k: (v if local.get(k) else '') for k, v in dates.items()})
+d.update(path='$path', status='draft', copyParts=['fees', 'paymentRules'])
+print(json.dumps(d))" <<<"$src")"
+r="$(curl -s -b "$jar" -X POST -H "X-Csrf-Token: $csrf" -H 'Content-Type: application/json' "$api/editions/$pay/copy" -d "$body")"
+py "c=d['copied']; assert d['path'] == '$path' and c['categories'] >= 1 and c['tariffs'] >= 1 and c['paymentRules'] >= 1 and c['rooms'] == 0, d" <<<"$r" || fail "EDN-09 copy: $r"
+new="$(py "print(d['id'])" <<<"$r")"
+n1="$(curl -s -b "$jar" "$api/editions/$pay/fees" | py "print(len(d['tariffs']))")"
+n2="$(curl -s -b "$jar" "$api/editions/$new/fees" | py "print(len(d['tariffs']))")"
+[ "$n1" = "$n2" ] || fail "EDN-09 the tariffs: $n1 and $n2"
+echo "OK EDN-09 a copy of an edition with its categories, tariffs and payment rules"
+
+# DST-04: the site table as CSV for the site administrator only.
+csv="$(curl -s -L -c "$jar" -b "$jar" "$B/index/uk/conferenceSite/csv")"
+[ "$(head -1 <<<"$csv" | tr ';' '\n' | wc -l)" = 11 ] || fail "DST-04 the CSV columns: $(head -1 <<<"$csv")"
+grep -q '^"confa";' <<<"$csv" || fail "DST-04 the journals in the CSV"
+[ "$(curl -s -b "$pa" -o /dev/null -w '%{http_code}' "$B/index/uk/conferenceSite/csv")" != 200 ] || fail "DST-04 only for the site administrator"
+echo "OK DST-04 the journals of the site as CSV"

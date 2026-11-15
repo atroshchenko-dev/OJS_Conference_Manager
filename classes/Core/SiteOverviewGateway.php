@@ -41,6 +41,11 @@ final class SiteOverviewGateway
                 'pendingLetters' => (int) DB::table('conf_campaign_recipients as r')->join('conf_campaigns as c', 'c.id', '=', 'r.campaign_id')
                     ->where('c.context_id', $id)->where('r.status', 'pending')->count(),
                 'queuedJobs' => $jobs['byContext'][$id] ?? 0,
+                // RPT-02 for the site: what each journal did with the plugin.
+                'submissions' => (int) DB::table('conf_submission_registrations as r')->join('conf_editions as e', 'e.id', '=', 'r.edition_id')
+                    ->where('e.context_id', $id)->count(),
+                'paidInvoices' => (int) DB::table('conf_invoices')->where('context_id', $id)->whereIn('status', ['paid', 'refund_requested', 'refunded'])->count(),
+                'certificates' => (int) DB::table('conf_certificates')->where('context_id', $id)->whereNull('revoked_at')->count(),
             ];
         }
         $steps = DB::table('conf_schema_steps')->orderBy('step')->pluck('step')->all();
@@ -60,6 +65,31 @@ final class SiteOverviewGateway
             'jobRunnerMaxJobs' => (int) Config::getVar('queues', 'job_runner_max_jobs', 30),
             'serverTimezone' => date_default_timezone_get(),
         ];
+    }
+
+    /**
+     * DST-04: the journals as CSV for a consortium report (UTF-8 with BOM,
+     * ";" as separator).
+     *
+     * @param array<string, mixed> $overview
+     * @param array<string, string> $header column => label
+     */
+    public static function csv(array $overview, array $header): string
+    {
+        $out = "\u{FEFF}" . implode(';', array_map(static fn (string $h): string => '"' . str_replace('"', '""', $h) . '"', array_values($header))) . "\r\n";
+        foreach ($overview['contexts'] as $c) {
+            $cells = [];
+            foreach (array_keys($header) as $key) {
+                $v = $c[$key] ?? '';
+                $v = is_bool($v) ? ($v ? '1' : '0') : (string) $v;
+                if ($v !== '' && in_array($v[0], ['=', '+', '-', '@'], true)) {
+                    $v = "'" . $v;
+                }
+                $cells[] = '"' . str_replace('"', '""', $v) . '"';
+            }
+            $out .= implode(';', $cells) . "\r\n";
+        }
+        return $out;
     }
 
     /** @return array{total: int, byContext: array<int, int>} */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace APP\plugins\generic\conferenceManager\classes\Api;
 
+use APP\plugins\generic\conferenceManager\classes\Application\EditionCopyService;
 use APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionStatus;
@@ -114,20 +115,22 @@ final class EditionRoutes implements RouteModule
 
     public function copy(Request $illuminateRequest): JsonResponse
     {
-        $result = ServiceFactory::editions()->copy(
-            $this->api->contextInfo(),
-            (int) $illuminateRequest->route('editionId'),
-            (array) $illuminateRequest->input(),
-            $this->api->actorId(),
-            $this->api->remoteAddr(),
-        );
+        $context = $this->api->contextInfo();
+        $sourceId = (int) $illuminateRequest->route('editionId');
+        $input = (array) $illuminateRequest->input();
+        $parts = $input['copyParts'] ?? EditionCopyService::PARTS;
+        unset($input['copyParts']);
+        $result = ServiceFactory::editions()->copy($context, $sourceId, $input, $this->api->actorId(), $this->api->remoteAddr());
         if ($result === null) {
             return ConferenceApiController::notFound();
         }
         [$saved, $errors] = $result;
-        return $saved === null
-            ? ConferenceApiController::errorResponse($errors)
-            : response()->json($this->present($saved), Response::HTTP_OK);
+        if ($saved === null) {
+            return ConferenceApiController::errorResponse($errors);
+        }
+        // EDN-09: categories, tariffs, payment rules, rooms and settings come along.
+        $copied = ServiceFactory::editionCopy()->copyParts($context, $sourceId, (int) $saved->id, is_array($parts) ? array_values(array_map('strval', $parts)) : [], $this->api->actorId());
+        return response()->json($this->present($saved) + ['copied' => $copied], Response::HTTP_OK);
     }
 
     public function delete(Request $illuminateRequest): JsonResponse

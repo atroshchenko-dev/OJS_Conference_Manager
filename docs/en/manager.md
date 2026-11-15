@@ -138,7 +138,7 @@ The usual order: "Draft" → "Call open" → "Call closed" → "Held" → "Proce
 
 ### Copying and deleting
 
-- **Copy** opens the form filled in from an existing edition, without dates and ISBN. Categories, tariffs and payment rules are not copied: add them to the new edition, or create the edition with **Setup wizard**.
+- **Copy** opens the form filled in from an existing edition, without dates and ISBN. At the bottom of the form, **What else to copy** lets you take from the previous event: **Participant categories and tariffs**, **Payment rules**, **Program rooms**, **Review and abstract book settings**. All are ticked by default. Tariff validity dates (an early-bird price, for example) move by as many days as the event's start date moved; check them after copying. Participants, invoices, submissions and program sessions are never copied.
 - **Delete** works only for an edition without participants, invoices and submissions. Otherwise the edition can only be archived.
 
 ### Public page

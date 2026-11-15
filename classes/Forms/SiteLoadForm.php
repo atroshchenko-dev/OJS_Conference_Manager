@@ -89,6 +89,16 @@ class SiteLoadForm extends Form
         if ($o['failedJobs'] > 0) {
             $advice[] = __(self::K . 'advice.failed', ['n' => $o['failedJobs']]);
         }
+        // RPT-03: the scheduler does not run.
+        $health = \APP\plugins\generic\conferenceManager\classes\Domain\Site\SchedulerHealth::check(
+            \APP\plugins\generic\conferenceManager\classes\Domain\Site\SchedulerHealth::lastRun($o['taskRuns']),
+            new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
+        );
+        if ($health['status'] === 'never') {
+            array_unshift($advice, __('plugins.generic.conferenceManager.scheduler.never'));
+        } elseif ($health['status'] === 'stale') {
+            array_unshift($advice, __('plugins.generic.conferenceManager.scheduler.stale', ['minutes' => $health['minutes']]));
+        }
         $runs = [];
         foreach (['EditionWindowsTask', 'ReminderTask', 'RetentionTask'] as $task) {
             $run = $o['taskRuns'][$task] ?? null;

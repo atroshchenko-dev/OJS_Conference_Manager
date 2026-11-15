@@ -61,8 +61,8 @@ What it shows:
 
 - **Plugin version** and **Schema steps**: how many database changes have been applied.
 - **Plugin jobs in the queue** and **Failed jobs**.
-- A table of journals. For each journal: **Plugin on**, **Active / all events**, **Participants**, **Mailing letters waiting**, **Jobs queued**. Active events are those whose call is open or closed, or whose papers are published.
-- **Scheduled tasks**: when each plugin task last ran and whether it ran without errors. A task that never ran shows "has not run yet". A failed run points you to the OJS task log.
+- A table of journals. For each journal: **Plugin on**, **Active / all events**, **Participants**, **Papers**, **Paid invoices**, **Certificates** (not revoked), **Mailing letters waiting**, **Jobs queued**. Active events are those whose call is open or closed, or whose papers are published. **Download the table as CSV** gives this table for a consortium or provider report (UTF-8, ";" separator).
+- **Scheduled tasks**: when each plugin task last ran and whether it ran without errors. A task that never ran shows "has not run yet". A failed run points you to the OJS task log. If no task has run for more than two hours, a warning about cron appears at the top of the advice; event managers see the same warning on the summary page.
 - **OJS queue on web requests**: on (and how many jobs per request) or off (jobs run by cron).
 - **Server time zone**.
 - **Load profile** (see below).

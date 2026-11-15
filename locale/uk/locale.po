@@ -4343,3 +4343,42 @@ msgstr "Планувальник OJS не запускав завдання пл
 
 msgid "plugins.generic.conferenceManager.scheduler.never"
 msgstr "Планувальник OJS ще жодного разу не запускав завдання плагіна. Нагадування, розсилки й пакетна видача документів не працюватимуть, доки адміністратор сервера не налаштує cron (посібник адміністратора, розділ «Планувальник»)."
+
+msgid "plugins.generic.conferenceManager.editions.copy.partsTitle"
+msgstr "Що ще скопіювати"
+
+msgid "plugins.generic.conferenceManager.editions.copy.partsHelp"
+msgstr "Учасники, рахунки, подання й сесії програми не копіюються: вони належать одному заходу. Строки дії тарифів зсуваються на стільки днів, на скільки зсунулася дата початку."
+
+msgid "plugins.generic.conferenceManager.editions.copy.part.fees"
+msgstr "Категорії учасників і тарифи"
+
+msgid "plugins.generic.conferenceManager.editions.copy.part.paymentRules"
+msgstr "Правила оплати"
+
+msgid "plugins.generic.conferenceManager.editions.copy.part.rooms"
+msgstr "Зали програми"
+
+msgid "plugins.generic.conferenceManager.editions.copy.part.settings"
+msgstr "Налаштування рецензування й збірника тез"
+
+msgid "plugins.generic.conferenceManager.editions.copy.done"
+msgstr "Захід скопійовано: категорій {$categories}, тарифів {$tariffs}, правил оплати {$rules}, залів {$rooms}. Строки тарифів зсунуто на {$days} дн."
+
+msgid "plugins.generic.conferenceManager.site.submissions"
+msgstr "Доповідей"
+
+msgid "plugins.generic.conferenceManager.site.paidInvoices"
+msgstr "Оплачених рахунків"
+
+msgid "plugins.generic.conferenceManager.site.certificates"
+msgstr "Сертифікатів"
+
+msgid "plugins.generic.conferenceManager.site.activeEditions"
+msgstr "Активних заходів"
+
+msgid "plugins.generic.conferenceManager.site.csv"
+msgstr "Завантажити таблицю в CSV"
+
+msgid "plugins.generic.conferenceManager.site.allEditions"
+msgstr "Усього заходів"

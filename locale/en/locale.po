@@ -4343,3 +4343,42 @@ msgstr "The OJS scheduler has not run the plugin's tasks for {$minutes} min. Rem
 
 msgid "plugins.generic.conferenceManager.scheduler.never"
 msgstr "The OJS scheduler has never run the plugin's tasks. Reminders, mailings and batch documents will not work until the server administrator sets up cron (administrator guide, section “Scheduler”)."
+
+msgid "plugins.generic.conferenceManager.editions.copy.partsTitle"
+msgstr "What else to copy"
+
+msgid "plugins.generic.conferenceManager.editions.copy.partsHelp"
+msgstr "Participants, invoices, submissions and program sessions are never copied: they belong to one event. Tariff validity dates move by as many days as the start date moved."
+
+msgid "plugins.generic.conferenceManager.editions.copy.part.fees"
+msgstr "Participant categories and tariffs"
+
+msgid "plugins.generic.conferenceManager.editions.copy.part.paymentRules"
+msgstr "Payment rules"
+
+msgid "plugins.generic.conferenceManager.editions.copy.part.rooms"
+msgstr "Program rooms"
+
+msgid "plugins.generic.conferenceManager.editions.copy.part.settings"
+msgstr "Review and abstract book settings"
+
+msgid "plugins.generic.conferenceManager.editions.copy.done"
+msgstr "Event copied: {$categories} categories, {$tariffs} tariffs, {$rules} payment rules, {$rooms} rooms. Tariff dates moved by {$days} days."
+
+msgid "plugins.generic.conferenceManager.site.submissions"
+msgstr "Papers"
+
+msgid "plugins.generic.conferenceManager.site.paidInvoices"
+msgstr "Paid invoices"
+
+msgid "plugins.generic.conferenceManager.site.certificates"
+msgstr "Certificates"
+
+msgid "plugins.generic.conferenceManager.site.activeEditions"
+msgstr "Active events"
+
+msgid "plugins.generic.conferenceManager.site.csv"
+msgstr "Download the table as CSV"
+
+msgid "plugins.generic.conferenceManager.site.allEditions"
+msgstr "All events"

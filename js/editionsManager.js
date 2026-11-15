@@ -56,6 +56,7 @@
 				form: null,
 				editingId: null,
 				copyFromId: null,
+				copyParts: ['fees', 'paymentRules', 'rooms', 'settings'],
 				errors: {},
 				formLocale: this.primaryLocale,
 				selected: null,
@@ -307,6 +308,7 @@
 				self.form = form;
 				self.editingId = null;
 				self.copyFromId = edition.id;
+				self.copyParts = ['fees', 'paymentRules', 'rooms', 'settings'];
 				self.errors = {};
 				self.view = 'form';
 			},
@@ -365,10 +367,15 @@
 					url = self.apiUrl + '/' + self.copyFromId + '/copy';
 				}
 				self.isSaving = true;
-				self.request(method, url, self.payload()).then(function (r) {
+				var body = self.payload();
+				if (self.editingId === null && self.copyFromId !== null) {
+					body.copyParts = self.copyParts;
+				}
+				self.request(method, url, body).then(function (r) {
 					self.isSaving = false;
 					if (r.ok) {
-						self.notify(self.t('saved'));
+						var c = r.data && r.data.copied;
+						self.notify(c ? self.t('copy.done', { categories: c.categories, tariffs: c.tariffs, rules: c.paymentRules, rooms: c.rooms, days: c.shiftDays }) : self.t('saved'));
 						self.view = 'list';
 						self.form = null;
 						self.errors = {};
@@ -603,6 +610,11 @@
 				<label class="cmEditions__field" :class="{ \'cmEditions__field--error\': errors.ectsX100 }"><span>{{ t(\'field.ects\') }}</span>\
 					<input class="pkpFormField__input" type="number" min="0" step="0.01" v-model="form.ects"><em v-if="errors.ectsX100">{{ fieldError(\'ectsX100\') }}</em></label>\
 			</div>\
+		</fieldset>\
+		<fieldset v-if="editingId === null && copyFromId !== null" class="cmEditions__section cmCopyParts">\
+			<legend>{{ t(\'copy.partsTitle\') }}</legend>\
+			<p class="cmPanel__muted">{{ t(\'copy.partsHelp\') }}</p>\
+			<label v-for="part in [\'fees\', \'paymentRules\', \'rooms\', \'settings\']" :key="part" class="cmCopyParts__item"><input type="checkbox" :value="part" v-model="copyParts"> {{ t(\'copy.part.\' + part) }}</label>\
 		</fieldset>\
 		<div class="cmEditions__buttons">\
 			<pkp-button :is-primary="true" :disabled="isSaving" @click="save">{{ t(\'save\') }}</pkp-button>\

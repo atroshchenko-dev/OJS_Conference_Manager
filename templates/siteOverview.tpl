@@ -27,6 +27,9 @@
 				<th>{translate key="plugins.generic.conferenceManager.site.enabled"}</th>
 				<th>{translate key="plugins.generic.conferenceManager.site.editions"}</th>
 				<th>{translate key="plugins.generic.conferenceManager.site.participants"}</th>
+				<th>{translate key="plugins.generic.conferenceManager.site.submissions"}</th>
+				<th>{translate key="plugins.generic.conferenceManager.site.paidInvoices"}</th>
+				<th>{translate key="plugins.generic.conferenceManager.site.certificates"}</th>
 				<th>{translate key="plugins.generic.conferenceManager.site.letters"}</th>
 				<th>{translate key="plugins.generic.conferenceManager.site.jobs"}</th>
 			</tr>
@@ -38,13 +41,16 @@
 					<td>{if $c.enabled}{translate key="common.yes"}{else}{translate key="common.no"}{/if}</td>
 					<td>{$c.activeEditions|escape} / {$c.editions|escape}</td>
 					<td>{$c.participants|escape}</td>
+					<td>{$c.submissions|escape}</td>
+					<td>{$c.paidInvoices|escape}</td>
+					<td>{$c.certificates|escape}</td>
 					<td>{$c.pendingLetters|escape}</td>
 					<td>{$c.queuedJobs|escape}</td>
 				</tr>
 			{/foreach}
 		</tbody>
 	</table>
-	<p class="cmSite__hint">{translate key="plugins.generic.conferenceManager.site.editionsHint"}</p>
+	<p class="cmSite__hint">{translate key="plugins.generic.conferenceManager.site.editionsHint"} <a href="{url page="conferenceSite" op="csv"}">{translate key="plugins.generic.conferenceManager.site.csv"}</a></p>
 
 	<h3>{translate key="plugins.generic.conferenceManager.site.tasks"}</h3>
 	<ul class="cmSite__tasks">

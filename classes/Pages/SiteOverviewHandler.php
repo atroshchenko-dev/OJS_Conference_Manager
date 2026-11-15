@@ -28,7 +28,7 @@ class SiteOverviewHandler extends Handler
     public function __construct(private readonly ConferenceManagerPlugin $plugin)
     {
         parent::__construct();
-        $this->addRoleAssignment([Role::ROLE_ID_SITE_ADMIN], ['index']);
+        $this->addRoleAssignment([Role::ROLE_ID_SITE_ADMIN], ['index', 'csv']);
     }
 
     /**
@@ -38,7 +38,7 @@ class SiteOverviewHandler extends Handler
      */
     public function authorize($request, &$args, $roleAssignments)
     {
-        $this->addPolicy(new PKPSiteAccessPolicy($request, ['index'], $roleAssignments));
+        $this->addPolicy(new PKPSiteAccessPolicy($request, ['index', 'csv'], $roleAssignments));
         return $request->getContext() === null && parent::authorize($request, $args, $roleAssignments);
     }
 
@@ -67,5 +67,27 @@ class SiteOverviewHandler extends Handler
             'siteSaved' => $saved,
         ]);
         return $templateMgr->display($this->plugin->getTemplateResource('sitePage.tpl'));
+    }
+
+    /**
+     * DST-04: the journals table as CSV.
+     *
+     * @param array $args
+     * @param \APP\core\Request $request
+     */
+    public function csv($args, $request)
+    {
+        $k = 'plugins.generic.conferenceManager.site.';
+        $header = [
+            'path' => 'path', 'name' => __($k . 'journal'), 'enabled' => __($k . 'enabled'),
+            'editions' => __($k . 'allEditions'), 'activeEditions' => __($k . 'activeEditions'), 'participants' => __($k . 'participants'),
+            'submissions' => __($k . 'submissions'), 'paidInvoices' => __($k . 'paidInvoices'), 'certificates' => __($k . 'certificates'),
+            'pendingLetters' => __($k . 'letters'), 'queuedJobs' => __($k . 'jobs'),
+        ];
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="conference-site-' . gmdate('Ymd') . '.csv"');
+        header('Cache-Control: no-store');
+        echo SiteOverviewGateway::csv((new SiteOverviewGateway())->overview(), $header);
+        exit;
     }
 }
