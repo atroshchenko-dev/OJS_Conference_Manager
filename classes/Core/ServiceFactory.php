@@ -255,6 +255,18 @@ final class ServiceFactory
         );
     }
 
+    /** LEG-02, LEG-03: old OCS addresses. */
+    public static function legacyUrls(): \APP\plugins\generic\conferenceManager\classes\Application\LegacyUrlService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\LegacyUrlService(
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbLegacyUrlRepository($db),
+            new ArticleGateway(),
+            self::settings(),
+            new AuditLogger($db),
+        );
+    }
+
     public static function participantRepository(): DbParticipantRepository
     {
         return new DbParticipantRepository(DB::connection());

@@ -229,6 +229,9 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         $request = Application::get()->getRequest();
         $contextId = $request->getContext()?->getId();
 
+        if ($contextId !== null && $this->redirectLegacyAddress($request, (string) $page, (string) $op)) {
+            exit;
+        }
         if ($page === SiteOverviewHandler::PAGE && $contextId === null) {
             $handler = new SiteOverviewHandler($this);
             return true;
@@ -253,6 +256,35 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
             }
         }
         return Hook::CONTINUE;
+    }
+
+    /**
+     * LEG-03: an old OCS address such as /SRE/SRE-2025/paper/view/123, when
+     * the journal path is the old conference path and the web server has
+     * no redirect map: 301 to the article. Only addresses that fit one of
+     * the journal's templates reach the database.
+     */
+    private function redirectLegacyAddress(\APP\core\Request $request, string $page, string $op): bool
+    {
+        $context = $request->getContext();
+        if ($context === null || $op === '' || $op === 'index' || !$this->isEnabledFor((int) $context->getId())) {
+            return false;
+        }
+        try {
+            $args = array_map('strval', (array) $request->getRequestedArgs());
+            $path = implode('/', array_filter([$context->getPath(), $page, $op, ...$args], static fn (string $s): bool => $s !== ''));
+            $found = ServiceFactory::legacyUrls()->resolve(ContextGateway::fromContext($context), $path);
+            if ($found === null || $found['submissionId'] === null) {
+                return false;
+            }
+            $url = $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), 'article', 'view', [$found['submissionId']]);
+            header('Location: ' . $url, true, 301);
+            header('Cache-Control: public, max-age=86400');
+            return true;
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: legacy address: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**

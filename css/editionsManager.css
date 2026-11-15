@@ -212,3 +212,14 @@
 .cmProgram__dropEnd { border: 1px dashed #ccc; border-radius: 4px; padding: .5rem; color: #6b6b6b; font-size: .8125rem; text-align: center; margin-top: .25rem; }
 .cmProgram__drop--over { outline: 2px solid #006798; outline-offset: -2px; background: #eef6fb; }
 .cmProgram__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* LEG-02: old OCS addresses */
+.cmLegacy__stats { font-weight: 600; margin: .5rem 0 1rem; }
+.cmLegacy__csv { width: 100%; font-family: monospace; font-size: .8125rem; }
+.cmLegacy__report { margin-top: 1rem; }
+.cmLegacy__report ul { max-height: 16rem; overflow: auto; margin: .25rem 0 .75rem; padding-left: 1.25rem; font-size: .875rem; }
+.cmLegacy__report summary { cursor: pointer; font-weight: 600; }
+.cmLegacy__errors { color: #b00020; margin: .25rem 0; padding-left: 1.25rem; }
+.cmLegacy__result { overflow-wrap: anywhere; }
+.cmLegacy__csv { min-height: 8rem; resize: vertical; }
+.cmLegacy .cmEditions__buttons a.pkpButton { display: inline-block; padding: .4375rem .75rem; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; font-weight: 700; font-size: .875rem; line-height: 1.25rem; }

@@ -13,6 +13,7 @@ These guides are for everyone who works with the Conference Manager plugin in Op
 | [Registration manager](registration-manager.md) | Whoever keeps the register of participants, reviews receipts, records payments and marks attendance. |
 | [Participant: author, co-author, listener](participant.md) | Whoever submits an abstract, confirms co-authorship, registers as a listener, pays and receives a certificate. |
 | [Presets](presets.md) | Institutions and the community that want to describe a typical event setup in one file and share it. |
+| [OCS archive migration](ocs-migration.md) | Institutions moving from OCS 2.x: migrating papers, matching and redirecting old addresses. |
 
 ## Which guide to read
 

@@ -166,6 +166,10 @@
 				this.selected = null;
 				this.view = 'certificateTemplates';
 			},
+			openLegacy: function () {
+				this.selected = null;
+				this.view = 'legacy';
+			},
 			openPrivacy: function () {
 				this.selected = null;
 				this.view = 'privacy';
@@ -425,6 +429,7 @@
 			<pkp-button v-if="canEditEditions" @click="openCertificateTemplates">{{ t(\'certificateTemplates\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" @click="openAudit">{{ t(\'audit\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" @click="openPrivacy">{{ t(\'privacy.title\') }}</pkp-button>\
+			<pkp-button v-if="canEditEditions" @click="openLegacy">{{ t(\'legacy.title\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" @click="openSetup">{{ t(\'setup.open\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" :is-primary="true" @click="create">{{ t(\'new\') }}</pkp-button>\
 		</div>\
@@ -472,6 +477,7 @@
 	<conference-certificate-templates v-else-if="view === \'certificateTemplates\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-certificate-templates>\
 	<conference-setup-wizard v-else-if="view === \'setup\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :ui-locale="uiLocale" :default-timezone="defaultTimezone" :i18n="i18n" @back="backToList" @created="setupCreated"></conference-setup-wizard>\
 	<conference-program-builder v-else-if="view === \'program\'" :api-url="apiUrl + \'/\' + selected.id" :public-url="publicLink(selected) + \'/program\'" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :i18n="i18n" @back="backToList"></conference-program-builder>\
+	<conference-legacy-urls v-else-if="view === \'legacy\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-legacy-urls>\
 	<conference-personal-data v-else-if="view === \'privacy\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-personal-data>\
 	<conference-audit-log v-else-if="view === \'audit\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-audit-log>\
 	<conference-invoices-list v-else-if="view === \'invoices\'" :api-url="apiUrl + \'/\' + selected.id + \'/invoices\'" :invoice-api-url="apiUrl.replace(/editions$/, \'invoices\')" :pdf-url="invoicePdfUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-invoices-list>\

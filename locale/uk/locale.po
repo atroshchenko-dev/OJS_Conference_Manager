@@ -3620,3 +3620,150 @@ msgstr "Додати сесію до календаря"
 
 msgid "plugins.generic.conferenceManager.program.article.title"
 msgstr "У програмі конференції"
+
+msgid "plugins.generic.conferenceManager.legacy.title"
+msgstr "Старі адреси OCS"
+
+msgid "plugins.generic.conferenceManager.legacy.help"
+msgstr "Якщо статті журналу перенесено з OCS, старі посилання на доповіді мають вести на нові сторінки. Завантажте перелік доповідей OCS: плагін зіставить їх зі статтями журналу, а сервер старої адреси відповідатиме переадресацією 301 за картою, яку можна завантажити нижче."
+
+msgid "plugins.generic.conferenceManager.legacy.stats"
+msgstr "Зіставлено {$matched} з {$n} доповідей OCS."
+
+msgid "plugins.generic.conferenceManager.legacy.import"
+msgstr "Перелік доповідей OCS"
+
+msgid "plugins.generic.conferenceManager.legacy.importHelp"
+msgstr "CSV з колонками ocs_paper_id, conference, sched_conf і title (або submission_id з номером статті в OJS). Запит до бази OCS, що його створює, є в посібнику з перенесення. Доповідь зіставляється за номером статті, а якщо його немає, то за назвою; для однакових назв враховується рік зі шляху видання. Повторне завантаження оновлює наявні рядки."
+
+msgid "plugins.generic.conferenceManager.legacy.file"
+msgstr "Файл CSV"
+
+msgid "plugins.generic.conferenceManager.legacy.paste"
+msgstr "Або вставте вміст"
+
+msgid "plugins.generic.conferenceManager.legacy.importButton"
+msgstr "Завантажити й зіставити"
+
+msgid "plugins.generic.conferenceManager.legacy.imported"
+msgstr "Опрацьовано рядків: {$n}, зіставлено: {$matched}."
+
+msgid "plugins.generic.conferenceManager.legacy.errors"
+msgstr "Пропущені рядки"
+
+msgid "plugins.generic.conferenceManager.legacy.ambiguous"
+msgstr "Кілька статей з такою назвою"
+
+msgid "plugins.generic.conferenceManager.legacy.ambiguousHelp"
+msgstr "Додайте до цих рядків колонку submission_id з потрібним номером статті й завантажте файл ще раз."
+
+msgid "plugins.generic.conferenceManager.legacy.unmatched"
+msgstr "Не знайдено статті"
+
+msgid "plugins.generic.conferenceManager.legacy.unmatchedHelp"
+msgstr "Статті з такою назвою серед опублікованих немає. Перевірте, чи перенесено доповідь, або вкажіть submission_id."
+
+msgid "plugins.generic.conferenceManager.legacy.check"
+msgstr "Перевірити адресу"
+
+msgid "plugins.generic.conferenceManager.legacy.oldUrl"
+msgstr "Стара адреса"
+
+msgid "plugins.generic.conferenceManager.legacy.checkButton"
+msgstr "Перевірити"
+
+msgid "plugins.generic.conferenceManager.legacy.notOcs"
+msgstr "Ця адреса не відповідає жодному шаблону старих адрес."
+
+msgid "plugins.generic.conferenceManager.legacy.leadsTo"
+msgstr "Доповідь OCS №{$id} веде на"
+
+msgid "plugins.generic.conferenceManager.legacy.noArticle"
+msgstr "Доповідь OCS №{$id} ще не зіставлено зі статтею."
+
+msgid "plugins.generic.conferenceManager.legacy.map"
+msgstr "Карта переадресацій для веб-сервера"
+
+msgid "plugins.generic.conferenceManager.legacy.mapHelp"
+msgstr "Передайте файл адміністраторові сервера старої адреси. Для nginx потрібен один файл, для Apache два: карта й правила. Якщо шлях журналу збігається з першою частиною старих адрес і старий домен веде на цей сайт, плагін переадресовує й сам, без карти."
+
+msgid "plugins.generic.conferenceManager.legacy.mapNginx"
+msgstr "nginx"
+
+msgid "plugins.generic.conferenceManager.legacy.mapApache"
+msgstr "Apache: карта"
+
+msgid "plugins.generic.conferenceManager.legacy.mapApacheRules"
+msgstr "Apache: правила"
+
+msgid "plugins.generic.conferenceManager.legacy.templates"
+msgstr "Шаблони старих адрес"
+
+msgid "plugins.generic.conferenceManager.legacy.templatesHelp"
+msgstr "Один шаблон у рядку. Частини: {conference} — шлях конференції, {schedConf} — шлях видання, {id} — номер доповіді OCS (обов'язково), {fileId} — номер файлу, {any} — будь-яка частина. Потрібна хоча б одна незмінна частина, наприклад paper. Префікс index.php/ враховується сам."
+
+msgid "plugins.generic.conferenceManager.legacy.restore"
+msgstr "Повернути типові"
+
+msgid "plugins.generic.conferenceManager.legacy.clear"
+msgstr "Видалити всі зіставлення"
+
+msgid "plugins.generic.conferenceManager.legacy.clearHelp"
+msgstr "Плагін забуде всі доповіді OCS цього журналу. Статті не змінюються."
+
+msgid "plugins.generic.conferenceManager.legacy.clearConfirm"
+msgstr "Так, видалити {$n}"
+
+msgid "plugins.generic.conferenceManager.legacy.cleared"
+msgstr "Видалено зіставлень: {$n}."
+
+msgid "plugins.generic.conferenceManager.legacy.line"
+msgstr "Рядок {$n}:"
+
+msgid "plugins.generic.conferenceManager.legacy.error.size"
+msgstr "Файл порожній або більший за 10 МБ."
+
+msgid "plugins.generic.conferenceManager.legacy.error.rows"
+msgstr "У файлі більше 50 000 рядків. Розділіть його на частини."
+
+msgid "plugins.generic.conferenceManager.legacy.error.header"
+msgstr "У першому рядку мають бути назви колонок: ocs_paper_id, conference, sched_conf і title або submission_id."
+
+msgid "plugins.generic.conferenceManager.legacy.error.id"
+msgstr "номер доповіді OCS має бути цілим додатним числом."
+
+msgid "plugins.generic.conferenceManager.legacy.error.path"
+msgstr "шлях конференції чи видання порожній або містить пробіл чи скісну риску."
+
+msgid "plugins.generic.conferenceManager.legacy.error.duplicate"
+msgstr "ця доповідь уже є у файлі вище."
+
+msgid "plugins.generic.conferenceManager.legacy.error.submission"
+msgstr "статті з таким submission_id серед опублікованих статей журналу немає."
+
+msgid "plugins.generic.conferenceManager.legacy.error.taken"
+msgstr "Адреса {$path} уже належить іншому журналу сайту, рядок пропущено."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.empty"
+msgstr "порожній або задовгий шаблон."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.placeholder"
+msgstr "невідома частина в фігурних дужках."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.repeated"
+msgstr "частина повторюється."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.segment"
+msgstr "частина містить недозволені символи."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.id"
+msgstr "немає {id}."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.fixed"
+msgstr "немає жодної незмінної частини."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.tooMany"
+msgstr "шаблонів більше 20."
+
+msgid "plugins.generic.conferenceManager.audit.entity.legacy_urls"
+msgstr "Старі адреси OCS"

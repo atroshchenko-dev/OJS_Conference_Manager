@@ -3620,3 +3620,150 @@ msgstr "Add this session to calendar"
 
 msgid "plugins.generic.conferenceManager.program.article.title"
 msgstr "In the conference program"
+
+msgid "plugins.generic.conferenceManager.legacy.title"
+msgstr "Old OCS addresses"
+
+msgid "plugins.generic.conferenceManager.legacy.help"
+msgstr "If the journal's articles came from OCS, old links to papers should lead to the new pages. Upload the list of OCS papers: the plugin matches them with the journal's articles, and the server of the old address answers with a 301 redirect by the map you can download below."
+
+msgid "plugins.generic.conferenceManager.legacy.stats"
+msgstr "{$matched} of {$n} OCS papers are matched."
+
+msgid "plugins.generic.conferenceManager.legacy.import"
+msgstr "List of OCS papers"
+
+msgid "plugins.generic.conferenceManager.legacy.importHelp"
+msgstr "A CSV file with the columns ocs_paper_id, conference, sched_conf and title (or submission_id with the OJS article id). The query to the OCS database that makes it is in the migration guide. A paper is matched by the article id or, without it, by title; for equal titles the year in the path of the edition decides. Uploading again updates existing rows."
+
+msgid "plugins.generic.conferenceManager.legacy.file"
+msgstr "CSV file"
+
+msgid "plugins.generic.conferenceManager.legacy.paste"
+msgstr "Or paste the content"
+
+msgid "plugins.generic.conferenceManager.legacy.importButton"
+msgstr "Upload and match"
+
+msgid "plugins.generic.conferenceManager.legacy.imported"
+msgstr "Rows processed: {$n}, matched: {$matched}."
+
+msgid "plugins.generic.conferenceManager.legacy.errors"
+msgstr "Skipped rows"
+
+msgid "plugins.generic.conferenceManager.legacy.ambiguous"
+msgstr "Several articles with this title"
+
+msgid "plugins.generic.conferenceManager.legacy.ambiguousHelp"
+msgstr "Add the submission_id column with the right article id to these rows and upload the file again."
+
+msgid "plugins.generic.conferenceManager.legacy.unmatched"
+msgstr "No article found"
+
+msgid "plugins.generic.conferenceManager.legacy.unmatchedHelp"
+msgstr "No published article has this title. Check that the paper was migrated, or give the submission_id."
+
+msgid "plugins.generic.conferenceManager.legacy.check"
+msgstr "Check an address"
+
+msgid "plugins.generic.conferenceManager.legacy.oldUrl"
+msgstr "Old address"
+
+msgid "plugins.generic.conferenceManager.legacy.checkButton"
+msgstr "Check"
+
+msgid "plugins.generic.conferenceManager.legacy.notOcs"
+msgstr "This address fits none of the old address templates."
+
+msgid "plugins.generic.conferenceManager.legacy.leadsTo"
+msgstr "OCS paper {$id} leads to"
+
+msgid "plugins.generic.conferenceManager.legacy.noArticle"
+msgstr "OCS paper {$id} is not matched with an article yet."
+
+msgid "plugins.generic.conferenceManager.legacy.map"
+msgstr "Redirect map for the web server"
+
+msgid "plugins.generic.conferenceManager.legacy.mapHelp"
+msgstr "Give the file to the administrator of the old address's server. nginx needs one file, Apache two: the map and the rules. If the journal path is the first part of the old addresses and the old domain points to this site, the plugin also redirects by itself, without a map."
+
+msgid "plugins.generic.conferenceManager.legacy.mapNginx"
+msgstr "nginx"
+
+msgid "plugins.generic.conferenceManager.legacy.mapApache"
+msgstr "Apache: map"
+
+msgid "plugins.generic.conferenceManager.legacy.mapApacheRules"
+msgstr "Apache: rules"
+
+msgid "plugins.generic.conferenceManager.legacy.templates"
+msgstr "Old address templates"
+
+msgid "plugins.generic.conferenceManager.legacy.templatesHelp"
+msgstr "One template per line. Parts: {conference} is the conference path, {schedConf} the edition path, {id} the OCS paper id (required), {fileId} a file id, {any} any part. At least one fixed part such as paper is required. An index.php/ prefix is handled automatically."
+
+msgid "plugins.generic.conferenceManager.legacy.restore"
+msgstr "Restore defaults"
+
+msgid "plugins.generic.conferenceManager.legacy.clear"
+msgstr "Delete all matches"
+
+msgid "plugins.generic.conferenceManager.legacy.clearHelp"
+msgstr "The plugin forgets all OCS papers of this journal. Articles are not changed."
+
+msgid "plugins.generic.conferenceManager.legacy.clearConfirm"
+msgstr "Yes, delete {$n}"
+
+msgid "plugins.generic.conferenceManager.legacy.cleared"
+msgstr "Matches deleted: {$n}."
+
+msgid "plugins.generic.conferenceManager.legacy.line"
+msgstr "Line {$n}:"
+
+msgid "plugins.generic.conferenceManager.legacy.error.size"
+msgstr "The file is empty or larger than 10 MB."
+
+msgid "plugins.generic.conferenceManager.legacy.error.rows"
+msgstr "The file has more than 50,000 rows. Split it into parts."
+
+msgid "plugins.generic.conferenceManager.legacy.error.header"
+msgstr "The first row must name the columns: ocs_paper_id, conference, sched_conf and title or submission_id."
+
+msgid "plugins.generic.conferenceManager.legacy.error.id"
+msgstr "the OCS paper id must be a positive whole number."
+
+msgid "plugins.generic.conferenceManager.legacy.error.path"
+msgstr "the conference or edition path is empty or has a space or a slash."
+
+msgid "plugins.generic.conferenceManager.legacy.error.duplicate"
+msgstr "this paper is already in the file above."
+
+msgid "plugins.generic.conferenceManager.legacy.error.submission"
+msgstr "no published article of the journal has this submission_id."
+
+msgid "plugins.generic.conferenceManager.legacy.error.taken"
+msgstr "The address {$path} already belongs to another journal of the site; the row is skipped."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.empty"
+msgstr "the template is empty or too long."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.placeholder"
+msgstr "unknown part in braces."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.repeated"
+msgstr "a part is repeated."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.segment"
+msgstr "a part has characters that are not allowed."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.id"
+msgstr "{id} is missing."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.fixed"
+msgstr "no fixed part."
+
+msgid "plugins.generic.conferenceManager.legacy.error.template.tooMany"
+msgstr "more than 20 templates."
+
+msgid "plugins.generic.conferenceManager.audit.entity.legacy_urls"
+msgstr "Old OCS addresses"

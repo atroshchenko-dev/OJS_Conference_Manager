@@ -65,6 +65,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'assign-author' => $this->assignAuthor($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 'email-log' => $this->emailLog((int) $this->argv[1], $this->argv[2]),
                 'clone-abstracts' => $this->cloneAbstracts($this->argv[1], (int) $this->argv[2], (int) $this->argv[3], (int) $this->argv[4]),
+                'publish-article' => $this->publishArticle((int) $this->argv[1], $this->argv[2], $this->argv[3] ?? null),
                 'seed-participants' => $this->seedParticipants($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
@@ -411,6 +412,22 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 return $next;
             }), "\n";
         }
+    }
+
+    /**
+     * Marks the current publication of a submission as published (tests
+     * of pages that need a public article: the smoke issue stays
+     * unpublished) and, if given, sets its title in the primary locale.
+     */
+    private function publishArticle(int $submissionId, string $date, ?string $title): void
+    {
+        $pub = (int) DB::table('submissions')->where('submission_id', $submissionId)->value('current_publication_id');
+        $pub > 0 || throw new RuntimeException('no publication');
+        DB::table('publications')->where('publication_id', $pub)->update(['status' => \APP\submission\Submission::STATUS_PUBLISHED, 'date_published' => $date]);
+        if ($title !== null) {
+            DB::table('publication_settings')->where('publication_id', $pub)->where('setting_name', 'title')->update(['setting_value' => $title]);
+        }
+        echo "OK published {$submissionId}\n";
     }
 
     private function steps(): void
