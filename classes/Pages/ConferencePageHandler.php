@@ -282,6 +282,7 @@ class ConferencePageHandler extends Handler
         $seats = $service->seats($info, (int) $edition->id, $locale);
         $full = $seats !== null && $seats['seats'] !== null && $seats['taken'] >= $seats['seats']
             && in_array(\APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationForm::InPerson, ParticipantService::listenerForms($edition), true);
+        $queue = $seats === null || !$full ? 0 : count($seats['queue']);
 
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
@@ -299,7 +300,7 @@ class ConferencePageHandler extends Handler
             'registerCategories' => $categories,
             'registerHasPromo' => $hasPromo,
             'registerSeatsFull' => $full,
-            'registerQueue' => $full && $seats !== null ? count($seats['queue']) : 0,
+            'registerQueue' => $queue,
             'registerPerson' => [
                 'name' => $person === null ? '' : trim(($person['givenName'][$locale] ?? (array_values($person['givenName'])[0] ?? '')) . ' ' . ($person['familyName'][$locale] ?? (array_values($person['familyName'])[0] ?? ''))),
                 'email' => $person['email'] ?? '',
