@@ -23,9 +23,9 @@ final class QrCode
     /** Format bits of level M. */
     private const ECL_BITS = 0;
 
-    /** @var list<list<bool>> [y][x], true = dark */
+    /** @var array<int, array<int, bool>> [y][x], true = dark */
     private array $modules = [];
-    /** @var list<list<bool>> */
+    /** @var array<int, array<int, bool>> */
     private array $isFunction = [];
     public readonly int $size;
     public readonly int $mask;
@@ -83,10 +83,17 @@ final class QrCode
         $dim = $this->size + $border * 2;
         $path = '';
         for ($y = 0; $y < $this->size; $y++) {
+            // One rectangle per run of dark modules in a row keeps the file small.
             for ($x = 0; $x < $this->size; $x++) {
-                if ($this->modules[$y][$x]) {
-                    $path .= 'M' . ($x + $border) . ',' . ($y + $border) . 'h1v1h-1z';
+                if (!$this->modules[$y][$x]) {
+                    continue;
                 }
+                $run = 1;
+                while ($x + $run < $this->size && $this->modules[$y][$x + $run]) {
+                    $run++;
+                }
+                $path .= 'M' . ($x + $border) . ',' . ($y + $border) . 'h' . $run . 'v1h-' . $run . 'z';
+                $x += $run - 1;
             }
         }
         return '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 ' . $dim . ' ' . $dim . '" width="' . $dim * 4 . '" height="' . $dim * 4 . '" shape-rendering="crispEdges">'
@@ -166,7 +173,7 @@ final class QrCode
     private function addEccAndInterleave(array $data): array
     {
         $ver = $this->version;
-        $numBlocks = self::BLOCKS[$ver];
+        $numBlocks = max(1, self::BLOCKS[$ver]);
         $eccLen = self::ECC_PER_BLOCK[$ver];
         $raw = intdiv(self::numRawDataModules($ver), 8);
         $numShort = $numBlocks - $raw % $numBlocks;

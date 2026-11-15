@@ -2474,3 +2474,303 @@ msgstr "Тариф"
 
 msgid "plugins.generic.conferenceManager.audit.entity.payment_rule"
 msgstr "Правило оплати"
+
+msgid "plugins.generic.conferenceManager.editions.certificates"
+msgstr "Сертифікати"
+
+msgid "plugins.generic.conferenceManager.editions.certificateTemplates"
+msgstr "Шаблони сертифікатів"
+
+msgid "plugins.generic.conferenceManager.certificate.type.participation"
+msgstr "Сертифікат учасника"
+
+msgid "plugins.generic.conferenceManager.certificate.type.speaker"
+msgstr "Сертифікат доповідача"
+
+msgid "plugins.generic.conferenceManager.certificate.type.listener"
+msgstr "Сертифікат слухача"
+
+msgid "plugins.generic.conferenceManager.certificate.type.organizer"
+msgstr "Подяка організатору"
+
+msgid "plugins.generic.conferenceManager.certificate.type.reviewer"
+msgstr "Подяка рецензенту"
+
+msgid "plugins.generic.conferenceManager.certificate.title.participation"
+msgstr "СЕРТИФІКАТ"
+
+msgid "plugins.generic.conferenceManager.certificate.title.speaker"
+msgstr "СЕРТИФІКАТ"
+
+msgid "plugins.generic.conferenceManager.certificate.title.listener"
+msgstr "СЕРТИФІКАТ"
+
+msgid "plugins.generic.conferenceManager.certificate.title.organizer"
+msgstr "ПОДЯКА"
+
+msgid "plugins.generic.conferenceManager.certificate.title.reviewer"
+msgstr "ПОДЯКА"
+
+msgid "plugins.generic.conferenceManager.certificate.roleText.participation"
+msgstr "взяв(-ла) участь як автор(-ка) доповіді в роботі"
+
+msgid "plugins.generic.conferenceManager.certificate.roleText.speaker"
+msgstr "виступив(-ла) з доповіддю на"
+
+msgid "plugins.generic.conferenceManager.certificate.roleText.listener"
+msgstr "взяв(-ла) участь як слухач(-ка) у роботі"
+
+msgid "plugins.generic.conferenceManager.certificate.roleText.organizer"
+msgstr "за організацію та проведення"
+
+msgid "plugins.generic.conferenceManager.certificate.roleText.reviewer"
+msgstr "за рецензування матеріалів"
+
+msgid "plugins.generic.conferenceManager.certificate.reason.cancelled"
+msgstr "участь скасовано"
+
+msgid "plugins.generic.conferenceManager.certificate.reason.notAttended"
+msgstr "присутність не позначена"
+
+msgid "plugins.generic.conferenceManager.certificate.reason.notAccepted"
+msgstr "доповідь не прийнята"
+
+msgid "plugins.generic.conferenceManager.certificate.reason.notPublished"
+msgstr "заочна участь: матеріали ще не опубліковані"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.name"
+msgstr "Олена Петренко"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.affiliation"
+msgstr "Кафедра педагогіки"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.conference"
+msgstr "Сучасні виклики освіти"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.venue"
+msgstr "Київ, головний корпус"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.paper"
+msgstr "Цифрові інструменти в навчанні"
+
+msgid "plugins.generic.conferenceManager.certificate.template.error.empty"
+msgstr "Шаблон порожній."
+
+msgid "plugins.generic.conferenceManager.certificate.template.error.tooLong"
+msgstr "Шаблон задовгий (понад 100 000 символів)."
+
+msgid "plugins.generic.conferenceManager.certificate.template.error.variables"
+msgstr "У шаблоні є невідомі змінні. Використовуйте лише змінні зі списку."
+
+msgid "plugins.generic.conferenceManager.certificate.template.error.unsafe"
+msgstr "Шаблон не може містити скриптів, вбудованих фреймів, обробників подій чи посилань javascript:."
+
+msgid "plugins.generic.conferenceManager.certificate.error.series"
+msgstr "Серія: від 1 до 10 літер або цифр, без пробілів і дефісів."
+
+msgid "plugins.generic.conferenceManager.attendance.error.threshold"
+msgstr "Поріг: ціле число хвилин від 1 до 1440."
+
+msgid "plugins.generic.conferenceManager.attendance.error.file"
+msgstr "Оберіть файл звіту (до 5 МБ)."
+
+msgid "plugins.generic.conferenceManager.attendance.error.format"
+msgstr "У файлі не знайдено стовпців з електронною поштою і тривалістю участі. Завантажте звіт про відвідування з Teams, Zoom або Google Meet у форматі CSV."
+
+msgid "plugins.generic.conferenceManager.my.certificates"
+msgstr "Мої сертифікати"
+
+msgid "plugins.generic.conferenceManager.certificate.conference"
+msgstr "Захід"
+
+msgid "plugins.generic.conferenceManager.certificate.issuedAt"
+msgstr "Дата видачі"
+
+msgid "plugins.generic.conferenceManager.certificate.download"
+msgstr "Завантажити PDF"
+
+msgid "plugins.generic.conferenceManager.certificate.verifyLink"
+msgstr "Сторінка перевірки"
+
+msgid "plugins.generic.conferenceManager.verify.title"
+msgstr "Перевірка сертифіката"
+
+msgid "plugins.generic.conferenceManager.verify.intro"
+msgstr "Введіть код з QR-посилання на сертифікаті, щоб переконатися, що його видав цей журнал."
+
+msgid "plugins.generic.conferenceManager.verify.code"
+msgstr "Код перевірки"
+
+msgid "plugins.generic.conferenceManager.verify.check"
+msgstr "Перевірити"
+
+msgid "plugins.generic.conferenceManager.verify.valid"
+msgstr "Сертифікат дійсний: його видав цей журнал."
+
+msgid "plugins.generic.conferenceManager.verify.revoked"
+msgstr "Сертифікат відкликано."
+
+msgid "plugins.generic.conferenceManager.verify.notFound"
+msgstr "Сертифікат з таким кодом не знайдено. Перевірте код."
+
+msgid "plugins.generic.conferenceManager.verify.limited"
+msgstr "Забагато перевірок за хвилину. Спробуйте трохи пізніше."
+
+msgid "plugins.generic.conferenceManager.verify.number"
+msgstr "Номер"
+
+msgid "plugins.generic.conferenceManager.verify.type"
+msgstr "Вид"
+
+msgid "plugins.generic.conferenceManager.verify.recipient"
+msgstr "Кому видано"
+
+msgid "plugins.generic.conferenceManager.verify.institution"
+msgstr "Заклад"
+
+msgid "plugins.generic.conferenceManager.verify.paper"
+msgstr "Доповідь"
+
+msgid "plugins.generic.conferenceManager.verify.hours"
+msgstr "Обсяг, годин"
+
+msgid "plugins.generic.conferenceManager.verify.revokeReason"
+msgstr "Причина відкликання"
+
+msgid "plugins.generic.conferenceManager.verify.replacedBy"
+msgstr "Замінено сертифікатом"
+
+msgid "plugins.generic.conferenceManager.attendance.title"
+msgstr "Присутність"
+
+msgid "plugins.generic.conferenceManager.attendance.present"
+msgstr "присутній(-я)"
+
+msgid "plugins.generic.conferenceManager.attendance.absent"
+msgstr "не позначено"
+
+msgid "plugins.generic.conferenceManager.attendance.import"
+msgstr "Імпорт звіту наради"
+
+msgid "plugins.generic.conferenceManager.attendance.importHelp"
+msgstr "Звіт про відвідування з Microsoft Teams, Zoom або Google Meet у форматі CSV. Учасників знаходимо за електронною поштою, тривалість кількох входів додаємо. Спершу перегляньте результат, потім застосуйте. Присутність, позначену вручну, імпорт не знімає."
+
+msgid "plugins.generic.conferenceManager.attendance.file"
+msgstr "Файл звіту"
+
+msgid "plugins.generic.conferenceManager.attendance.threshold"
+msgstr "Поріг, хвилин"
+
+msgid "plugins.generic.conferenceManager.attendance.preview"
+msgstr "Переглянути"
+
+msgid "plugins.generic.conferenceManager.attendance.apply"
+msgstr "Застосувати"
+
+msgid "plugins.generic.conferenceManager.attendance.resultPreview"
+msgstr "Попередній перегляд: рядків {$rows}, знайдено учасників {$matched}, з них присутні (від {$threshold} хв) {$present}; не знайдено {$unmatched}; пропущено рядків {$skipped}."
+
+msgid "plugins.generic.conferenceManager.attendance.resultApplied"
+msgstr "Застосовано: рядків {$rows}, знайдено учасників {$matched}, з них присутні (від {$threshold} хв) {$present}; не знайдено {$unmatched}; пропущено рядків {$skipped}."
+
+msgid "plugins.generic.conferenceManager.attendance.minutes"
+msgstr "Хвилин"
+
+msgid "plugins.generic.conferenceManager.attendance.minutesShort"
+msgstr "{$minutes} хв"
+
+msgid "plugins.generic.conferenceManager.attendance.keptManual"
+msgstr "залишено ручну позначку"
+
+msgid "plugins.generic.conferenceManager.attendance.unmatched"
+msgstr "Не знайдено серед учасників: {$count}"
+
+msgid "plugins.generic.conferenceManager.attendance.fromImport"
+msgstr "за звітом наради, {$minutes} хв"
+
+msgid "plugins.generic.conferenceManager.attendance.marked"
+msgstr "Змінено позначок: {$count}"
+
+msgid "plugins.generic.conferenceManager.attendance.markPage"
+msgstr "Позначити всіх на сторінці"
+
+msgid "plugins.generic.conferenceManager.attendance.unmarkPage"
+msgstr "Зняти позначки на сторінці"
+
+msgid "plugins.generic.conferenceManager.attendance.chooseFile"
+msgstr "Спершу оберіть файл звіту."
+
+msgid "plugins.generic.conferenceManager.attendance.applied"
+msgstr "Присутність збережено: {$present}"
+
+msgid "plugins.generic.conferenceManager.certificate.title"
+msgstr "Сертифікати"
+
+msgid "plugins.generic.conferenceManager.certificate.help"
+msgstr "Слухачам сертифікат видається за позначеною присутністю (поріг імпорту: {$threshold} хв). Доповідачам: за прийнятою доповіддю й присутністю; заочним авторам: після публікації матеріалів. Організатори й рецензенти отримують подяку. Документ зберігається таким, яким його видали."
+
+msgid "plugins.generic.conferenceManager.certificate.summary"
+msgstr "Учасників {$total}, можна видати {$eligible}, видано {$issued}."
+
+msgid "plugins.generic.conferenceManager.certificate.show"
+msgstr "Показати"
+
+msgid "plugins.generic.conferenceManager.certificate.show.all"
+msgstr "усіх"
+
+msgid "plugins.generic.conferenceManager.certificate.show.eligible"
+msgstr "кому можна видати"
+
+msgid "plugins.generic.conferenceManager.certificate.show.issued"
+msgstr "кому видано"
+
+msgid "plugins.generic.conferenceManager.certificate.show.none"
+msgstr "кому не належить"
+
+msgid "plugins.generic.conferenceManager.certificate.issue"
+msgstr "Видати вибраним ({$count})"
+
+msgid "plugins.generic.conferenceManager.certificate.issueConfirm"
+msgstr "Видати сертифікати: {$count}? Номери присвоюються одразу й не повторюються."
+
+msgid "plugins.generic.conferenceManager.certificate.issued"
+msgstr "Видано сертифікатів: {$count}"
+
+msgid "plugins.generic.conferenceManager.certificate.chooseAll"
+msgstr "Вибрати всіх, кому можна видати"
+
+msgid "plugins.generic.conferenceManager.certificate.type"
+msgstr "Вид"
+
+msgid "plugins.generic.conferenceManager.certificate.number"
+msgstr "Номер"
+
+msgid "plugins.generic.conferenceManager.certificate.templates"
+msgstr "Шаблони сертифікатів"
+
+msgid "plugins.generic.conferenceManager.certificate.series"
+msgstr "Серія номерів"
+
+msgid "plugins.generic.conferenceManager.certificate.seriesHelp"
+msgstr "Номер матиме вигляд {$example}; лічильник новий щороку."
+
+msgid "plugins.generic.conferenceManager.certificate.template.custom"
+msgstr "власний шаблон, версія {$version}"
+
+msgid "plugins.generic.conferenceManager.certificate.template.builtIn"
+msgstr "вбудований шаблон"
+
+msgid "plugins.generic.conferenceManager.certificate.template.html"
+msgstr "HTML шаблону (A4, альбомна)"
+
+msgid "plugins.generic.conferenceManager.certificate.template.help"
+msgstr "Натисніть на змінну, щоб вставити її в місце курсора. {qrCode} дає QR-код з посиланням на сторінку перевірки. Значення змінних екрануються. Скрипти й зовнішні ресурси не дозволені."
+
+msgid "plugins.generic.conferenceManager.certificate.template.preview"
+msgstr "Попередній перегляд"
+
+msgid "plugins.generic.conferenceManager.certificate.template.reset"
+msgstr "Повернути вбудований"
+
+msgid "plugins.generic.conferenceManager.certificate.template.resetConfirm"
+msgstr "Повернути вбудований шаблон для цього виду? Видані сертифікати не зміняться."

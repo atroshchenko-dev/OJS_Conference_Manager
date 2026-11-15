@@ -115,7 +115,8 @@ final class DbParticipantRepository implements ParticipantRepository
             })
             ->orderByDesc('pn.id')
             ->get(['pn.id as participation_id', 'p.id as participant_id', 'p.edition_id', 'p.category_id', 'p.confirmation_status',
-                'pn.role', 'pn.status', 'pn.participation_form', 'pn.submission_id', 'pn.created_at'])->all();
+                'pn.role', 'pn.status', 'pn.participation_form', 'pn.submission_id', 'pn.created_at',
+                'pn.attended', 'pn.attended_minutes', 'pn.attendance_source', 'pn.attended_at'])->all();
         return array_map(static fn (object $r): array => [
             'participationId' => (int) $r->participation_id,
             'participantId' => (int) $r->participant_id,
@@ -127,6 +128,10 @@ final class DbParticipantRepository implements ParticipantRepository
             'participationForm' => (string) $r->participation_form,
             'submissionId' => $r->submission_id === null ? null : (int) $r->submission_id,
             'createdAt' => DateInput::toIsoUtc(DateInput::fromStorage($r->created_at === null ? null : (string) $r->created_at)),
+            'attended' => (bool) $r->attended,
+            'attendedMinutes' => $r->attended_minutes === null ? null : (int) $r->attended_minutes,
+            'attendanceSource' => $r->attendance_source === null ? null : (string) $r->attendance_source,
+            'attendedAt' => DateInput::toIsoUtc(DateInput::fromStorage($r->attended_at === null ? null : (string) $r->attended_at)),
         ], $rows);
     }
 
@@ -242,6 +247,9 @@ final class DbParticipantRepository implements ParticipantRepository
         if ($filter->payment !== null) {
             $this->paymentFilter($query, $filter->payment);
         }
+        if ($filter->attended !== null) {
+            $query->where('pn.attended', $filter->attended);
+        }
         $search = trim($filter->search);
         if ($search !== '') {
             $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], mb_strtolower($search)) . '%';
@@ -260,7 +268,8 @@ final class DbParticipantRepository implements ParticipantRepository
         $rows = $query->orderBy('p.id')->orderBy('pn.id')
             ->limit($filter->limit())->offset(max(0, $filter->offset))
             ->get(['pn.id as participation_id', 'p.id as participant_id', 'p.email', 'p.affiliation', 'p.position', 'p.country',
-                'p.category_id', 'p.confirmation_status', 'p.user_id', 'p.is_minor', 'p.guardian_consent_at', 'pn.role', 'pn.status', 'pn.participation_form', 'pn.submission_id', 'pn.created_at'])->all();
+                'p.category_id', 'p.confirmation_status', 'p.user_id', 'p.is_minor', 'p.guardian_consent_at', 'pn.role', 'pn.status', 'pn.participation_form', 'pn.submission_id', 'pn.created_at',
+                'pn.attended', 'pn.attended_minutes', 'pn.attendance_source', 'pn.attended_at'])->all();
         $names = $this->names(array_map(static fn (object $r): int => (int) $r->participant_id, $rows), $locale);
         $items = array_map(static fn (object $r): array => [
             'participationId' => (int) $r->participation_id,
@@ -280,6 +289,10 @@ final class DbParticipantRepository implements ParticipantRepository
             'participationForm' => (string) $r->participation_form,
             'submissionId' => $r->submission_id === null ? null : (int) $r->submission_id,
             'createdAt' => DateInput::toIsoUtc(DateInput::fromStorage($r->created_at === null ? null : (string) $r->created_at)),
+            'attended' => (bool) $r->attended,
+            'attendedMinutes' => $r->attended_minutes === null ? null : (int) $r->attended_minutes,
+            'attendanceSource' => $r->attendance_source === null ? null : (string) $r->attendance_source,
+            'attendedAt' => DateInput::toIsoUtc(DateInput::fromStorage($r->attended_at === null ? null : (string) $r->attended_at)),
         ], $rows);
         return ['items' => $items, 'itemsMax' => $total];
     }
@@ -318,7 +331,7 @@ final class DbParticipantRepository implements ParticipantRepository
      * @param list<int> $ids
      * @return array<int, string> "Given Family" in the locale, else in any locale
      */
-    private function names(array $ids, string $locale): array
+    public function names(array $ids, string $locale): array
     {
         if ($ids === []) {
             return [];

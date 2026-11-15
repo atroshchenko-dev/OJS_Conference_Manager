@@ -25,6 +25,8 @@
 			issueUrl: { type: String, default: '' },
 			/** page link of an invoice PDF with "__id__" */
 			invoicePdfUrl: { type: String, default: '' },
+			certificatePdfUrl: { type: String, default: '' },
+			attendanceThreshold: { type: Number, default: 30 },
 			proofFileUrl: { type: String, default: '' },
 			csrfToken: { type: String, required: true },
 			locales: { type: Array, required: true },
@@ -150,6 +152,14 @@
 			openReminders: function () {
 				this.selected = null;
 				this.view = 'reminders';
+			},
+			openCertificates: function (edition) {
+				this.selected = edition;
+				this.view = 'certificates';
+			},
+			openCertificateTemplates: function () {
+				this.selected = null;
+				this.view = 'certificateTemplates';
 			},
 			openAudit: function () {
 				this.selected = null;
@@ -388,6 +398,7 @@
 				</select>\
 			</label>\
 			<pkp-button @click="openReminders">{{ t(\'reminders\') }}</pkp-button>\
+			<pkp-button v-if="canEditEditions" @click="openCertificateTemplates">{{ t(\'certificateTemplates\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" @click="openAudit">{{ t(\'audit\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" :is-primary="true" @click="create">{{ t(\'new\') }}</pkp-button>\
 		</div>\
@@ -412,6 +423,7 @@
 						<pkp-button @click="openInvoices(e)">{{ t(\'invoices\') }}</pkp-button>\
 						<pkp-button @click="openProofs(e)">{{ t(\'proofs\') }}</pkp-button>\
 						<pkp-button @click="openCampaigns(e)">{{ t(\'campaigns\') }}</pkp-button>\
+						<pkp-button @click="openCertificates(e)">{{ t(\'certificates\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions && e.submissionMode !== \'none\'" @click="openDecisions(e)">{{ t(\'decisions\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions" @click="copy(e)">{{ t(\'copy\') }}</pkp-button>\
 						<a class="pkpButton" :href="publicLink(e)" target="_blank" rel="noopener">{{ t(\'publicPage\') }}</a>\
@@ -422,13 +434,15 @@
 		</table>\
 	</div>\
 	<conference-fees-editor v-else-if="view === \'fees\'" :api-url="apiUrl + \'/\' + selected.id + \'/fees\'" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :ui-locale="uiLocale" :i18n="i18n" @back="backToList"></conference-fees-editor>\
-	<conference-participants-register v-else-if="view === \'participants\'" :api-url="apiUrl + \'/\' + selected.id + \'/participants\'" :cancel-url="apiUrl.replace(/editions$/, \'participations\')" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :primary-locale="primaryLocale" :ui-locale="uiLocale" :options="participantOptions" :i18n="i18n" @back="backToList"></conference-participants-register>\
+	<conference-participants-register v-else-if="view === \'participants\'" :api-url="apiUrl + \'/\' + selected.id + \'/participants\'" :cancel-url="apiUrl.replace(/editions$/, \'participations\')" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :primary-locale="primaryLocale" :ui-locale="uiLocale" :options="participantOptions" :edition-url="apiUrl + \'/\' + selected.id" :threshold="attendanceThreshold" :i18n="i18n" @back="backToList"></conference-participants-register>\
 	<conference-payment-settings v-else-if="view === \'payments\'" :api-url="apiUrl + \'/\' + selected.id + \'/payment-rules\'" :templates-url="apiUrl.replace(/editions$/, \'invoice-templates\')" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :i18n="i18n" @back="backToList"></conference-payment-settings>\
 	<conference-proof-queue v-else-if="view === \'proofs\'" :api-url="apiUrl.replace(/editions$/, \'proofs\')" :edition-id="selected.id" :file-url="proofFileUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-proof-queue>\
 	<conference-bulk-decisions v-else-if="view === \'decisions\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :edition-id="selected.id" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :presentation-types="options.presentationTypes || []" :i18n="i18n" @back="backToList"></conference-bulk-decisions>\
 	<conference-edition-dashboard v-else-if="view === \'dashboard\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :edition-id="selected.id" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-edition-dashboard>\
 	<conference-campaigns v-else-if="view === \'campaigns\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :edition-id="selected.id" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :ui-locale="uiLocale" :submission-mode="selected.submissionMode" :options="participantOptions" :i18n="i18n" @back="backToList"></conference-campaigns>\
 	<conference-reminders v-else-if="view === \'reminders\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :can-edit="canEditEditions" :i18n="i18n" @back="backToList"></conference-reminders>\
+	<conference-certificates v-else-if="view === \'certificates\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :edition-id="selected.id" :edition-name="localized(selected.name)" :pdf-url="certificatePdfUrl" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-certificates>\
+	<conference-certificate-templates v-else-if="view === \'certificateTemplates\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-certificate-templates>\
 	<conference-audit-log v-else-if="view === \'audit\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-audit-log>\
 	<conference-invoices-list v-else-if="view === \'invoices\'" :api-url="apiUrl + \'/\' + selected.id + \'/invoices\'" :invoice-api-url="apiUrl.replace(/editions$/, \'invoices\')" :pdf-url="invoicePdfUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-invoices-list>\
 	<form v-else class="cmEditions__form" @submit.prevent="save" novalidate>\

@@ -1,6 +1,6 @@
 {**
  * The participant's cabinet: own participations and cancellation (REG-06, REG-08),
- * own invoices with payment instructions (FEE-04, FEE-06).
+ * own invoices with payment instructions (FEE-04, FEE-06), own certificates (CRT-04).
  *}
 {include file="frontend/components/header.tpl" pageTitle="plugins.generic.conferenceManager.my.title"}
 
@@ -90,6 +90,25 @@
 							<button type="submit" class="cmEdition__button">{translate key="plugins.generic.conferenceManager.proof.send"}</button>
 						</form>
 					{/if}
+				</li>
+			{/foreach}
+		</ul>
+	{/if}
+
+	{if $myCertificates}
+		<h2 class="cmMy__section">{translate key="plugins.generic.conferenceManager.my.certificates"}</h2>
+		<ul class="cmMy">
+			{foreach from=$myCertificates item=c}
+				<li class="cmMy__item cmCertificate">
+					<h3 class="cmMy__title">{$c.typeLabel|escape} № {$c.number|escape}</h3>
+					<dl class="cmEdition__dates">
+						<dt>{translate key="plugins.generic.conferenceManager.certificate.conference"}</dt><dd>{$c.conferenceName|escape}</dd>
+						{if $c.issuedAtText}<dt>{translate key="plugins.generic.conferenceManager.certificate.issuedAt"}</dt><dd>{$c.issuedAtText|escape}</dd>{/if}
+					</dl>
+					<p class="cmInvoice__actions">
+						<a class="cmEdition__button" href="{$c.pdfUrl|escape}" target="_blank" rel="noopener">{translate key="plugins.generic.conferenceManager.certificate.download"}</a>
+						<a href="{$c.verifyUrl|escape}">{translate key="plugins.generic.conferenceManager.certificate.verifyLink"}</a>
+					</p>
 				</li>
 			{/foreach}
 		</ul>

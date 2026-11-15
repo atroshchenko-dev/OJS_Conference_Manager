@@ -68,6 +68,15 @@ class ManageConferenceHandler extends Handler
         'decision.bulk.find', 'decision.bulk.selected', 'decision.bulk.decision', 'decision.bulk.choose', 'decision.bulk.run',
         'decision.bulk.confirm', 'decision.bulk.tooMany', 'decision.bulk.empty', 'decision.bulk.selectAll', 'decision.bulk.column.title',
         'decision.bulk.column.section', 'decision.bulk.column.type', 'decision.bulk.runs',
+        'attendance.title', 'attendance.present', 'attendance.absent', 'attendance.import', 'attendance.importHelp', 'attendance.file',
+        'attendance.threshold', 'attendance.preview', 'attendance.apply', 'attendance.resultPreview', 'attendance.resultApplied',
+        'attendance.minutes', 'attendance.minutesShort', 'attendance.keptManual', 'attendance.unmatched', 'attendance.fromImport',
+        'attendance.marked', 'attendance.markPage', 'attendance.unmarkPage', 'attendance.chooseFile', 'attendance.applied',
+        'certificate.title', 'certificate.help', 'certificate.summary', 'certificate.show', 'certificate.show.all', 'certificate.show.eligible',
+        'certificate.show.issued', 'certificate.show.none', 'certificate.issue', 'certificate.issueConfirm', 'certificate.issued',
+        'certificate.chooseAll', 'certificate.type', 'certificate.number', 'certificate.templates', 'certificate.series', 'certificate.seriesHelp',
+        'certificate.template.custom', 'certificate.template.builtIn', 'certificate.template.html', 'certificate.template.help',
+        'certificate.template.preview', 'certificate.template.reset', 'certificate.template.resetConfirm',
         'dashboard.title', 'dashboard.refresh', 'dashboard.submissions', 'dashboard.waiting', 'dashboard.review', 'dashboard.accepted',
         'dashboard.declined', 'dashboard.published', 'dashboard.fullText', 'dashboard.byType', 'dashboard.participants', 'dashboard.active',
         'dashboard.cancelled', 'dashboard.payments', 'dashboard.noInvoices', 'dashboard.paid', 'dashboard.open', 'dashboard.due',
@@ -132,6 +141,7 @@ class ManageConferenceHandler extends Handler
         $templateMgr->addJavaScript('conferenceInvoicesManager', $base . '/js/invoicesManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferenceDecisionsManager', $base . '/js/decisionsManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferenceCommunicationManager', $base . '/js/communicationManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
+        $templateMgr->addJavaScript('conferenceCertificatesManager', $base . '/js/certificatesManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addStyleSheet('conferenceEditionsManager', $base . '/css/editionsManager.css', ['contexts' => 'backend']);
 
         $names = $context->getSupportedFormLocaleNames();
@@ -159,6 +169,8 @@ class ManageConferenceHandler extends Handler
             'issueUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), 'manageIssues'),
             'invoicePdfUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), ConferencePageHandler::PAGE, 'invoice', ['__id__']),
             'proofFileUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), ConferencePageHandler::PAGE, 'receipt', ['__id__']),
+            'certificatePdfUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), ConferencePageHandler::PAGE, 'certificate', ['__id__']),
+            'attendanceThreshold' => ServiceFactory::attendance()->threshold($info),
             'csrfToken' => $request->getSession()->token(),
             'locales' => $locales,
             'primaryLocale' => $info->primaryLocale,
@@ -223,7 +235,7 @@ class ManageConferenceHandler extends Handler
             'field.registrationClosesAt', 'field.paymentDeadline', 'field.dates.description',
             'field.isbn', 'field.udc', 'field.vectorProgramId', 'field.hours', 'field.ects',
             'column.dates', 'column.status', 'column.type', 'submissionsOpen', 'submissionsClosed', 'fees', 'participants', 'payments', 'invoices', 'proofs', 'decisions', 'back',
-            'dashboard', 'campaigns', 'reminders', 'audit',
+            'dashboard', 'campaigns', 'reminders', 'audit', 'certificates', 'certificateTemplates',
         ] as $key) {
             $out[$key] = __('plugins.generic.conferenceManager.editions.' . $key);
         }

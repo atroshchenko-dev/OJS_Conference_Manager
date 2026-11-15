@@ -71,3 +71,10 @@
 .cmInvoice__upload input[type=file] { display: block; max-width: 100%; margin: .35rem 0 .5rem; }
 /* The guardian block shows once "under 18" is ticked (browsers without :has() always show it). */
 .cmRegister__field:has(input[name=minor]:not(:checked)) .cmRegister__guardian { display: none; }
+
+/* Certificate check (CRT-07) */
+.cmVerify { border-left: 4px solid #2e7d32; padding: 0.5rem 1rem; margin: 1rem 0; background: #f4faf4; }
+.cmVerify--revoked { border-left-color: #b71c1c; background: #fdf3f3; }
+.cmVerify__status { font-weight: bold; font-size: 1.1em; margin: 0 0 0.5rem; }
+.cmVerify__form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 1.5rem; }
+.cmVerify__form input { flex: 1 1 20rem; max-width: 26rem; padding: 0.4rem; font-family: monospace; }

@@ -14,7 +14,7 @@ use Mpdf\Output\Destination;
  */
 final class MpdfRenderer implements PdfRenderer
 {
-    public function render(string $html, string $title): string
+    public function render(string $html, string $title, bool $landscape = false): string
     {
         $tmp = sys_get_temp_dir() . '/conferenceManager-mpdf';
         if (!is_dir($tmp)) {
@@ -22,12 +22,12 @@ final class MpdfRenderer implements PdfRenderer
         }
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
-            'format' => 'A4',
+            'format' => $landscape ? 'A4-L' : 'A4',
             'default_font' => 'dejavusans',
-            'margin_left' => 15,
-            'margin_right' => 15,
-            'margin_top' => 15,
-            'margin_bottom' => 15,
+            'margin_left' => $landscape ? 10 : 15,
+            'margin_right' => $landscape ? 10 : 15,
+            'margin_top' => $landscape ? 10 : 15,
+            'margin_bottom' => $landscape ? 10 : 15,
             'tempDir' => $tmp,
             'curlAllowUnsafeSslRequests' => false,
             'whitelistStreamWrappers' => [],

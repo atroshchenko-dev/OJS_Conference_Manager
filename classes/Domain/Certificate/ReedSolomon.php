@@ -17,7 +17,7 @@ final class ReedSolomon
         return $z & 0xFF;
     }
 
-    /** @return list<int> coefficients from the highest power, the leading 1 left out */
+    /** @return array<int, int> coefficients from the highest power, the leading 1 left out */
     public static function divisor(int $degree): array
     {
         $result = array_fill(0, $degree, 0);
@@ -37,8 +37,8 @@ final class ReedSolomon
 
     /**
      * @param list<int> $data
-     * @param list<int> $divisor
-     * @return list<int>
+     * @param array<int, int> $divisor
+     * @return array<int, int>
      */
     public static function remainder(array $data, array $divisor): array
     {

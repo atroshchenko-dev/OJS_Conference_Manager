@@ -4,7 +4,9 @@
  * registry before the page app starts:
  *
  *   ConferenceFeesEditor           categories, tariff matrix, calculator
- *   ConferenceParticipantsRegister register with filters, paging, export
+ *   ConferenceParticipantsRegister register with filters, paging, export,
+ *                                  attendance marks and the import of a
+ *                                  meeting report (ATT-01, ATT-02)
  *
  * Amounts are sent as decimal strings ("150.50"); the server keeps them in
  * minor units, so nothing here does arithmetic with money.
@@ -369,16 +371,24 @@
 			primaryLocale: { type: String, required: true },
 			uiLocale: { type: String, default: '' },
 			options: { type: Object, required: true },
+			/** .../editions/{id}, for attendance */
+			editionUrl: { type: String, default: '' },
+			threshold: { type: Number, default: 30 },
 			i18n: { type: Object, required: true },
 		},
 		emits: ['back'],
 		data: function () {
 			return {
-				isLoading: true,
+				showImport: false,
+				importFile: null,
+				importName: '',
+				importThreshold: this.threshold,
+				importResult: null,
+				importBusy: false,
 				items: [],
 				itemsMax: 0,
 				categories: [],
-				filter: { searchPhrase: '', role: '', categoryId: '', status: '', confirmation: '', payment: '' },
+				filter: { searchPhrase: '', role: '', categoryId: '', status: '', confirmation: '', payment: '', attended: '' },
 				page: 1,
 				perPage: 50,
 			};
@@ -456,6 +466,69 @@
 					}
 				});
 			},
+			setAttended: function (p, value) {
+				var self = this;
+				self.api('PUT', self.editionUrl + '/attendance', { participationIds: [p.participationId], attended: value }).then(function (r) {
+					if (r.ok) {
+						p.attended = value;
+						p.attendanceSource = 'manual';
+						p.attendedMinutes = null;
+					} else {
+						notify(firstError(r.data), 'warning');
+					}
+				});
+			},
+			markPage: function (value) {
+				var self = this;
+				var ids = self.items.filter(function (p) { return p.status === 'active'; }).map(function (p) { return p.participationId; });
+				if (!ids.length) {
+					return;
+				}
+				self.api('PUT', self.editionUrl + '/attendance', { participationIds: ids, attended: value }).then(function (r) {
+					r.ok ? (notify(self.t('attendance.marked', { count: r.data.changed || 0 })), self.load()) : notify(firstError(r.data), 'warning');
+				});
+			},
+			pickFile: function (event) {
+				var self = this;
+				var file = event.target.files && event.target.files[0];
+				self.importResult = null;
+				self.importFile = null;
+				self.importName = file ? file.name : '';
+				if (!file) {
+					return;
+				}
+				var reader = new FileReader();
+				reader.onload = function () {
+					// Sent as base64, so UTF-16 reports from Teams keep their bytes.
+					var bytes = new Uint8Array(reader.result);
+					var bin = '';
+					for (var i = 0; i < bytes.length; i += 0x8000) {
+						bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+					}
+					self.importFile = window.btoa(bin);
+				};
+				reader.readAsArrayBuffer(file);
+			},
+			runImport: function (apply) {
+				var self = this;
+				if (!self.importFile) {
+					notify(self.t('attendance.chooseFile'), 'warning');
+					return;
+				}
+				self.importBusy = true;
+				self.api('POST', self.editionUrl + '/attendance/import', { csvBase64: self.importFile, threshold: self.importThreshold, apply: apply }).then(function (r) {
+					self.importBusy = false;
+					if (!r.ok) {
+						notify(firstError(r.data), 'warning');
+						return;
+					}
+					self.importResult = r.data;
+					if (apply) {
+						notify(self.t('attendance.applied', { present: r.data.present }));
+						self.load();
+					}
+				});
+			},
 			cancelParticipation: function (p) {
 				var self = this;
 				if (!window.confirm(self.t('participants.cancelConfirm', { name: p.name || p.email }))) {
@@ -485,21 +558,41 @@
 		<label class="cmEditions__filter">{{ t(\'participants.confirmation\') }}<select class="pkpFormField__input" v-model="filter.confirmation" @change="search"><option value="">{{ t(\'participants.all\') }}</option><option v-for="o in options.confirmations" :key="o.value" :value="o.value">{{ o.label }}</option></select></label>\
 		<label class="cmEditions__filter">{{ t(\'participants.payment\') }}<select class="pkpFormField__input" v-model="filter.payment" @change="search"><option value="">{{ t(\'participants.all\') }}</option><option v-for="o in (options.payments || [])" :key="o.value" :value="o.value">{{ o.label }}</option></select></label>\
 		<label class="cmEditions__filter">{{ t(\'participants.status\') }}<select class="pkpFormField__input" v-model="filter.status" @change="search"><option value="">{{ t(\'participants.all\') }}</option><option v-for="o in options.statuses" :key="o.value" :value="o.value">{{ o.label }}</option></select></label>\
+		<label class="cmEditions__filter" v-if="editionUrl">{{ t(\'attendance.title\') }}<select class="pkpFormField__input" v-model="filter.attended" @change="search"><option value="">{{ t(\'participants.all\') }}</option><option value="1">{{ t(\'attendance.present\') }}</option><option value="0">{{ t(\'attendance.absent\') }}</option></select></label>\
 		<pkp-button @click="search">{{ t(\'participants.find\') }}</pkp-button>\
 		<a class="pkpButton" :href="exportUrl">{{ t(\'participants.export\') }}</a>\
+		<pkp-button v-if="editionUrl" @click="showImport = !showImport">{{ t(\'attendance.import\') }}</pkp-button>\
 	</form>\
+	<section v-if="showImport" class="cmAttendanceImport" :aria-label="t(\'attendance.import\')">\
+		<p class="cmEditions__note">{{ t(\'attendance.importHelp\') }}</p>\
+		<div class="cmEditions__toolbar">\
+			<label class="cmEditions__filter">{{ t(\'attendance.file\') }}<input type="file" accept=".csv,.tsv,.txt,text/csv" @change="pickFile"></label>\
+			<label class="cmEditions__filter">{{ t(\'attendance.threshold\') }}<input class="pkpFormField__input cmAttendanceImport__minutes" type="number" min="1" max="1440" v-model.number="importThreshold"></label>\
+			<pkp-button :disabled="importBusy || !importFile" @click="runImport(false)">{{ t(\'attendance.preview\') }}</pkp-button>\
+			<pkp-button :is-primary="true" :disabled="importBusy || !importResult || importResult.applied" @click="runImport(true)">{{ t(\'attendance.apply\') }}</pkp-button>\
+		</div>\
+		<template v-if="importResult">\
+			<p role="status"><strong>{{ t(importResult.applied ? \'attendance.resultApplied\' : \'attendance.resultPreview\', { rows: importResult.rows, matched: importResult.matched.length, present: importResult.present, unmatched: importResult.unmatched.length, skipped: importResult.skipped, threshold: importResult.threshold }) }}</strong></p>\
+			<table class="cmEditions__table" v-if="importResult.matched.length">\
+				<thead><tr><th>{{ t(\'participants.name\') }}</th><th>{{ t(\'attendance.minutes\') }}</th><th>{{ t(\'attendance.title\') }}</th></tr></thead>\
+				<tbody><tr v-for="m in importResult.matched" :key="m.email"><td>{{ m.name || m.email }}<div class="cmEditions__path">{{ m.email }}</div></td><td>{{ m.minutes }}</td><td><span class="cmBadge" :class="{ \'cmBadge--ok\': m.attended || m.keptManual }">{{ m.attended ? t(\'attendance.present\') : (m.keptManual ? t(\'attendance.keptManual\') : t(\'attendance.absent\')) }}</span></td></tr></tbody>\
+			</table>\
+			<details v-if="importResult.unmatched.length"><summary>{{ t(\'attendance.unmatched\', { count: importResult.unmatched.length }) }}</summary><ul class="cmAttendanceImport__unmatched"><li v-for="u in importResult.unmatched" :key="u.email">{{ u.email }} — {{ u.minutes }}</li></ul></details>\
+		</template>\
+	</section>\
 	<div v-if="isLoading" class="cmEditions__loading"><spinner></spinner> {{ t(\'loading\') }}</div>\
 	<p v-else-if="!items.length" class="cmEditions__empty">{{ t(\'participants.empty\') }}</p>\
 	<template v-else>\
-	<p class="cmEditions__note" role="status">{{ t(\'participants.count\', { count: itemsMax }) }}</p>\
+	<div class="cmEditions__toolbar"><p class="cmEditions__note" role="status">{{ t(\'participants.count\', { count: itemsMax }) }}</p><template v-if="editionUrl"><pkp-button @click="markPage(true)">{{ t(\'attendance.markPage\') }}</pkp-button><pkp-button @click="markPage(false)">{{ t(\'attendance.unmarkPage\') }}</pkp-button></template></div>\
 	<table class="cmEditions__table">\
-		<thead><tr><th>{{ t(\'participants.name\') }}</th><th>{{ t(\'participants.role\') }}</th><th>{{ t(\'participants.category\') }}</th><th>{{ t(\'participants.confirmation\') }}</th><th>{{ t(\'participants.status\') }}</th><th></th></tr></thead>\
+		<thead><tr><th>{{ t(\'participants.name\') }}</th><th>{{ t(\'participants.role\') }}</th><th>{{ t(\'participants.category\') }}</th><th>{{ t(\'participants.confirmation\') }}</th><th>{{ t(\'participants.status\') }}</th><th v-if="editionUrl">{{ t(\'attendance.title\') }}</th><th></th></tr></thead>\
 		<tbody><tr v-for="p in items" :key="p.participationId" :class="{ \'cmParticipants__row--cancelled\': p.status === \'cancelled\' }">\
 			<td><strong>{{ p.name || p.email }}</strong><div class="cmEditions__path">{{ p.email }}</div><div class="cmEditions__path" v-if="p.affiliation">{{ p.affiliation }}<template v-if="p.position">, {{ p.position }}</template></div><div class="cmEditions__path" v-if="p.minor"><span class="cmBadge">{{ t(\'participants.minor\') }}</span></div></td>\
 			<td>{{ p.roleLabel }}<div class="cmEditions__path">{{ p.formLabel }}<template v-if="p.submissionId"> · #{{ p.submissionId }}</template></div></td>\
 			<td><select class="pkpFormField__input" :value="p.categoryId === null ? \'\' : p.categoryId" @change="setCategory(p, $event.target.value)" :aria-label="t(\'participants.category\')"><option value="">—</option><option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option></select></td>\
 			<td>{{ p.confirmationLabel }}</td>\
 			<td>{{ p.statusLabel }}</td>\
+			<td v-if="editionUrl"><label class="cmAttendance"><input type="checkbox" :checked="p.attended" :disabled="p.status !== \'active\'" @change="setAttended(p, $event.target.checked)"> {{ p.attended ? t(\'attendance.present\') : t(\'attendance.absent\') }}</label><div class="cmEditions__path" v-if="p.attended && p.attendanceSource === \'import\'">{{ t(\'attendance.fromImport\', { minutes: p.attendedMinutes === null ? \'—\' : p.attendedMinutes }) }}</div></td>\
 			<td class="cmEditions__actions"><pkp-button v-if="p.status === \'active\'" @click="issueInvoice(p)">{{ t(\'invoice.issue\') }}</pkp-button><pkp-button v-if="p.status === \'active\'" :is-warnable="true" @click="cancelParticipation(p)">{{ t(\'participants.cancel\') }}</pkp-button></td>\
 		</tr></tbody>\
 	</table>\

@@ -1,0 +1,33 @@
+<style>
+  body { font-family: dejavusans; color: #1d2b3a; }
+  .frame { border: 3mm double #1f4e79; padding: 12mm 16mm; height: 160mm; }
+  .institution { text-align: center; font-size: 12pt; text-transform: uppercase; letter-spacing: 0.5pt; }
+  .title { text-align: center; font-size: 34pt; font-weight: bold; color: #1f4e79; margin: 10mm 0 2mm; letter-spacing: 2pt; }
+  .number { text-align: center; font-size: 10pt; color: #555; }
+  .lead { text-align: center; font-size: 12pt; margin-top: 8mm; }
+  .name { text-align: center; font-size: 24pt; font-weight: bold; margin: 3mm 0 1mm; }
+  .affiliation { text-align: center; font-size: 11pt; color: #555; }
+  .text { text-align: center; font-size: 13pt; margin-top: 6mm; line-height: 1.5; }
+  .paper { text-align: center; font-size: 12pt; font-style: italic; margin-top: 3mm; }
+  table.foot { width: 100%; margin-top: 12mm; }
+  table.foot td { vertical-align: bottom; font-size: 10pt; }
+  .sign { border-top: 0.3mm solid #1d2b3a; padding-top: 1mm; width: 70mm; }
+</style>
+<div class="frame">
+  <div class="institution">{institutionName}</div>
+  <div class="title">{certificateTitle}</div>
+  <div class="number">№ {number}</div>
+  <div class="lead">засвідчує, що</div>
+  <div class="name">{recipientName}</div>
+  <div class="affiliation">{recipientAffiliation}</div>
+  <div class="text">{roleText}<br><b>«{conferenceName}»</b><br>{eventDates}<br>{venue}</div>
+  <div class="paper">{paperTitle}</div>
+  <table class="foot"><tr>
+    <td style="width: 40%">
+      <div class="sign">{signerPosition}<br><b>{signerName}</b></div>
+      <div style="margin-top: 3mm">Дата видачі: {issueDate}</div>
+    </td>
+    <td style="width: 30%"></td>
+    <td style="width: 30%; text-align: right">{qrCode}<br><span style="font-size: 7pt">Перевірка: {verifyUrl}</span></td>
+  </tr></table>
+</div>

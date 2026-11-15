@@ -309,15 +309,7 @@ final class ParticipantService
         fputcsv($out, array_values($columns), ';', '"', '');
         $offset = 0;
         do {
-            $page = $this->register($context, $editionId, new ParticipantFilter(
-                $filter->role,
-                $filter->categoryId,
-                $filter->status,
-                $filter->confirmation,
-                $filter->search,
-                ParticipantFilter::MAX_PAGE,
-                $offset,
-            ), $locale);
+            $page = $this->register($context, $editionId, $filter->page(ParticipantFilter::MAX_PAGE, $offset), $locale);
             if ($page === null) {
                 fclose($out);
                 return null;

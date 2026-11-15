@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace APP\plugins\generic\conferenceManager\classes\Core;
 
 use APP\plugins\generic\conferenceManager\classes\Application\AccountingExportService;
+use APP\plugins\generic\conferenceManager\classes\Application\AttendanceService;
 use APP\plugins\generic\conferenceManager\classes\Application\BulkDecisionService;
 use APP\plugins\generic\conferenceManager\classes\Application\CampaignService;
+use APP\plugins\generic\conferenceManager\classes\Application\CertificateService;
 use APP\plugins\generic\conferenceManager\classes\Application\ContextInfo;
 use APP\plugins\generic\conferenceManager\classes\Application\DashboardService;
 use APP\plugins\generic\conferenceManager\classes\Application\DecisionService;
@@ -23,7 +25,9 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConsentTex
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Files\LocalProofStore;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Queries\UpcomingEditionsQuery;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbAttendanceRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbCampaignRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbCertificateRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbDecisionBatchRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionStatistics;
@@ -227,6 +231,33 @@ final class ServiceFactory
             new EditorialGateway(),
             new MailGateway(),
             new OjsCampaignQueue(),
+            new AuditLogger($db),
+        );
+    }
+
+    public static function attendance(): AttendanceService
+    {
+        $db = DB::connection();
+        return new AttendanceService(new DbAttendanceRepository($db), new DbEditionRepository($db), self::settings(), new AuditLogger($db));
+    }
+
+    public static function certificates(): CertificateService
+    {
+        $db = DB::connection();
+        $files = (string) Config::getVar('files', 'files_dir');
+        return new CertificateService(
+            new DbCertificateRepository($db),
+            new DbAttendanceRepository($db),
+            new DbEditionRepository($db),
+            new DbRegistrationRepository($db),
+            new EditorialGateway(),
+            self::institutionProfiles(),
+            new MpdfRenderer(),
+            new LocalProofStore($files === '' ? '' : rtrim($files, '/') . '/conferenceManager/certificates'),
+            dirname(__DIR__, 2) . '/templates/certificate',
+            static fn (ContextInfo $context, string $uuid): string => ContextGateway::pageUrl($context->id, 'verify', [$uuid]),
+            self::settings(),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
             new AuditLogger($db),
         );
     }

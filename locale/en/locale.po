@@ -2474,3 +2474,303 @@ msgstr "Tariff"
 
 msgid "plugins.generic.conferenceManager.audit.entity.payment_rule"
 msgstr "Payment rule"
+
+msgid "plugins.generic.conferenceManager.editions.certificates"
+msgstr "Certificates"
+
+msgid "plugins.generic.conferenceManager.editions.certificateTemplates"
+msgstr "Certificate templates"
+
+msgid "plugins.generic.conferenceManager.certificate.type.participation"
+msgstr "Certificate of participation"
+
+msgid "plugins.generic.conferenceManager.certificate.type.speaker"
+msgstr "Speaker certificate"
+
+msgid "plugins.generic.conferenceManager.certificate.type.listener"
+msgstr "Listener certificate"
+
+msgid "plugins.generic.conferenceManager.certificate.type.organizer"
+msgstr "Organizer acknowledgement"
+
+msgid "plugins.generic.conferenceManager.certificate.type.reviewer"
+msgstr "Reviewer acknowledgement"
+
+msgid "plugins.generic.conferenceManager.certificate.title.participation"
+msgstr "CERTIFICATE"
+
+msgid "plugins.generic.conferenceManager.certificate.title.speaker"
+msgstr "CERTIFICATE"
+
+msgid "plugins.generic.conferenceManager.certificate.title.listener"
+msgstr "CERTIFICATE"
+
+msgid "plugins.generic.conferenceManager.certificate.title.organizer"
+msgstr "ACKNOWLEDGEMENT"
+
+msgid "plugins.generic.conferenceManager.certificate.title.reviewer"
+msgstr "ACKNOWLEDGEMENT"
+
+msgid "plugins.generic.conferenceManager.certificate.roleText.participation"
+msgstr "took part as an author in"
+
+msgid "plugins.generic.conferenceManager.certificate.roleText.speaker"
+msgstr "presented a paper at"
+
+msgid "plugins.generic.conferenceManager.certificate.roleText.listener"
+msgstr "attended"
+
+msgid "plugins.generic.conferenceManager.certificate.roleText.organizer"
+msgstr "for organizing"
+
+msgid "plugins.generic.conferenceManager.certificate.roleText.reviewer"
+msgstr "for reviewing the papers of"
+
+msgid "plugins.generic.conferenceManager.certificate.reason.cancelled"
+msgstr "participation cancelled"
+
+msgid "plugins.generic.conferenceManager.certificate.reason.notAttended"
+msgstr "attendance not marked"
+
+msgid "plugins.generic.conferenceManager.certificate.reason.notAccepted"
+msgstr "paper not accepted"
+
+msgid "plugins.generic.conferenceManager.certificate.reason.notPublished"
+msgstr "absentee: the paper is not published yet"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.name"
+msgstr "Olena Petrenko"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.affiliation"
+msgstr "Department of Education"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.conference"
+msgstr "Modern challenges of education"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.venue"
+msgstr "Kyiv, main building"
+
+msgid "plugins.generic.conferenceManager.certificate.sample.paper"
+msgstr "Digital tools in teaching"
+
+msgid "plugins.generic.conferenceManager.certificate.template.error.empty"
+msgstr "The template is empty."
+
+msgid "plugins.generic.conferenceManager.certificate.template.error.tooLong"
+msgstr "The template is too long (over 100,000 characters)."
+
+msgid "plugins.generic.conferenceManager.certificate.template.error.variables"
+msgstr "The template has unknown variables. Use only the variables from the list."
+
+msgid "plugins.generic.conferenceManager.certificate.template.error.unsafe"
+msgstr "The template cannot contain scripts, frames, event handlers or javascript: links."
+
+msgid "plugins.generic.conferenceManager.certificate.error.series"
+msgstr "Series: 1 to 10 letters or digits, no spaces or hyphens."
+
+msgid "plugins.generic.conferenceManager.attendance.error.threshold"
+msgstr "Threshold: whole minutes from 1 to 1440."
+
+msgid "plugins.generic.conferenceManager.attendance.error.file"
+msgstr "Choose a report file (up to 5 MB)."
+
+msgid "plugins.generic.conferenceManager.attendance.error.format"
+msgstr "No e-mail and duration columns were found. Upload the attendance report from Teams, Zoom or Google Meet as CSV."
+
+msgid "plugins.generic.conferenceManager.my.certificates"
+msgstr "My certificates"
+
+msgid "plugins.generic.conferenceManager.certificate.conference"
+msgstr "Event"
+
+msgid "plugins.generic.conferenceManager.certificate.issuedAt"
+msgstr "Issued on"
+
+msgid "plugins.generic.conferenceManager.certificate.download"
+msgstr "Download PDF"
+
+msgid "plugins.generic.conferenceManager.certificate.verifyLink"
+msgstr "Verification page"
+
+msgid "plugins.generic.conferenceManager.verify.title"
+msgstr "Certificate verification"
+
+msgid "plugins.generic.conferenceManager.verify.intro"
+msgstr "Enter the code from the QR link on the certificate to make sure this journal issued it."
+
+msgid "plugins.generic.conferenceManager.verify.code"
+msgstr "Verification code"
+
+msgid "plugins.generic.conferenceManager.verify.check"
+msgstr "Check"
+
+msgid "plugins.generic.conferenceManager.verify.valid"
+msgstr "The certificate is valid: this journal issued it."
+
+msgid "plugins.generic.conferenceManager.verify.revoked"
+msgstr "The certificate has been revoked."
+
+msgid "plugins.generic.conferenceManager.verify.notFound"
+msgstr "No certificate has this code. Check the code."
+
+msgid "plugins.generic.conferenceManager.verify.limited"
+msgstr "Too many checks in a minute. Try again a bit later."
+
+msgid "plugins.generic.conferenceManager.verify.number"
+msgstr "Number"
+
+msgid "plugins.generic.conferenceManager.verify.type"
+msgstr "Kind"
+
+msgid "plugins.generic.conferenceManager.verify.recipient"
+msgstr "Issued to"
+
+msgid "plugins.generic.conferenceManager.verify.institution"
+msgstr "Institution"
+
+msgid "plugins.generic.conferenceManager.verify.paper"
+msgstr "Paper"
+
+msgid "plugins.generic.conferenceManager.verify.hours"
+msgstr "Hours"
+
+msgid "plugins.generic.conferenceManager.verify.revokeReason"
+msgstr "Reason for revocation"
+
+msgid "plugins.generic.conferenceManager.verify.replacedBy"
+msgstr "Replaced by certificate"
+
+msgid "plugins.generic.conferenceManager.attendance.title"
+msgstr "Attendance"
+
+msgid "plugins.generic.conferenceManager.attendance.present"
+msgstr "present"
+
+msgid "plugins.generic.conferenceManager.attendance.absent"
+msgstr "not marked"
+
+msgid "plugins.generic.conferenceManager.attendance.import"
+msgstr "Import meeting report"
+
+msgid "plugins.generic.conferenceManager.attendance.importHelp"
+msgstr "The attendance report from Microsoft Teams, Zoom or Google Meet as CSV. Participants are matched by e-mail; several joins are added up. Preview first, then apply. An import never removes attendance marked by hand."
+
+msgid "plugins.generic.conferenceManager.attendance.file"
+msgstr "Report file"
+
+msgid "plugins.generic.conferenceManager.attendance.threshold"
+msgstr "Threshold, minutes"
+
+msgid "plugins.generic.conferenceManager.attendance.preview"
+msgstr "Preview"
+
+msgid "plugins.generic.conferenceManager.attendance.apply"
+msgstr "Apply"
+
+msgid "plugins.generic.conferenceManager.attendance.resultPreview"
+msgstr "Preview: {$rows} rows, {$matched} participants found, {$present} of them present ({$threshold} min or more); {$unmatched} not found; {$skipped} rows skipped."
+
+msgid "plugins.generic.conferenceManager.attendance.resultApplied"
+msgstr "Applied: {$rows} rows, {$matched} participants found, {$present} of them present ({$threshold} min or more); {$unmatched} not found; {$skipped} rows skipped."
+
+msgid "plugins.generic.conferenceManager.attendance.minutes"
+msgstr "Minutes"
+
+msgid "plugins.generic.conferenceManager.attendance.minutesShort"
+msgstr "{$minutes} min"
+
+msgid "plugins.generic.conferenceManager.attendance.keptManual"
+msgstr "manual mark kept"
+
+msgid "plugins.generic.conferenceManager.attendance.unmatched"
+msgstr "Not found among the participants: {$count}"
+
+msgid "plugins.generic.conferenceManager.attendance.fromImport"
+msgstr "from the meeting report, {$minutes} min"
+
+msgid "plugins.generic.conferenceManager.attendance.marked"
+msgstr "Marks changed: {$count}"
+
+msgid "plugins.generic.conferenceManager.attendance.markPage"
+msgstr "Mark everyone on the page"
+
+msgid "plugins.generic.conferenceManager.attendance.unmarkPage"
+msgstr "Unmark everyone on the page"
+
+msgid "plugins.generic.conferenceManager.attendance.chooseFile"
+msgstr "Choose a report file first."
+
+msgid "plugins.generic.conferenceManager.attendance.applied"
+msgstr "Attendance saved: {$present}"
+
+msgid "plugins.generic.conferenceManager.certificate.title"
+msgstr "Certificates"
+
+msgid "plugins.generic.conferenceManager.certificate.help"
+msgstr "Listeners get a certificate when attendance is marked (import threshold: {$threshold} min). Speakers: for an accepted paper and attendance; absentee authors: after the paper is published. Organizers and reviewers get an acknowledgement. The document is kept as it was issued."
+
+msgid "plugins.generic.conferenceManager.certificate.summary"
+msgstr "{$total} participants, {$eligible} can be issued, {$issued} issued."
+
+msgid "plugins.generic.conferenceManager.certificate.show"
+msgstr "Show"
+
+msgid "plugins.generic.conferenceManager.certificate.show.all"
+msgstr "all"
+
+msgid "plugins.generic.conferenceManager.certificate.show.eligible"
+msgstr "eligible"
+
+msgid "plugins.generic.conferenceManager.certificate.show.issued"
+msgstr "issued"
+
+msgid "plugins.generic.conferenceManager.certificate.show.none"
+msgstr "not eligible"
+
+msgid "plugins.generic.conferenceManager.certificate.issue"
+msgstr "Issue to the selected ({$count})"
+
+msgid "plugins.generic.conferenceManager.certificate.issueConfirm"
+msgstr "Issue {$count} certificates? Numbers are assigned at once and never reused."
+
+msgid "plugins.generic.conferenceManager.certificate.issued"
+msgstr "Certificates issued: {$count}"
+
+msgid "plugins.generic.conferenceManager.certificate.chooseAll"
+msgstr "Select everyone eligible"
+
+msgid "plugins.generic.conferenceManager.certificate.type"
+msgstr "Kind"
+
+msgid "plugins.generic.conferenceManager.certificate.number"
+msgstr "Number"
+
+msgid "plugins.generic.conferenceManager.certificate.templates"
+msgstr "Certificate templates"
+
+msgid "plugins.generic.conferenceManager.certificate.series"
+msgstr "Number series"
+
+msgid "plugins.generic.conferenceManager.certificate.seriesHelp"
+msgstr "Numbers look like {$example}; the counter restarts every year."
+
+msgid "plugins.generic.conferenceManager.certificate.template.custom"
+msgstr "custom template, version {$version}"
+
+msgid "plugins.generic.conferenceManager.certificate.template.builtIn"
+msgstr "built-in template"
+
+msgid "plugins.generic.conferenceManager.certificate.template.html"
+msgstr "Template HTML (A4 landscape)"
+
+msgid "plugins.generic.conferenceManager.certificate.template.help"
+msgstr "Click a variable to insert it at the cursor. {qrCode} gives a QR code linking to the verification page. Values are escaped. Scripts and remote resources are not allowed."
+
+msgid "plugins.generic.conferenceManager.certificate.template.preview"
+msgstr "Preview"
+
+msgid "plugins.generic.conferenceManager.certificate.template.reset"
+msgstr "Back to built-in"
+
+msgid "plugins.generic.conferenceManager.certificate.template.resetConfirm"
+msgstr "Go back to the built-in template for this kind? Issued certificates do not change."

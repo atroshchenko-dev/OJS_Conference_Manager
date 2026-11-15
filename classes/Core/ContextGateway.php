@@ -20,6 +20,22 @@ final class ContextGateway
         return $context instanceof Context ? self::fromContext($context) : null;
     }
 
+    /**
+     * Absolute URL of a public page of the plugin in a context, such as
+     * /{context}/conference/verify/{uuid}. Empty when the context is gone.
+     *
+     * @param list<string> $args
+     */
+    public static function pageUrl(int $contextId, string $op, array $args = []): string
+    {
+        $context = Application::getContextDAO()->getById($contextId);
+        $request = Application::get()->getRequest();
+        if (!$context instanceof Context) {
+            return '';
+        }
+        return (string) $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), 'conference', $op, $args);
+    }
+
     public static function fromContext(Context $context): ContextInfo
     {
         $primary = (string) $context->getPrimaryLocale();

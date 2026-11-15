@@ -147,6 +147,11 @@ final class ParticipantRoutes implements RouteModule
             (int) $r->query('count', '20'),
             (int) $r->query('offset', '0'),
             PaymentFilter::tryFrom((string) $r->query('payment', '')),
+            match ((string) $r->query('attended', '')) {
+                '1', 'yes' => true,
+                '0', 'no' => false,
+                default => null,
+            },
         );
     }
 }

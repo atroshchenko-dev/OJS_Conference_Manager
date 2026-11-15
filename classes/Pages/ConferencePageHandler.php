@@ -352,6 +352,15 @@ class ConferencePageHandler extends Handler
             ];
         }
 
+        $certificates = [];
+        $participantIds = array_values(array_unique(array_map(static fn (array $p): int => (int) $p['participantId'], $items)));
+        foreach (ServiceFactory::certificates()->mine($info, $participantIds, $locale) as $c) {
+            $certificates[] = $c + [
+                'pdfUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'certificate', [(string) $c['id']]),
+                'issuedAtText' => $this->formatDate($c['issuedAt'] === null ? null : new DateTimeImmutable((string) $c['issuedAt']), $info->serverTimezone, $locale),
+            ];
+        }
+
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
         $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
@@ -359,6 +368,7 @@ class ConferencePageHandler extends Handler
         $templateMgr->assign([
             'myItems' => $items,
             'myInvoices' => $invoices,
+            'myCertificates' => $certificates,
             'myMessage' => $message,
             'myUrl' => $myUrl,
             'pageTitle' => 'plugins.generic.conferenceManager.my.title',
@@ -456,6 +466,88 @@ class ConferencePageHandler extends Handler
         header('Cache-Control: private, no-store');
         echo $pdf['content'];
         exit;
+    }
+
+    /**
+     * CRT-04: the certificate PDF for its holder or a registration manager.
+     */
+    public function certificate($args, $request)
+    {
+        $context = $request->getContext();
+        $user = $request->getUser();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        if ($user === null) {
+            $dispatcher = $request->getDispatcher();
+            $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), 'login', null, null, [
+                'source' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'certificate', [(string) ($args[0] ?? '')]),
+            ]));
+        }
+        $info = ContextGateway::fromContext($context);
+        $manager = (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId());
+        $owner = $manager ? null : $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail());
+        $pdf = ServiceFactory::certificates()->pdf($info, (int) ($args[0] ?? 0), $owner);
+        if ($pdf === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $pdf['name'] . '"');
+        header('Content-Length: ' . strlen($pdf['content']));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, no-store');
+        echo $pdf['content'];
+        exit;
+    }
+
+    /**
+     * CRT-07: public check of a certificate by the code in its QR link.
+     * At most 30 checks a minute from one address.
+     */
+    public function verify($args, $request)
+    {
+        $context = $request->getContext();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $code = strtolower(trim((string) ($args[0] ?? $request->getUserVar('code') ?? '')));
+        $limited = false;
+        $result = null;
+        if ($code !== '') {
+            $limiter = new \Illuminate\Cache\RateLimiter(app('cache')->store());
+            $key = 'conferenceManager.verify.' . sha1((string) $request->getRemoteAddr());
+            if ($limiter->tooManyAttempts($key, 30)) {
+                $limited = true;
+                header('Retry-After: ' . $limiter->availableIn($key));
+                http_response_code(429);
+            } else {
+                $limiter->hit($key, 60);
+                $result = ServiceFactory::certificates()->verify($code, Locale::getLocale());
+                if ($result === null) {
+                    http_response_code(404);
+                }
+            }
+        }
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $templateMgr->addHeader('conferenceVerifyNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
+        $templateMgr->assign([
+            'verifyCode' => $code,
+            'verifyResult' => $result,
+            'verifyLimited' => $limited,
+            'verifyUrl' => $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'verify'),
+            'pageTitle' => 'plugins.generic.conferenceManager.verify.title',
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/verify.tpl'));
+    }
+
+    /** @return list<int> */
+    private function ownParticipantIds(\APP\plugins\generic\conferenceManager\classes\Application\ContextInfo $info, int $userId, string $email): array
+    {
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $ids = array_map(static fn (array $p): int => (int) $p['participantId'], ServiceFactory::participants()->myParticipations($info, $userId, $email, Locale::getLocale(), $now));
+        return array_values(array_unique($ids));
     }
 
     private function canManage(PKPRequest $request): bool
