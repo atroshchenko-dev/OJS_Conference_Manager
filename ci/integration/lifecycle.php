@@ -50,6 +50,8 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'publication-schema' => $this->publicationSchema($this->argv[1]),
                 'enable-site' => $this->enableSite(),
                 'run-windows-task' => $this->runWindowsTask(),
+                'author-group' => $this->authorGroup($this->argv[1]),
+                'new-token' => $this->newToken($this->argv[1], $this->argv[2]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
         } catch (Throwable $e) {
@@ -192,6 +194,31 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
         $task = new \APP\plugins\generic\conferenceManager\classes\Tasks\EditionWindowsTask();
         $task->execute() || throw new RuntimeException('task failed');
         echo "OK edition windows task\n";
+    }
+
+    /** Prints the id of the first author group of the context (for the API smoke test). */
+    private function authorGroup(string $path): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $id = DB::table('user_groups')->where('context_id', $context->getId())
+            ->where('role_id', \PKP\security\Role::ROLE_ID_AUTHOR)->orderBy('user_group_id')->value('user_group_id');
+        $id || throw new RuntimeException('no author group');
+        echo $id, "\n";
+    }
+
+    /**
+     * A new confirmation link for a pending participant, for OJS builds
+     * whose "log" mailer does not work (3.5.0-5), so the letter cannot be read.
+     */
+    private function newToken(string $path, string $email): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $id = DB::table('conf_participants')->where('context_id', $context->getId())->where('email', strtolower($email))
+            ->where('confirmation_status', 'pending')->orderByDesc('id')->value('id') ?? throw new RuntimeException('no pending participant');
+        [$token, $hash] = \APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConfirmationToken::generate();
+        (new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository(DB::connection()))
+            ->setConfirmationToken((int) $id, $hash, new \DateTimeImmutable('+30 days', new \DateTimeZone('UTC')));
+        echo $path, '/conference/confirm/', $token, "\n";
     }
 
     private function steps(): void

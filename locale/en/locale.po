@@ -602,3 +602,168 @@ msgstr "Conference plugin: submission windows"
 
 msgid "plugins.generic.conferenceManager.task.editionWindows.closed"
 msgstr "Calls closed: {$count}."
+
+msgid "plugins.generic.conferenceManager.registration.step"
+msgstr "Conference participation"
+
+msgid "plugins.generic.conferenceManager.registration.step.description"
+msgstr "If the submission is for a conference, seminar or another event, choose the edition and fill in the speaker questionnaire. All co-authors become participants of the event and receive a letter to confirm their participation."
+
+msgid "plugins.generic.conferenceManager.registration.edition"
+msgstr "Event"
+
+msgid "plugins.generic.conferenceManager.registration.edition.choose"
+msgstr "— Choose an event —"
+
+msgid "plugins.generic.conferenceManager.registration.edition.none"
+msgstr "Not for a conference (regular article)"
+
+msgid "plugins.generic.conferenceManager.registration.edition.description"
+msgstr "Events that accept submissions now."
+
+msgid "plugins.generic.conferenceManager.registration.edition.descriptionOptional"
+msgstr "Events that accept submissions now. For a regular article, keep “Not for a conference”."
+
+msgid "plugins.generic.conferenceManager.registration.edition.deadline"
+msgstr "submissions until {$date}"
+
+msgid "plugins.generic.conferenceManager.registration.presentationType"
+msgstr "Preferred presentation type"
+
+msgid "plugins.generic.conferenceManager.registration.participationForm"
+msgstr "Form of participation"
+
+msgid "plugins.generic.conferenceManager.registration.presenterEmail"
+msgstr "Presenter"
+
+msgid "plugins.generic.conferenceManager.registration.presenterEmail.description"
+msgstr "Email of the presenter exactly as in the list of contributors."
+
+msgid "plugins.generic.conferenceManager.registration.consent"
+msgstr "Consent to personal data processing"
+
+msgid "plugins.generic.conferenceManager.registration.consent.agree"
+msgstr "I agree to the terms of personal data processing"
+
+msgid "plugins.generic.conferenceManager.registration.consent.given"
+msgstr "Given"
+
+msgid "plugins.generic.conferenceManager.registration.consent.missing"
+msgstr "Not given"
+
+msgid "plugins.generic.conferenceManager.registration.consent.default"
+msgstr "I agree that the organizer of the event processes my personal data (name, email, institution, country) for participation in the event, publication of the materials and issuing a certificate. The data are kept as long as needed for these purposes and are not passed to others except where required by law."
+
+msgid "plugins.generic.conferenceManager.registration.presentationType.oral"
+msgstr "Oral presentation"
+
+msgid "plugins.generic.conferenceManager.registration.presentationType.poster"
+msgstr "Poster"
+
+msgid "plugins.generic.conferenceManager.registration.presentationType.online"
+msgstr "Online presentation"
+
+msgid "plugins.generic.conferenceManager.registration.presentationType.absentee"
+msgstr "In absentia (publication only)"
+
+msgid "plugins.generic.conferenceManager.registration.participationForm.in_person"
+msgstr "In person"
+
+msgid "plugins.generic.conferenceManager.registration.participationForm.online"
+msgstr "Online"
+
+msgid "plugins.generic.conferenceManager.registration.participationForm.absentee"
+msgstr "In absentia"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.presenter"
+msgstr "presenter"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.coauthor"
+msgstr "co-author"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.listener"
+msgstr "listener"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.chair"
+msgstr "chair"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.organizer"
+msgstr "organizer"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.reviewer"
+msgstr "reviewer"
+
+msgid "plugins.generic.conferenceManager.registration.confirmationStatus.pending"
+msgstr "awaiting confirmation"
+
+msgid "plugins.generic.conferenceManager.registration.confirmationStatus.confirmed"
+msgstr "confirmed"
+
+msgid "plugins.generic.conferenceManager.registration.confirmationStatus.declined"
+msgstr "declined"
+
+msgid "plugins.generic.conferenceManager.registration.error.editionRequired"
+msgstr "Choose the event this submission is for."
+
+msgid "plugins.generic.conferenceManager.registration.error.callClosed"
+msgstr "Submissions to this event are closed."
+
+msgid "plugins.generic.conferenceManager.registration.error.required"
+msgstr "This field is required."
+
+msgid "plugins.generic.conferenceManager.registration.error.presenterNotAuthor"
+msgstr "The presenter must be one of the contributors: check the email in the list of contributors."
+
+msgid "plugins.generic.conferenceManager.registration.error.consentRequired"
+msgstr "The submission cannot be completed without consent to personal data processing."
+
+msgid "plugins.generic.conferenceManager.registration.error.consentOutdated"
+msgstr "The consent text has changed. Please read it and agree again."
+
+msgid "plugins.generic.conferenceManager.registration.error.alreadySubmitted"
+msgstr "The questionnaire can no longer be changed: the submission has been sent."
+
+msgid "plugins.generic.conferenceManager.registration.mail.confirmSubject"
+msgstr "Please confirm your participation: {$edition}"
+
+msgid "plugins.generic.conferenceManager.registration.mail.confirmBody"
+msgstr "<p>Dear {$name},</p><p>{$submitter} has submitted “{$submission}” to “{$edition}” and listed you as an author. Your role: {$role}.</p><p>Please confirm or decline your participation at this link (no account needed):<br><a href=\"{$url}\">{$url}</a></p><p>The link works until {$expires} and only once.</p><p>If you have nothing to do with this submission, please ignore this letter.</p><p>{$journal}</p>"
+
+msgid "plugins.generic.conferenceManager.confirm.title"
+msgstr "Confirmation of participation"
+
+msgid "plugins.generic.conferenceManager.confirm.question"
+msgstr "You ({$email}) are listed as an author of a submission to this event. Please confirm or decline your participation."
+
+msgid "plugins.generic.conferenceManager.confirm.accept"
+msgstr "I confirm my participation"
+
+msgid "plugins.generic.conferenceManager.confirm.decline"
+msgstr "I decline"
+
+msgid "plugins.generic.conferenceManager.confirm.done.confirmed"
+msgstr "Thank you! Your participation is confirmed."
+
+msgid "plugins.generic.conferenceManager.confirm.done.declined"
+msgstr "Your answer is recorded: you declined to participate."
+
+msgid "plugins.generic.conferenceManager.confirm.expired"
+msgstr "The link has expired. Please contact the organizers of the event."
+
+msgid "plugins.generic.conferenceManager.confirm.invalid"
+msgstr "The link is not valid or has already been used."
+
+msgid "plugins.generic.conferenceManager.institution.section.submissions"
+msgstr "Submissions"
+
+msgid "plugins.generic.conferenceManager.institution.allowRegularSubmissions"
+msgstr "The journal also accepts regular articles not related to conferences"
+
+msgid "plugins.generic.conferenceManager.institution.allowRegularSubmissions.description"
+msgstr "When on, an author can choose “Not for a conference” in the submission wizard. When off, while any event accepts submissions, every submission must be for an event."
+
+msgid "plugins.generic.conferenceManager.validation.pathReserved"
+msgstr "This path is reserved for pages of the plugin. Choose another."
+
+msgid "plugins.generic.conferenceManager.confirm.retry"
+msgstr "The form could not be verified. Please press the button again."

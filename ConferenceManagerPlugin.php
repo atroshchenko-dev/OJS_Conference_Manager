@@ -22,16 +22,22 @@ use APP\plugins\generic\conferenceManager\classes\Api\ConferenceSiteApiControlle
 use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
 use APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory;
 use APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway;
+use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
 use APP\plugins\generic\conferenceManager\classes\Forms\InstitutionSettingsForm;
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
 use APP\plugins\generic\conferenceManager\classes\Pages\ConferencePageHandler;
 use APP\plugins\generic\conferenceManager\classes\Pages\ManageConferenceHandler;
 use APP\plugins\generic\conferenceManager\classes\Tasks\EditionWindowsTask;
+use APP\plugins\generic\conferenceManager\classes\Wizard\ConferenceWizardStep;
 use APP\template\TemplateManager;
+use DateTimeImmutable;
+use DateTimeZone;
+use Illuminate\Support\Facades\Event;
 use PKP\core\APIRouter;
 use PKP\core\JSONMessage;
 use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
+use PKP\observers\events\SubmissionSubmitted;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
 use PKP\plugins\interfaces\HasTaskScheduler;
@@ -41,6 +47,9 @@ use PKP\security\Role;
 class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
 {
     public const VERB_INSTITUTION = 'institution';
+
+    /** Plugin setting: the journal also takes submissions that are not for an edition. */
+    public const SETTING_REGULAR_SUBMISSIONS = 'allowRegularSubmissions';
 
     /**
      * Hooks are registered unconditionally; each callback checks that the
@@ -64,6 +73,9 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         Hook::add('Schema::get::publication', $this->addPublicationProperties(...));
         Hook::add('LoadHandler', $this->loadPageHandler(...));
         Hook::add('TemplateManager::setupBackendPage', $this->addBackendMenu(...));
+        Hook::add('TemplateManager::display', $this->addWizardStep(...));
+        Hook::add('Submission::validateSubmit', $this->validateSubmit(...));
+        Event::listen(SubmissionSubmitted::class, $this->onSubmissionSubmitted(...));
 
         return true;
     }
@@ -197,6 +209,10 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
                 $handler = new ConferencePageHandler($this);
                 return true;
             }
+            if ($contextId !== null && $op === 'confirm' && $this->isEnabledFor((int) $contextId)) {
+                $handler = new ConferencePageHandler($this);
+                return true;
+            }
             if ($contextId !== null && $op !== 'index' && $this->isEnabledFor((int) $contextId)) {
                 $handler = new ConferencePageHandler($this, (string) $op);
                 $op = 'view';
@@ -234,6 +250,134 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
             : array_slice($menu, 0, $index, true) + ['conferenceManager' => $item] + array_slice($menu, $index, null, true);
         $templateMgr->setState(['menu' => $menu]);
         return Hook::CONTINUE;
+    }
+
+    public function regularSubmissionsAllowed(int $contextId): bool
+    {
+        return (bool) $this->getSetting($contextId, self::SETTING_REGULAR_SUBMISSIONS);
+    }
+
+    /**
+     * REG-02: the "Conference participation" step of the submission wizard.
+     * TemplateManager::display is run with Hook::call(): [$templateMgr, &$template, &$output].
+     *
+     * @param array{0: TemplateManager, 1: string, 2: ?string} $args
+     */
+    public function addWizardStep(string $hookName, array $args): bool
+    {
+        $templateMgr = $args[0];
+        if ($args[1] !== 'submission/wizard.tpl') {
+            return Hook::CONTINUE;
+        }
+        $request = Application::get()->getRequest();
+        $context = $request->getContext();
+        $submission = $templateMgr->getTemplateVars('submission');
+        if ($context === null || !$submission instanceof \APP\submission\Submission || !$this->isEnabledFor((int) $context->getId())) {
+            return Hook::CONTINUE;
+        }
+        try {
+            $info = ContextGateway::fromContext($context);
+            $service = ServiceFactory::registrations();
+            $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+            $submissionId = (int) $submission->getId();
+            if (!$service->isStepNeeded($info, $submissionId, $now)) {
+                return Hook::CONTINUE;
+            }
+            $locale = \PKP\facades\Locale::getLocale();
+            $regular = $this->regularSubmissionsAllowed($info->id);
+            $consent = ServiceFactory::consentText($info, $locale);
+            $open = $service->openEditions($info, $now);
+            $step = new ConferenceWizardStep($service);
+            $registration = $step->prefill($info, $submissionId, $open, $request->getUser()?->getEmail(), $consent->version, $now, $regular);
+
+            $editions = $open;
+            $chosen = $registration->editionId;
+            if ($chosen !== null && !in_array($chosen, array_map(static fn (Edition $e): ?int => $e->id, $open), true)) {
+                $current = ServiceFactory::editions()->get($info, $chosen);
+                if ($current !== null) {
+                    $editions[] = $current;
+                }
+            }
+            $locales = array_values(array_unique(array_merge([(string) $submission->getData('locale')], $info->formLocales)));
+            $config = $step->build($info, $submissionId, $editions, $registration, $consent, $locale, $locales, $regular);
+            $config['reviewTemplate'] = $this->getTemplateResource('wizardReview.tpl');
+
+            $templateMgr->setState(['steps' => ConferenceWizardStep::insert((array) $templateMgr->getState('steps'), $config)]);
+            $reviewSteps = array_values(array_filter(
+                (array) $templateMgr->getTemplateVars('reviewSteps'),
+                static fn ($s): bool => ($s['id'] ?? null) !== ConferenceWizardStep::STEP_ID,
+            ));
+            $reviewSteps[] = ['id' => $config['id'], 'reviewTemplate' => $config['reviewTemplate'], 'reviewName' => $config['reviewName']];
+            $templateMgr->assign([
+                'reviewSteps' => $reviewSteps,
+                'conferenceReviewLabels' => [
+                    'none' => __('common.noneProvided'),
+                    'consentGiven' => __('plugins.generic.conferenceManager.registration.consent.given'),
+                    'consentMissing' => __('plugins.generic.conferenceManager.registration.consent.missing'),
+                ],
+            ]);
+            $templateMgr->addJavaScript(
+                'conferenceWizardReview',
+                $request->getBaseUrl() . '/' . $this->getPluginPath() . '/js/wizardReview.js',
+                ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST],
+            );
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: wizard step: ' . $e->getMessage());
+        }
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * EDN-03, REG-02: no submission outside the call window, and none
+     * without the questionnaire and the consent.
+     * Submission::validateSubmit is run with Hook::call(): [&$errors, $submission, $context].
+     *
+     * @param array{0: array<string, mixed>, 1: \APP\submission\Submission, 2: \PKP\context\Context} $args
+     */
+    public function validateSubmit(string $hookName, array $args): bool
+    {
+        $errors = &$args[0];
+        $submission = $args[1];
+        $context = $args[2];
+        if (!$this->isEnabledFor((int) $context->getId())) {
+            return Hook::CONTINUE;
+        }
+        try {
+            $info = ContextGateway::fromContext($context);
+            $found = ServiceFactory::registrations()->validateSubmit(
+                $info,
+                (int) $submission->getId(),
+                ServiceFactory::consentText($info, \PKP\facades\Locale::getLocale())->version,
+                new DateTimeImmutable('now', new DateTimeZone('UTC')),
+                $this->regularSubmissionsAllowed($info->id),
+            );
+            foreach ($found->toArray() as $field => $keys) {
+                $errors[$field] = array_map(static fn (string $k): string => __($k), $keys);
+            }
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: validate submit: ' . $e->getMessage());
+        }
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * REG-03, REG-04: authors become participants, co-authors get a letter.
+     */
+    public function onSubmissionSubmitted(SubmissionSubmitted $event): void
+    {
+        if (!$this->isEnabledFor((int) $event->context->getId())) {
+            return;
+        }
+        try {
+            ServiceFactory::registrations()->onSubmitted(
+                ContextGateway::fromContext($event->context),
+                (int) $event->submission->getId(),
+                Application::get()->getRequest()->getUser()?->getId(),
+                new DateTimeImmutable('now', new DateTimeZone('UTC')),
+            );
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: after submit: ' . $e->getMessage());
+        }
     }
 
     /**

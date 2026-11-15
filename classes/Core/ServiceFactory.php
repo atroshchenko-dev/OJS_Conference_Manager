@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace APP\plugins\generic\conferenceManager\classes\Core;
 
+use APP\plugins\generic\conferenceManager\classes\Application\ContextInfo;
 use APP\plugins\generic\conferenceManager\classes\Application\EditionService;
 use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfileService;
+use APP\plugins\generic\conferenceManager\classes\Application\SubmissionRegistrationService;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConsentText;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Queries\UpcomingEditionsQuery;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
 use Illuminate\Support\Facades\DB;
 use PKP\plugins\Hook;
@@ -63,5 +67,31 @@ final class ServiceFactory
     public static function upcoming(): UpcomingEditionsQuery
     {
         return new UpcomingEditionsQuery(DB::connection(), 'conferencemanagerplugin');
+    }
+
+    public static function registrations(): SubmissionRegistrationService
+    {
+        $db = DB::connection();
+        return new SubmissionRegistrationService(
+            new DbRegistrationRepository($db),
+            new DbEditionRepository($db),
+            new SubmissionGateway(),
+            new MailGateway(),
+            new AuditLogger($db),
+        );
+    }
+
+    /**
+     * The text of the consent (REG-02): the privacy notice of the
+     * institution profile in this language, else the general text.
+     */
+    public static function consentText(ContextInfo $context, string $locale): ConsentText
+    {
+        $notice = self::institutionProfiles()->getOrDraft($context)->text('privacyNotice');
+        if ($notice->isEmpty()) {
+            $key = 'plugins.generic.conferenceManager.registration.consent.default';
+            return new ConsentText(__($key, [], $locale), __($key, [], $context->primaryLocale));
+        }
+        return new ConsentText((string) $notice->resolve($locale, $context->primaryLocale), ConsentText::sourceOf($notice->toArray()));
     }
 }

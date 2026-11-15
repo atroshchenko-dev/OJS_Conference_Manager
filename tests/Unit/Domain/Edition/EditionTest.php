@@ -156,4 +156,12 @@ final class EditionTest extends TestCase
         self::assertSame('', $copy['path']);
         self::assertSame(['en' => 'Conference 2027', 'uk' => 'Конференція 2027'], $copy['name']);
     }
+
+    public function testPathsOfPluginPagesAreReserved(): void
+    {
+        foreach (['confirm', 'upcoming', 'index'] as $path) {
+            [, $errors] = $this->build(self::validInput(['path' => $path]));
+            self::assertSame(['plugins.generic.conferenceManager.validation.pathReserved'], $errors->toArray()['path'] ?? null, $path);
+        }
+    }
 }

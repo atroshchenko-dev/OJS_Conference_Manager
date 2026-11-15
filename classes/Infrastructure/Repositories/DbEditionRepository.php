@@ -119,7 +119,7 @@ final class DbEditionRepository implements EditionRepository
             return false;
         }
         $schema = $this->db->getSchemaBuilder();
-        foreach (['conf_participants', 'conf_invoices', 'conf_certificates'] as $table) {
+        foreach (['conf_participants', 'conf_invoices', 'conf_certificates', 'conf_submission_registrations'] as $table) {
             if ($schema->hasTable($table) && $this->db->table($table)->where('edition_id', $id)->exists()) {
                 return true;
             }

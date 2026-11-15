@@ -27,6 +27,7 @@ use PKP\facades\Locale;
  * Public pages (plan 9):
  *   /{context}/conference/{edition}   page of an edition (EDN-07)
  *   /index/conference/upcoming        upcoming events of all journals (EDN-08, DST-03)
+ *   /{context}/conference/confirm/{token}  a co-author confirms participation (REG-04)
  *
  * The router calls the operation "view" or "upcoming"; the requested
  * edition path is given to the constructor by the LoadHandler hook.
@@ -130,6 +131,56 @@ class ConferencePageHandler extends Handler
             'formats' => array_map(static fn (EventFormat $t): array => ['value' => $t->value, 'label' => __($t->labelKey())], EventFormat::cases()),
         ]);
         return $templateMgr->display($this->plugin->getTemplateResource('frontend/upcoming.tpl'));
+    }
+
+    /**
+     * REG-04: the link from the letter. GET shows the question, POST
+     * records the answer; the link works once and for 30 days. No account
+     * is needed: the token itself is the authorization.
+     *
+     * @param array $args
+     * @param \APP\core\Request $request
+     */
+    public function confirm($args, $request)
+    {
+        $context = $request->getContext();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $token = (string) ($args[0] ?? '');
+        $service = ServiceFactory::registrations();
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $contextId = (int) $context->getId();
+
+        $retry = false;
+        if ($request->isPost() && $request->checkCSRF()) {
+            $state = $service->answer($contextId, $token, $request->getUserVar('answer') === 'accept', $now, $request->getRemoteAddr());
+        } else {
+            // A form without a valid CSRF token (e.g. an expired session)
+            // records nothing and asks again.
+            $retry = $request->isPost();
+            $state = $service->inspectToken($contextId, $token, $now);
+        }
+
+        $info = ContextGateway::fromContext($context);
+        $edition = isset($state['editionId']) ? ServiceFactory::editions()->get($info, (int) $state['editionId']) : null;
+        $locale = Locale::getLocale();
+
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        // The address holds the token: keep it out of search engines and referrers.
+        $templateMgr->addHeader('conferenceConfirmNoIndex', '<meta name="robots" content="noindex"><meta name="referrer" content="no-referrer">', ['contexts' => 'frontend']);
+        $templateMgr->assign([
+            'confirmState' => $state['result'],
+            'confirmRetry' => $retry,
+            'confirmEmail' => $state['email'] ?? '',
+            'confirmToken' => $state['result'] === 'pending' ? $token : '',
+            'confirmEditionName' => $edition?->text('name')->resolve($locale, $info->primaryLocale) ?? '',
+            'confirmEditionUrl' => $edition === null || $edition->status === EditionStatus::Draft ? '' : $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, $edition->path),
+            'pageTitle' => 'plugins.generic.conferenceManager.confirm.title',
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/confirm.tpl'));
     }
 
     private function canManage(PKPRequest $request): bool

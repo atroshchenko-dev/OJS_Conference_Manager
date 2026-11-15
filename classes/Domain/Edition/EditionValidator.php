@@ -14,6 +14,9 @@ final class EditionValidator
 {
     public const PATH_PATTERN = '/^[a-z0-9][a-z0-9_-]{0,63}$/';
 
+    /** Paths taken by pages of the plugin under /{context}/conference/. */
+    public const RESERVED_PATHS = ['index', 'upcoming', 'confirm'];
+
     private const K = 'plugins.generic.conferenceManager.validation.';
 
     /**
@@ -42,6 +45,8 @@ final class EditionValidator
             $errors->add('path', self::K . 'required');
         } elseif (!preg_match(self::PATH_PATTERN, $edition->path)) {
             $errors->add('path', self::K . 'path');
+        } elseif (in_array($edition->path, self::RESERVED_PATHS, true)) {
+            $errors->add('path', self::K . 'pathReserved');
         }
 
         $this->validateDates($edition, $errors, $parseErrors ?? new ValidationErrors());

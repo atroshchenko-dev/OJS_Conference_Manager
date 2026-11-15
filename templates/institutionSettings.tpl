@@ -147,6 +147,12 @@
 		{/foreach}
 	{/fbvFormArea}
 
+	{fbvFormArea id="confManagerInstitutionSubmissions" title="plugins.generic.conferenceManager.institution.section.submissions"}
+		{fbvFormSection list=true description="plugins.generic.conferenceManager.institution.allowRegularSubmissions.description"}
+			{fbvElement type="checkbox" id="allowRegularSubmissions" value="1" checked=$allowRegularSubmissions label="plugins.generic.conferenceManager.institution.allowRegularSubmissions"}
+		{/fbvFormSection}
+	{/fbvFormArea}
+
 	{fbvFormArea id="confManagerInstitutionImport" title="plugins.generic.conferenceManager.institution.section.importExport"}
 		<p><a href="{$exportUrl|escape}" download>{translate key="plugins.generic.conferenceManager.institution.export"}</a></p>
 		{fbvFormSection label="plugins.generic.conferenceManager.institution.import" description="plugins.generic.conferenceManager.institution.import.description"}

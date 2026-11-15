@@ -18,3 +18,26 @@
 .cmUpcoming__open { color: #1a7f37; }
 .cmUpcoming__pages { display: flex; gap: 1rem; margin-top: 1rem; }
 @media (max-width: 600px) { .cmEdition__facts { grid-template-columns: 1fr; } .cmEdition__facts dd { margin-bottom: .5rem; } }
+
+/* Confirmation of participation (REG-04) */
+.cmConfirm {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	margin: 1.5rem 0;
+}
+.cmConfirm__decline {
+	padding: 0.5rem 1rem;
+	border: 1px solid currentColor;
+	background: transparent;
+	border-radius: 3px;
+	cursor: pointer;
+}
+.cmConfirm__result {
+	font-size: 1.1em;
+}
+.cmConfirm__accept {
+	border: 0;
+	cursor: pointer;
+	font: inherit;
+}

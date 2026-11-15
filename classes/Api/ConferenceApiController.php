@@ -9,9 +9,11 @@ use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\ValidationErrors;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Route;
 use PKP\core\PKPBaseController;
 use PKP\core\PKPRequest;
 use PKP\security\authorization\ContextAccessPolicy;
+use PKP\security\authorization\SubmissionAccessPolicy;
 use PKP\security\Role;
 
 /**
@@ -31,7 +33,7 @@ class ConferenceApiController extends PKPBaseController
      */
     public function __construct(?array $modules = null)
     {
-        $this->modules = $modules ?? [new InstitutionRoutes($this), new EditionRoutes($this)];
+        $this->modules = $modules ?? [new InstitutionRoutes($this), new EditionRoutes($this), new RegistrationRoutes($this)];
     }
 
     public function getHandlerPath(): string
@@ -41,24 +43,45 @@ class ConferenceApiController extends PKPBaseController
 
     public function getRouteGroupMiddleware(): array
     {
-        return [
-            'has.user',
-            'has.context',
-            self::roleAuthorizer([Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER]),
-        ];
+        // Roles are set per module in getGroupRoutes().
+        return ['has.user', 'has.context'];
     }
 
     public function authorize(PKPRequest $request, array &$args, array $roleAssignments): bool
     {
         $this->addPolicy(new ContextAccessPolicy($request, $roleAssignments));
+        $action = static::getRouteActionName($args[0] ?? null);
+        if (in_array($action, RegistrationRoutes::SUBMISSION_ACTIONS, true)) {
+            // The author of the submission or an editor with access to it.
+            $this->addPolicy(new SubmissionAccessPolicy($request, $args, $roleAssignments));
+        }
         return parent::authorize($request, $args, $roleAssignments);
     }
 
     public function getGroupRoutes(): void
     {
         foreach ($this->modules as $module) {
-            $module->routes();
+            Route::middleware([self::roleAuthorizer($module->roles())])->group(static function () use ($module): void {
+                $module->routes();
+            });
         }
+    }
+
+    /** @return \APP\submission\Submission|null the submission authorized by SubmissionAccessPolicy */
+    public function authorizedSubmission(): mixed
+    {
+        return $this->getAuthorizedContextObject(\APP\core\Application::ASSOC_TYPE_SUBMISSION);
+    }
+
+    public function userHasRole(array $roles): bool
+    {
+        $request = $this->getRequest();
+        $user = $request->getUser();
+        $contextId = $request->getContext()?->getId();
+        return $user !== null && (
+            $user->hasRole($roles, (int) $contextId)
+            || $user->hasRole([Role::ROLE_ID_SITE_ADMIN], \APP\core\Application::SITE_CONTEXT_ID)
+        );
     }
 
     public function contextInfo(): ContextInfo

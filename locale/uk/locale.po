@@ -602,3 +602,168 @@ msgstr "Плагін конференцій: вікна прийому"
 
 msgid "plugins.generic.conferenceManager.task.editionWindows.closed"
 msgstr "Закрито прийом заявок у виданнях: {$count}."
+
+msgid "plugins.generic.conferenceManager.registration.step"
+msgstr "Участь у конференції"
+
+msgid "plugins.generic.conferenceManager.registration.step.description"
+msgstr "Якщо матеріал подається на конференцію, семінар чи інший захід, оберіть видання й заповніть анкету доповідача. Усі співавтори стануть учасниками заходу й отримають лист для підтвердження участі."
+
+msgid "plugins.generic.conferenceManager.registration.edition"
+msgstr "Захід"
+
+msgid "plugins.generic.conferenceManager.registration.edition.choose"
+msgstr "— Оберіть захід —"
+
+msgid "plugins.generic.conferenceManager.registration.edition.none"
+msgstr "Не для конференції (звичайна стаття)"
+
+msgid "plugins.generic.conferenceManager.registration.edition.description"
+msgstr "Показано заходи, на які зараз приймаються матеріали."
+
+msgid "plugins.generic.conferenceManager.registration.edition.descriptionOptional"
+msgstr "Показано заходи, на які зараз приймаються матеріали. Якщо це звичайна стаття, залиште «Не для конференції»."
+
+msgid "plugins.generic.conferenceManager.registration.edition.deadline"
+msgstr "прийом до {$date}"
+
+msgid "plugins.generic.conferenceManager.registration.presentationType"
+msgstr "Бажаний тип доповіді"
+
+msgid "plugins.generic.conferenceManager.registration.participationForm"
+msgstr "Форма участі"
+
+msgid "plugins.generic.conferenceManager.registration.presenterEmail"
+msgstr "Хто доповідає"
+
+msgid "plugins.generic.conferenceManager.registration.presenterEmail.description"
+msgstr "Електронна пошта доповідача так, як вона вказана у списку авторів подання."
+
+msgid "plugins.generic.conferenceManager.registration.consent"
+msgstr "Згода на обробку персональних даних"
+
+msgid "plugins.generic.conferenceManager.registration.consent.agree"
+msgstr "Я погоджуюся з умовами обробки персональних даних"
+
+msgid "plugins.generic.conferenceManager.registration.consent.given"
+msgstr "Надано"
+
+msgid "plugins.generic.conferenceManager.registration.consent.missing"
+msgstr "Не надано"
+
+msgid "plugins.generic.conferenceManager.registration.consent.default"
+msgstr "Я погоджуюся, що організатор заходу обробляє мої персональні дані (ім'я, електронну пошту, заклад, країну) для участі в заході, публікації матеріалів і видачі сертифіката. Дані зберігаються, доки це потрібно для цих цілей, і не передаються іншим особам, крім випадків, передбачених законом."
+
+msgid "plugins.generic.conferenceManager.registration.presentationType.oral"
+msgstr "Усна доповідь"
+
+msgid "plugins.generic.conferenceManager.registration.presentationType.poster"
+msgstr "Стендова доповідь"
+
+msgid "plugins.generic.conferenceManager.registration.presentationType.online"
+msgstr "Онлайн-доповідь"
+
+msgid "plugins.generic.conferenceManager.registration.presentationType.absentee"
+msgstr "Заочна участь (лише публікація)"
+
+msgid "plugins.generic.conferenceManager.registration.participationForm.in_person"
+msgstr "Очно"
+
+msgid "plugins.generic.conferenceManager.registration.participationForm.online"
+msgstr "Онлайн"
+
+msgid "plugins.generic.conferenceManager.registration.participationForm.absentee"
+msgstr "Заочно"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.presenter"
+msgstr "доповідач"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.coauthor"
+msgstr "співавтор"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.listener"
+msgstr "слухач"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.chair"
+msgstr "модератор"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.organizer"
+msgstr "організатор"
+
+msgid "plugins.generic.conferenceManager.registration.participantRole.reviewer"
+msgstr "рецензент"
+
+msgid "plugins.generic.conferenceManager.registration.confirmationStatus.pending"
+msgstr "очікує підтвердження"
+
+msgid "plugins.generic.conferenceManager.registration.confirmationStatus.confirmed"
+msgstr "підтверджено"
+
+msgid "plugins.generic.conferenceManager.registration.confirmationStatus.declined"
+msgstr "відмовився"
+
+msgid "plugins.generic.conferenceManager.registration.error.editionRequired"
+msgstr "Оберіть захід, на який подається матеріал."
+
+msgid "plugins.generic.conferenceManager.registration.error.callClosed"
+msgstr "Прийом матеріалів на цей захід закрито."
+
+msgid "plugins.generic.conferenceManager.registration.error.required"
+msgstr "Це поле обов'язкове."
+
+msgid "plugins.generic.conferenceManager.registration.error.presenterNotAuthor"
+msgstr "Доповідач має бути одним з авторів подання: перевірте електронну пошту в списку авторів."
+
+msgid "plugins.generic.conferenceManager.registration.error.consentRequired"
+msgstr "Без згоди на обробку персональних даних подання не можна завершити."
+
+msgid "plugins.generic.conferenceManager.registration.error.consentOutdated"
+msgstr "Текст згоди змінився. Перегляньте його й погодьтеся ще раз."
+
+msgid "plugins.generic.conferenceManager.registration.error.alreadySubmitted"
+msgstr "Анкету вже не можна змінити: подання надіслано."
+
+msgid "plugins.generic.conferenceManager.registration.mail.confirmSubject"
+msgstr "Підтвердьте участь: {$edition}"
+
+msgid "plugins.generic.conferenceManager.registration.mail.confirmBody"
+msgstr "<p>Шановна(-ий) {$name}!</p><p>{$submitter} подав(-ла) матеріал «{$submission}» на захід «{$edition}» і вказав(-ла) вас як автора. Ваша роль: {$role}.</p><p>Підтвердьте, будь ласка, участь або відмовтеся за посиланням (обліковий запис не потрібен):<br><a href=\"{$url}\">{$url}</a></p><p>Посилання діє до {$expires} і спрацьовує один раз.</p><p>Якщо ви не маєте стосунку до цього подання, просто проігноруйте лист.</p><p>{$journal}</p>"
+
+msgid "plugins.generic.conferenceManager.confirm.title"
+msgstr "Підтвердження участі"
+
+msgid "plugins.generic.conferenceManager.confirm.question"
+msgstr "Вас ({$email}) указано автором матеріалу, поданого на цей захід. Підтвердьте участь або відмовтеся."
+
+msgid "plugins.generic.conferenceManager.confirm.accept"
+msgstr "Підтверджую участь"
+
+msgid "plugins.generic.conferenceManager.confirm.decline"
+msgstr "Відмовляюся"
+
+msgid "plugins.generic.conferenceManager.confirm.done.confirmed"
+msgstr "Дякуємо! Участь підтверджено."
+
+msgid "plugins.generic.conferenceManager.confirm.done.declined"
+msgstr "Відповідь записано: ви відмовилися від участі."
+
+msgid "plugins.generic.conferenceManager.confirm.expired"
+msgstr "Термін дії посилання минув. Зверніться до організаторів заходу."
+
+msgid "plugins.generic.conferenceManager.confirm.invalid"
+msgstr "Посилання недійсне або вже використане."
+
+msgid "plugins.generic.conferenceManager.institution.section.submissions"
+msgstr "Подання"
+
+msgid "plugins.generic.conferenceManager.institution.allowRegularSubmissions"
+msgstr "Журнал приймає й звичайні статті, не пов'язані з конференціями"
+
+msgid "plugins.generic.conferenceManager.institution.allowRegularSubmissions.description"
+msgstr "Якщо ввімкнено, автор може в майстрі подання обрати «Не для конференції». Якщо вимкнено, поки відкрито прийом на будь-який захід, кожне подання має бути на якийсь захід."
+
+msgid "plugins.generic.conferenceManager.validation.pathReserved"
+msgstr "Ця адреса зарезервована для сторінок плагіна. Оберіть іншу."
+
+msgid "plugins.generic.conferenceManager.confirm.retry"
+msgstr "Не вдалося перевірити форму. Натисніть кнопку ще раз."

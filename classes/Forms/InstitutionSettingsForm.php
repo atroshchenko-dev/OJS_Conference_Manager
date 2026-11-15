@@ -43,6 +43,9 @@ class InstitutionSettingsForm extends Form
     public function initData(): void
     {
         $this->_data = $this->service->getOrDraft($this->context)->toArray();
+        // A setting of the plugin, not of the profile: whether the journal
+        // also takes submissions that are not for a conference edition.
+        $this->_data['allowRegularSubmissions'] = (bool) $this->plugin->getSetting($this->context->id, 'allowRegularSubmissions');
     }
 
     public function readInputData(): void
@@ -50,7 +53,7 @@ class InstitutionSettingsForm extends Form
         $this->readUserVars([
             'jurisdiction', 'institutionType', 'ownership', 'legalId', 'contactEmail', 'website', 'extra',
             ...InstitutionProfile::LOCALIZED_FIELDS,
-            'signers', 'paymentAccounts', 'importJson',
+            'signers', 'paymentAccounts', 'importJson', 'allowRegularSubmissions',
         ]);
         $this->setData('signers', self::cleanRows((array) $this->getData('signers'), ['fullName', 'position']));
         $this->setData('paymentAccounts', self::cleanRows((array) $this->getData('paymentAccounts'), ['recipientName', 'iban', 'label']));
@@ -86,6 +89,9 @@ class InstitutionSettingsForm extends Form
 
         $this->addDomainErrors($errors);
         $this->saved = $saved;
+        if ($saved !== null) {
+            $this->plugin->updateSetting($this->context->id, 'allowRegularSubmissions', (bool) $this->getData('allowRegularSubmissions'), 'bool');
+        }
         parent::execute(...$functionArgs);
         return $saved;
     }

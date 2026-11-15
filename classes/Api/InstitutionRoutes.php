@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
+use PKP\security\Role;
 
 /**
  * /{context}/api/v1/conference/institution
@@ -24,6 +25,11 @@ final class InstitutionRoutes implements RouteModule
 {
     public function __construct(private readonly ConferenceApiController $api)
     {
+    }
+
+    public function roles(): array
+    {
+        return [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER];
     }
 
     public function routes(): void
