@@ -33,7 +33,7 @@ class ConferenceApiController extends PKPBaseController
      */
     public function __construct(?array $modules = null)
     {
-        $this->modules = $modules ?? [new InstitutionRoutes($this), new EditionRoutes($this), new RegistrationRoutes($this)];
+        $this->modules = $modules ?? [new InstitutionRoutes($this), new EditionRoutes($this), new FeeRoutes($this), new RegistrationRoutes($this), new ParticipantRoutes($this), new MyParticipationRoutes($this)];
     }
 
     public function getHandlerPath(): string
@@ -82,6 +82,19 @@ class ConferenceApiController extends PKPBaseController
             $user->hasRole($roles, (int) $contextId)
             || $user->hasRole([Role::ROLE_ID_SITE_ADMIN], \APP\core\Application::SITE_CONTEXT_ID)
         );
+    }
+
+    public function canManageRegistrations(): bool
+    {
+        $actor = $this->actorId();
+        $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'conferencemanagerplugin');
+        return $actor !== null && $plugin instanceof \PKP\plugins\Plugin
+            && (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($plugin))->canManageRegistrations($this->contextInfo()->id, $actor);
+    }
+
+    public static function forbidden(): JsonResponse
+    {
+        return response()->json(['error' => 'api.403.unauthorized', 'errorMessage' => __('api.403.unauthorized')], Response::HTTP_FORBIDDEN);
     }
 
     public function contextInfo(): ContextInfo

@@ -41,3 +41,19 @@
 	cursor: pointer;
 	font: inherit;
 }
+
+/* Listener registration (REG-05) and cabinet (REG-06) */
+.cmRegister { max-width: 40rem; }
+.cmRegister__field { margin: 0 0 1.25rem; border: 0; padding: 0; }
+.cmRegister__field > label, .cmRegister__field > legend { display: block; font-weight: 600; margin-bottom: .35rem; }
+.cmRegister__field input[type="text"], .cmRegister__field select { width: 100%; max-width: 100%; box-sizing: border-box; padding: .45rem .5rem; }
+.cmRegister__choice { display: block; margin: .25rem 0; font-weight: normal; }
+.cmRegister__error { color: #b00020; margin: .35rem 0 0; }
+.cmRegister__required { color: #b00020; }
+.cmRegister__consentText { font-size: .9em; max-height: 12rem; overflow: auto; padding: .5rem .75rem; border: 1px solid rgba(0, 0, 0, .15); }
+.cmRegister__trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.cmMy { list-style: none; padding: 0; }
+.cmMy__item { border-top: 1px solid rgba(0, 0, 0, .12); padding: 1rem 0; }
+.cmMy__item--cancelled { opacity: .7; }
+.cmMy__title { font-size: 1.15em; margin: 0 0 .5rem; }
+.cmMy__deadline { margin-left: .75rem; font-size: .9em; }

@@ -33,6 +33,8 @@ interface RegistrationRepository
         bool $confirmed = false,
     ): array;
 
+    public function setParticipantCategory(int $participantId, int $categoryId): void;
+
     public function setConfirmationToken(int $participantId, string $hash, DateTimeImmutable $expiresAt): void;
 
     /**

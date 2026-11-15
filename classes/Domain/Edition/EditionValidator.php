@@ -15,7 +15,7 @@ final class EditionValidator
     public const PATH_PATTERN = '/^[a-z0-9][a-z0-9_-]{0,63}$/';
 
     /** Paths taken by pages of the plugin under /{context}/conference/. */
-    public const RESERVED_PATHS = ['index', 'upcoming', 'confirm'];
+    public const RESERVED_PATHS = ['index', 'upcoming', 'confirm', 'my'];
 
     private const K = 'plugins.generic.conferenceManager.validation.';
 

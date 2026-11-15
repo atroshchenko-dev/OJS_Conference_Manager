@@ -52,6 +52,8 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'run-windows-task' => $this->runWindowsTask(),
                 'author-group' => $this->authorGroup($this->argv[1]),
                 'new-token' => $this->newToken($this->argv[1], $this->argv[2]),
+                'new-user' => $this->newUser($this->argv[1], $this->argv[2], $this->argv[3]),
+                'seed-participants' => $this->seedParticipants($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
         } catch (Throwable $e) {
@@ -219,6 +221,44 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
         (new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository(DB::connection()))
             ->setConfirmationToken((int) $id, $hash, new \DateTimeImmutable('+30 days', new \DateTimeZone('UTC')));
         echo $path, '/conference/confirm/', $token, "\n";
+    }
+
+    /** A reader of the context with the password "reader12345" (REG-05, REG-06 checks). */
+    private function newUser(string $path, string $username, string $email): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $user = \APP\facades\Repo::user()->newDataObject();
+        $user->setUsername($username);
+        $user->setEmail($email);
+        $user->setPassword(\PKP\security\Validation::encryptCredentials($username, 'reader12345'));
+        $user->setGivenName('Тарас', 'uk');
+        $user->setFamilyName('Шевченко', 'uk');
+        $user->setCountry('UA');
+        $user->setDateRegistered(\PKP\core\Core::getCurrentDate());
+        $id = \APP\facades\Repo::user()->add($user);
+        $group = DB::table('user_groups')->where('context_id', $context->getId())
+            ->where('role_id', \PKP\security\Role::ROLE_ID_READER)->orderBy('user_group_id')->value('user_group_id');
+        \APP\facades\Repo::userGroup()->assignUserToGroup($id, (int) $group);
+        echo $id, "\n";
+    }
+
+    /** Many listeners in an edition, for the speed check of the register (REG-07). */
+    private function seedParticipants(string $path, int $editionId, int $count): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $now = gmdate('Y-m-d H:i:s');
+        for ($i = 1; $i <= $count; $i++) {
+            $pid = DB::table('conf_participants')->insertGetId([
+                'context_id' => $context->getId(), 'edition_id' => $editionId, 'email' => "seed{$i}@example.org",
+                'affiliation' => 'Університет ' . ($i % 37), 'confirmation_status' => 'confirmed', 'created_at' => $now, 'updated_at' => $now,
+            ]);
+            DB::table('conf_participant_settings')->insert([
+                ['participant_id' => $pid, 'locale' => 'uk', 'setting_name' => 'givenName', 'setting_value' => 'Учасник'],
+                ['participant_id' => $pid, 'locale' => 'uk', 'setting_name' => 'familyName', 'setting_value' => 'Номер' . $i],
+            ]);
+            DB::table('conf_participations')->insert(['participant_id' => $pid, 'role' => 'listener', 'participation_form' => 'online', 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
+        }
+        echo "OK seeded {$count}\n";
     }
 
     private function steps(): void

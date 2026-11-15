@@ -8,6 +8,7 @@ use APP\core\Application;
 use APP\handler\Handler;
 use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
 use APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory;
+use APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EventFormat;
@@ -15,6 +16,9 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EventType;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\PublicationMode;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\ReviewMode;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\SubmissionMode;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConfirmationStatus;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRole;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationStatus;
 use APP\plugins\generic\conferenceManager\ConferenceManagerPlugin;
 use APP\template\TemplateManager;
 use PKP\security\authorization\ContextAccessPolicy;
@@ -29,13 +33,30 @@ class ManageConferenceHandler extends Handler
 {
     public const PAGE = 'manageConference';
 
+    /** Strings of js/participantsManager.js; also under the plugin prefix. */
+    private const FEE_STRINGS = [
+        'fee.title', 'fee.saved', 'fee.categories', 'fee.categories.description', 'fee.categories.empty', 'fee.category', 'fee.category.name',
+        'fee.category.code', 'fee.category.code.description', 'fee.category.add', 'fee.requiresProof', 'fee.presets',
+        'fee.deleteCategoryConfirm', 'fee.deleteTariffConfirm', 'fee.tariffs', 'fee.tariffs.description', 'fee.tariffs.empty',
+        'fee.tariff.add', 'fee.material', 'fee.presentationType', 'fee.anyType', 'fee.pricing', 'fee.pages', 'fee.minPages',
+        'fee.maxPages', 'fee.amount', 'fee.amount.description', 'fee.currency', 'fee.period', 'fee.validFrom', 'fee.validTo',
+        'fee.always', 'fee.free', 'fee.perPageShort', 'fee.quote', 'fee.quote.run', 'fee.quote.noTariff',
+        'fee.quote.pagesRequired', 'fee.quote.error',
+        'participants.title', 'participants.search', 'participants.role', 'participants.category', 'participants.noCategory',
+        'participants.confirmation', 'participants.status', 'participants.all', 'participants.find', 'participants.export',
+        'participants.empty', 'participants.count', 'participants.name', 'participants.cancel', 'participants.cancelConfirm',
+        'participants.cancelled', 'participants.page',
+    ];
+
     /** @var bool */
     public $_isBackendPage = true;
 
     public function __construct(private readonly ConferenceManagerPlugin $plugin)
     {
         parent::__construct();
-        $this->addRoleAssignment([Role::ROLE_ID_MANAGER, Role::ROLE_ID_SITE_ADMIN], ['index']);
+        // Assistant: the "Registration manager" group sees the register
+        // only; other assistants are refused in index().
+        $this->addRoleAssignment([Role::ROLE_ID_MANAGER, Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_ASSISTANT], ['index']);
     }
 
     /**
@@ -55,14 +76,22 @@ class ManageConferenceHandler extends Handler
      */
     public function index($args, $request)
     {
-        $this->setupTemplate($request);
         $context = $request->getContext();
+        $user = $request->getUser();
+        $groups = new UserGroupGateway($this->plugin);
+        $contextId = (int) $context->getId();
+        $isManager = $user !== null && ($user->hasRole([Role::ROLE_ID_MANAGER], $contextId) || $user->hasRole([Role::ROLE_ID_SITE_ADMIN], Application::SITE_CONTEXT_ID));
+        if ($user === null || (!$isManager && !$groups->canManageRegistrations($contextId, (int) $user->getId()))) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $this->setupTemplate($request);
         $info = ContextGateway::fromContext($context);
         $dispatcher = $request->getDispatcher();
         $templateMgr = TemplateManager::getManager($request);
 
         $base = $request->getBaseUrl() . '/' . $this->plugin->getPluginPath();
         $templateMgr->addJavaScript('conferenceEditionsManager', $base . '/js/editionsManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
+        $templateMgr->addJavaScript('conferenceParticipantsManager', $base . '/js/participantsManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addStyleSheet('conferenceEditionsManager', $base . '/css/editionsManager.css', ['contexts' => 'backend']);
 
         $names = $context->getSupportedFormLocaleNames();
@@ -105,10 +134,30 @@ class ManageConferenceHandler extends Handler
                 'reviewModes' => $choices(ReviewMode::cases()),
             ],
             'i18n' => self::strings(),
+            'canEditEditions' => $isManager,
+            'initialItems' => $isManager ? null : $this->editionsForRegister($info),
+            'participantOptions' => [
+                'roles' => $choices(ParticipantRole::cases()),
+                'statuses' => $choices(ParticipationStatus::cases()),
+                'confirmations' => $choices(ConfirmationStatus::cases()),
+            ],
         ]]]);
 
         $templateMgr->assign(['pageTitle' => __('plugins.generic.conferenceManager.editions.title')]);
         return $templateMgr->display($this->plugin->getTemplateResource('manageEditions.tpl'));
+    }
+
+    /**
+     * Editions shown to a registration manager, who has no access to the
+     * editions API: the ones that can have participants.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function editionsForRegister(\APP\plugins\generic\conferenceManager\classes\Application\ContextInfo $info): array
+    {
+        $statuses = [EditionStatus::CfpOpen, EditionStatus::CfpClosed, EditionStatus::Held, EditionStatus::Published];
+        $result = ServiceFactory::editions()->list($info, $statuses, 100);
+        return array_map(static fn (Edition $e): array => $e->toArray() + ['submissionsOpen' => false], $result['items']);
     }
 
     /**
@@ -129,9 +178,12 @@ class ManageConferenceHandler extends Handler
             'field.startsAt', 'field.endsAt', 'field.cfpOpensAt', 'field.abstractDeadline', 'field.paperDeadline',
             'field.registrationClosesAt', 'field.paymentDeadline', 'field.dates.description',
             'field.isbn', 'field.udc', 'field.vectorProgramId', 'field.hours', 'field.ects',
-            'column.dates', 'column.status', 'column.type', 'submissionsOpen', 'submissionsClosed',
+            'column.dates', 'column.status', 'column.type', 'submissionsOpen', 'submissionsClosed', 'fees', 'participants', 'back',
         ] as $key) {
             $out[$key] = __('plugins.generic.conferenceManager.editions.' . $key);
+        }
+        foreach (self::FEE_STRINGS as $key) {
+            $out[$key] = __('plugins.generic.conferenceManager.' . $key);
         }
         return $out;
     }

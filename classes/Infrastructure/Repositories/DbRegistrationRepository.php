@@ -40,6 +40,7 @@ final class DbRegistrationRepository implements RegistrationRepository
             DateInput::fromStorage($row->consent_at === null ? null : (string) $row->consent_at),
             $row->consent_user_id === null ? null : (int) $row->consent_user_id,
             DateInput::fromStorage($row->registered_at === null ? null : (string) $row->registered_at),
+            isset($row->category_id) ? (int) $row->category_id : null,
         );
     }
 
@@ -55,6 +56,7 @@ final class DbRegistrationRepository implements RegistrationRepository
             'consent_at' => DateInput::toStorage($registration->consentAt),
             'consent_user_id' => $registration->consentUserId,
             'registered_at' => DateInput::toStorage($registration->registeredAt),
+            'category_id' => $registration->categoryId,
             'updated_at' => $now,
         ];
         $table = 'conf_submission_registrations';
@@ -142,6 +144,11 @@ final class DbRegistrationRepository implements RegistrationRepository
 
             return ['participantId' => $participantId, 'isNew' => $isNew, 'confirmationStatus' => $status];
         });
+    }
+
+    public function setParticipantCategory(int $participantId, int $categoryId): void
+    {
+        $this->db->table('conf_participants')->where('id', $participantId)->update(['category_id' => $categoryId, 'updated_at' => gmdate('Y-m-d H:i:s')]);
     }
 
     public function setConfirmationToken(int $participantId, string $hash, DateTimeImmutable $expiresAt): void

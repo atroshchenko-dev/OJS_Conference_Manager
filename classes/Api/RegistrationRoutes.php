@@ -74,6 +74,7 @@ final class RegistrationRoutes implements RouteModule
             F::FIELD_FORM => 'participationForm',
             F::FIELD_PRESENTER => 'presenterEmail',
             F::FIELD_CONSENT => 'consent',
+            F::FIELD_CATEGORY => 'categoryId',
         ];
         foreach ($map as $field => $key) {
             if ($illuminateRequest->has($field)) {
@@ -118,6 +119,7 @@ final class RegistrationRoutes implements RouteModule
             'consentVersion' => $r->consentVersion,
             'consentAt' => DateInput::toIsoUtc($r->consentAt),
             'registeredAt' => DateInput::toIsoUtc($r->registeredAt),
+            'categoryId' => $r->categoryId,
         ];
     }
 }

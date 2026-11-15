@@ -23,6 +23,8 @@ final class SpeakerRegistration
         public readonly ?DateTimeImmutable $consentAt = null,
         public readonly ?int $consentUserId = null,
         public readonly ?DateTimeImmutable $registeredAt = null,
+        /** participant category of the presenter (FEE-01) */
+        public readonly ?int $categoryId = null,
     ) {
     }
 
@@ -57,6 +59,10 @@ final class SpeakerRegistration
             ? (trim((string) $input['presenterEmail']) === '' ? null : mb_strtolower(trim((string) $input['presenterEmail'])))
             : $this->presenterEmail;
 
+        $categoryId = array_key_exists('categoryId', $input)
+            ? (is_numeric($input['categoryId']) && (int) $input['categoryId'] > 0 ? (int) $input['categoryId'] : null)
+            : $this->categoryId;
+
         $version = $this->consentVersion;
         $at = $this->consentAt;
         $by = $this->consentUserId;
@@ -71,11 +77,11 @@ final class SpeakerRegistration
                 $by = $userId;
             }
         }
-        return new self($this->submissionId, $editionId, $presentationType, $participationForm, $presenterEmail, $version, $at, $by, $this->registeredAt);
+        return new self($this->submissionId, $editionId, $presentationType, $participationForm, $presenterEmail, $version, $at, $by, $this->registeredAt, $categoryId);
     }
 
     public function withRegisteredAt(DateTimeImmutable $at): self
     {
-        return new self($this->submissionId, $this->editionId, $this->presentationType, $this->participationForm, $this->presenterEmail, $this->consentVersion, $this->consentAt, $this->consentUserId, $at);
+        return new self($this->submissionId, $this->editionId, $this->presentationType, $this->participationForm, $this->presenterEmail, $this->consentVersion, $this->consentAt, $this->consentUserId, $at, $this->categoryId);
     }
 }

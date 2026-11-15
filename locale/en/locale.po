@@ -767,3 +767,381 @@ msgstr "This path is reserved for pages of the plugin. Choose another."
 
 msgid "plugins.generic.conferenceManager.confirm.retry"
 msgstr "The form could not be verified. Please press the button again."
+
+msgid "plugins.generic.conferenceManager.fee.material.abstract"
+msgstr "Abstract"
+
+msgid "plugins.generic.conferenceManager.fee.material.paper"
+msgstr "Paper (full text)"
+
+msgid "plugins.generic.conferenceManager.fee.material.listener"
+msgstr "Listener participation"
+
+msgid "plugins.generic.conferenceManager.fee.material.any"
+msgstr "Any material"
+
+msgid "plugins.generic.conferenceManager.fee.pricing.flat"
+msgstr "Flat amount"
+
+msgid "plugins.generic.conferenceManager.fee.pricing.per_page"
+msgstr "Per page"
+
+msgid "plugins.generic.conferenceManager.fee.requiresProof"
+msgstr "Proof required (certificate, student card, etc.)"
+
+msgid "plugins.generic.conferenceManager.fee.requiresProof.short"
+msgstr "proof required"
+
+msgid "plugins.generic.conferenceManager.fee.error.code"
+msgstr "Code: lower-case Latin letters, digits, “_” or “-”, up to 32 characters; the first one is a letter or a digit."
+
+msgid "plugins.generic.conferenceManager.fee.error.codeTaken"
+msgstr "This edition already has a category with this code."
+
+msgid "plugins.generic.conferenceManager.fee.error.nameRequired"
+msgstr "Enter the name in the primary language of the journal."
+
+msgid "plugins.generic.conferenceManager.fee.error.amount"
+msgstr "Enter the amount: a non-negative number with at most two decimal places."
+
+msgid "plugins.generic.conferenceManager.fee.error.pages"
+msgstr "Pages: whole numbers from 1, “from” not greater than “to”."
+
+msgid "plugins.generic.conferenceManager.fee.error.period"
+msgstr "The tariff must start before it ends."
+
+msgid "plugins.generic.conferenceManager.fee.error.listenerFlat"
+msgstr "Listener participation is a flat amount, without pages or presentation type."
+
+msgid "plugins.generic.conferenceManager.fee.error.overlap"
+msgstr "This category and material already have a tariff with the same conditions for this period."
+
+msgid "plugins.generic.conferenceManager.fee.error.currency"
+msgstr "Enter an ISO 4217 currency code (for example UAH, USD, EUR)."
+
+msgid "plugins.generic.conferenceManager.fee.error.categoryInUse"
+msgstr "The category cannot be deleted: participants already have it."
+
+msgid "plugins.generic.conferenceManager.fee.preset.own_staff"
+msgstr "Staff of the institution"
+
+msgid "plugins.generic.conferenceManager.fee.preset.partners"
+msgstr "Staff of partner institutions"
+
+msgid "plugins.generic.conferenceManager.fee.preset.other_faculty"
+msgstr "Faculty of other institutions"
+
+msgid "plugins.generic.conferenceManager.fee.preset.students"
+msgstr "Students"
+
+msgid "plugins.generic.conferenceManager.fee.preset.foreign"
+msgstr "Foreign participants"
+
+msgid "plugins.generic.conferenceManager.fee.preset.teachers_region"
+msgstr "Teachers of the region"
+
+msgid "plugins.generic.conferenceManager.fee.preset.teachers_other"
+msgstr "Teachers of other regions"
+
+msgid "plugins.generic.conferenceManager.fee.preset.heads"
+msgstr "Heads of educational institutions"
+
+msgid "plugins.generic.conferenceManager.fee.preset.researchers"
+msgstr "Researchers"
+
+msgid "plugins.generic.conferenceManager.fee.preset.young_researchers"
+msgstr "Young researchers (under 35)"
+
+msgid "plugins.generic.conferenceManager.fee.preset.pupils"
+msgstr "Pupils"
+
+msgid "plugins.generic.conferenceManager.fee.preset.teachers_supervisors"
+msgstr "Supervisors of pupils"
+
+msgid "plugins.generic.conferenceManager.fee.preset.guests"
+msgstr "Guests"
+
+msgid "plugins.generic.conferenceManager.fee.preset.members"
+msgstr "Members of the organization"
+
+msgid "plugins.generic.conferenceManager.fee.preset.general"
+msgstr "General"
+
+msgid "plugins.generic.conferenceManager.participation.status.active"
+msgstr "active"
+
+msgid "plugins.generic.conferenceManager.participation.status.cancelled"
+msgstr "cancelled"
+
+msgid "plugins.generic.conferenceManager.participation.cancelled"
+msgstr "Participation cancelled."
+
+msgid "plugins.generic.conferenceManager.participation.error.deadlinePassed"
+msgstr "The cancellation deadline has passed. Please contact the organizers of the event."
+
+msgid "plugins.generic.conferenceManager.participation.error.alreadyCancelled"
+msgstr "This participation is already cancelled."
+
+msgid "plugins.generic.conferenceManager.participation.error.notFound"
+msgstr "Participation not found."
+
+msgid "plugins.generic.conferenceManager.participation.error.forbidden"
+msgstr "This is not your participation."
+
+msgid "plugins.generic.conferenceManager.listener.title"
+msgstr "Listener registration"
+
+msgid "plugins.generic.conferenceManager.listener.as"
+msgstr "You are registering as {$name} ({$email}). The name and email come from your account."
+
+msgid "plugins.generic.conferenceManager.listener.submit"
+msgstr "Register"
+
+msgid "plugins.generic.conferenceManager.listener.done"
+msgstr "You are registered as a listener. All your participations are shown here."
+
+msgid "plugins.generic.conferenceManager.listener.error.edition"
+msgstr "Event not found."
+
+msgid "plugins.generic.conferenceManager.listener.error.closed"
+msgstr "Registration for this event is closed."
+
+msgid "plugins.generic.conferenceManager.listener.error.category"
+msgstr "Choose a participant category."
+
+msgid "plugins.generic.conferenceManager.listener.error.form"
+msgstr "Choose the form of participation."
+
+msgid "plugins.generic.conferenceManager.listener.error.email"
+msgstr "The account has no email."
+
+msgid "plugins.generic.conferenceManager.listener.error.already"
+msgstr "You are already registered for this event as a listener."
+
+msgid "plugins.generic.conferenceManager.listener.error.spam"
+msgstr "The form was not accepted. Reload the page and try again."
+
+msgid "plugins.generic.conferenceManager.my.title"
+msgstr "My event participations"
+
+msgid "plugins.generic.conferenceManager.my.empty"
+msgstr "You have no event participations in this journal yet."
+
+msgid "plugins.generic.conferenceManager.my.cancel"
+msgstr "Cancel participation"
+
+msgid "plugins.generic.conferenceManager.my.cancelUntil"
+msgstr "possible until {$date}"
+
+msgid "plugins.generic.conferenceManager.public.registrationOpen"
+msgstr "Listener registration is open."
+
+msgid "plugins.generic.conferenceManager.public.registerListener"
+msgstr "Register as a listener"
+
+msgid "plugins.generic.conferenceManager.registration.category"
+msgstr "Participant category"
+
+msgid "plugins.generic.conferenceManager.registration.category.description"
+msgstr "The fee depends on the category. For some categories the organizers will ask for proof."
+
+msgid "plugins.generic.conferenceManager.registration.category.choose"
+msgstr "— Choose a category —"
+
+msgid "plugins.generic.conferenceManager.registration.error.categoryRequired"
+msgstr "Choose a participant category for the chosen event."
+
+msgid "plugins.generic.conferenceManager.participants.name"
+msgstr "Name"
+
+msgid "plugins.generic.conferenceManager.participants.email"
+msgstr "Email"
+
+msgid "plugins.generic.conferenceManager.participants.affiliation"
+msgstr "Affiliation"
+
+msgid "plugins.generic.conferenceManager.participants.position"
+msgstr "Position"
+
+msgid "plugins.generic.conferenceManager.participants.country"
+msgstr "Country"
+
+msgid "plugins.generic.conferenceManager.participants.role"
+msgstr "Role"
+
+msgid "plugins.generic.conferenceManager.participants.category"
+msgstr "Category"
+
+msgid "plugins.generic.conferenceManager.participants.form"
+msgstr "Form of participation"
+
+msgid "plugins.generic.conferenceManager.participants.confirmation"
+msgstr "Confirmation"
+
+msgid "plugins.generic.conferenceManager.participants.status"
+msgstr "Status"
+
+msgid "plugins.generic.conferenceManager.participants.submission"
+msgstr "Submission"
+
+msgid "plugins.generic.conferenceManager.participants.createdAt"
+msgstr "Registered"
+
+msgid "plugins.generic.conferenceManager.editions.fees"
+msgstr "Fees"
+
+msgid "plugins.generic.conferenceManager.editions.participants"
+msgstr "Participants"
+
+msgid "plugins.generic.conferenceManager.editions.back"
+msgstr "← Back to events"
+
+msgid "plugins.generic.conferenceManager.fee.title"
+msgstr "Fees"
+
+msgid "plugins.generic.conferenceManager.fee.categories"
+msgstr "Participant categories"
+
+msgid "plugins.generic.conferenceManager.fee.categories.description"
+msgstr "The fee depends on the category. An author chooses it in the speaker questionnaire, a listener when registering."
+
+msgid "plugins.generic.conferenceManager.fee.categories.empty"
+msgstr "No categories yet. Add them by hand or take the typical ones for your institution."
+
+msgid "plugins.generic.conferenceManager.fee.category"
+msgstr "Category"
+
+msgid "plugins.generic.conferenceManager.fee.category.name"
+msgstr "Name"
+
+msgid "plugins.generic.conferenceManager.fee.category.code"
+msgstr "Code"
+
+msgid "plugins.generic.conferenceManager.fee.category.code.description"
+msgstr "For reports and exports, e.g. students."
+
+msgid "plugins.generic.conferenceManager.fee.category.add"
+msgstr "Add a category"
+
+msgid "plugins.generic.conferenceManager.fee.presets"
+msgstr "Add typical categories"
+
+msgid "plugins.generic.conferenceManager.fee.deleteCategoryConfirm"
+msgstr "Delete the category “{$name}” with its tariffs?"
+
+msgid "plugins.generic.conferenceManager.fee.deleteTariffConfirm"
+msgstr "Delete this tariff?"
+
+msgid "plugins.generic.conferenceManager.fee.tariffs"
+msgstr "Tariffs"
+
+msgid "plugins.generic.conferenceManager.fee.tariffs.description"
+msgstr "An amount of 0 means free participation. Dates are in the time of the event ({$timezone}); a tariff without dates always applies. A tariff for a specific presentation type or page range wins over a general one."
+
+msgid "plugins.generic.conferenceManager.fee.tariffs.empty"
+msgstr "No tariffs yet."
+
+msgid "plugins.generic.conferenceManager.fee.tariff.add"
+msgstr "Add a tariff"
+
+msgid "plugins.generic.conferenceManager.fee.material"
+msgstr "Material"
+
+msgid "plugins.generic.conferenceManager.fee.presentationType"
+msgstr "Presentation type"
+
+msgid "plugins.generic.conferenceManager.fee.anyType"
+msgstr "any"
+
+msgid "plugins.generic.conferenceManager.fee.pricing"
+msgstr "Pricing"
+
+msgid "plugins.generic.conferenceManager.fee.pages"
+msgstr "Pages"
+
+msgid "plugins.generic.conferenceManager.fee.minPages"
+msgstr "Pages from"
+
+msgid "plugins.generic.conferenceManager.fee.maxPages"
+msgstr "Pages to"
+
+msgid "plugins.generic.conferenceManager.fee.amount"
+msgstr "Amount"
+
+msgid "plugins.generic.conferenceManager.fee.amount.description"
+msgstr "For example 150 or 150.50."
+
+msgid "plugins.generic.conferenceManager.fee.currency"
+msgstr "Currency"
+
+msgid "plugins.generic.conferenceManager.fee.period"
+msgstr "Valid"
+
+msgid "plugins.generic.conferenceManager.fee.validFrom"
+msgstr "Valid from"
+
+msgid "plugins.generic.conferenceManager.fee.validTo"
+msgstr "Valid until (exclusive)"
+
+msgid "plugins.generic.conferenceManager.fee.always"
+msgstr "always"
+
+msgid "plugins.generic.conferenceManager.fee.free"
+msgstr "free"
+
+msgid "plugins.generic.conferenceManager.fee.perPageShort"
+msgstr "page"
+
+msgid "plugins.generic.conferenceManager.fee.quote"
+msgstr "Check the calculation"
+
+msgid "plugins.generic.conferenceManager.fee.quote.run"
+msgstr "Calculate"
+
+msgid "plugins.generic.conferenceManager.fee.quote.noTariff"
+msgstr "There is no tariff for these conditions."
+
+msgid "plugins.generic.conferenceManager.fee.quote.pagesRequired"
+msgstr "This tariff needs the number of pages."
+
+msgid "plugins.generic.conferenceManager.fee.quote.error"
+msgstr "The calculation failed."
+
+msgid "plugins.generic.conferenceManager.participants.title"
+msgstr "Participants"
+
+msgid "plugins.generic.conferenceManager.participants.search"
+msgstr "Search: name, email, affiliation"
+
+msgid "plugins.generic.conferenceManager.participants.noCategory"
+msgstr "no category"
+
+msgid "plugins.generic.conferenceManager.participants.all"
+msgstr "all"
+
+msgid "plugins.generic.conferenceManager.participants.find"
+msgstr "Search"
+
+msgid "plugins.generic.conferenceManager.participants.export"
+msgstr "Export CSV"
+
+msgid "plugins.generic.conferenceManager.participants.empty"
+msgstr "No participants match."
+
+msgid "plugins.generic.conferenceManager.participants.count"
+msgstr "Found: {$count}"
+
+msgid "plugins.generic.conferenceManager.participants.cancel"
+msgstr "Cancel participation"
+
+msgid "plugins.generic.conferenceManager.participants.cancelConfirm"
+msgstr "Cancel the participation of {$name}? Unpaid invoices will be cancelled, paid ones marked for refund."
+
+msgid "plugins.generic.conferenceManager.participants.cancelled"
+msgstr "Participation cancelled. Invoices cancelled: {$cancelled}, for refund: {$refund}."
+
+msgid "plugins.generic.conferenceManager.participants.page"
+msgstr "Page {$page} of {$pages}"
+
+msgid "plugins.generic.conferenceManager.fee.saved"
+msgstr "Saved."

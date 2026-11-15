@@ -767,3 +767,381 @@ msgstr "Ця адреса зарезервована для сторінок п�
 
 msgid "plugins.generic.conferenceManager.confirm.retry"
 msgstr "Не вдалося перевірити форму. Натисніть кнопку ще раз."
+
+msgid "plugins.generic.conferenceManager.fee.material.abstract"
+msgstr "Тези"
+
+msgid "plugins.generic.conferenceManager.fee.material.paper"
+msgstr "Стаття (повний текст)"
+
+msgid "plugins.generic.conferenceManager.fee.material.listener"
+msgstr "Участь слухача"
+
+msgid "plugins.generic.conferenceManager.fee.material.any"
+msgstr "Будь-який матеріал"
+
+msgid "plugins.generic.conferenceManager.fee.pricing.flat"
+msgstr "Фіксована сума"
+
+msgid "plugins.generic.conferenceManager.fee.pricing.per_page"
+msgstr "За сторінку"
+
+msgid "plugins.generic.conferenceManager.fee.requiresProof"
+msgstr "Потрібне підтвердження (довідка, студентський квиток тощо)"
+
+msgid "plugins.generic.conferenceManager.fee.requiresProof.short"
+msgstr "потрібне підтвердження"
+
+msgid "plugins.generic.conferenceManager.fee.error.code"
+msgstr "Код: малі латинські літери, цифри, «_» або «-», до 32 символів; перший символ — літера або цифра."
+
+msgid "plugins.generic.conferenceManager.fee.error.codeTaken"
+msgstr "Категорія з таким кодом уже є в цьому виданні."
+
+msgid "plugins.generic.conferenceManager.fee.error.nameRequired"
+msgstr "Вкажіть назву основною мовою журналу."
+
+msgid "plugins.generic.conferenceManager.fee.error.amount"
+msgstr "Вкажіть суму: невід'ємне число, не більше двох знаків після коми."
+
+msgid "plugins.generic.conferenceManager.fee.error.pages"
+msgstr "Сторінки: цілі числа від 1, «від» не більше за «до»."
+
+msgid "plugins.generic.conferenceManager.fee.error.period"
+msgstr "Початок дії тарифу має бути раніше за кінець."
+
+msgid "plugins.generic.conferenceManager.fee.error.listenerFlat"
+msgstr "Участь слухача оплачується фіксованою сумою, без сторінок і типу доповіді."
+
+msgid "plugins.generic.conferenceManager.fee.error.overlap"
+msgstr "Для цієї категорії й матеріалу вже є тариф з тими самими умовами на цей період."
+
+msgid "plugins.generic.conferenceManager.fee.error.currency"
+msgstr "Вкажіть код валюти ISO 4217 (наприклад, UAH, USD, EUR)."
+
+msgid "plugins.generic.conferenceManager.fee.error.categoryInUse"
+msgstr "Категорію не можна видалити: її вже мають учасники."
+
+msgid "plugins.generic.conferenceManager.fee.preset.own_staff"
+msgstr "Працівники закладу"
+
+msgid "plugins.generic.conferenceManager.fee.preset.partners"
+msgstr "Працівники закладів-партнерів"
+
+msgid "plugins.generic.conferenceManager.fee.preset.other_faculty"
+msgstr "Науково-педагогічні працівники інших закладів"
+
+msgid "plugins.generic.conferenceManager.fee.preset.students"
+msgstr "Здобувачі освіти"
+
+msgid "plugins.generic.conferenceManager.fee.preset.foreign"
+msgstr "Іноземні учасники"
+
+msgid "plugins.generic.conferenceManager.fee.preset.teachers_region"
+msgstr "Педагогічні працівники області"
+
+msgid "plugins.generic.conferenceManager.fee.preset.teachers_other"
+msgstr "Педагогічні працівники інших областей"
+
+msgid "plugins.generic.conferenceManager.fee.preset.heads"
+msgstr "Керівники закладів освіти"
+
+msgid "plugins.generic.conferenceManager.fee.preset.researchers"
+msgstr "Наукові працівники"
+
+msgid "plugins.generic.conferenceManager.fee.preset.young_researchers"
+msgstr "Молоді вчені (до 35 років)"
+
+msgid "plugins.generic.conferenceManager.fee.preset.pupils"
+msgstr "Учні"
+
+msgid "plugins.generic.conferenceManager.fee.preset.teachers_supervisors"
+msgstr "Наукові керівники учнів"
+
+msgid "plugins.generic.conferenceManager.fee.preset.guests"
+msgstr "Гості"
+
+msgid "plugins.generic.conferenceManager.fee.preset.members"
+msgstr "Члени організації"
+
+msgid "plugins.generic.conferenceManager.fee.preset.general"
+msgstr "Загальна категорія"
+
+msgid "plugins.generic.conferenceManager.participation.status.active"
+msgstr "активна"
+
+msgid "plugins.generic.conferenceManager.participation.status.cancelled"
+msgstr "скасована"
+
+msgid "plugins.generic.conferenceManager.participation.cancelled"
+msgstr "Участь скасовано."
+
+msgid "plugins.generic.conferenceManager.participation.error.deadlinePassed"
+msgstr "Строк скасування минув. Зверніться до організаторів заходу."
+
+msgid "plugins.generic.conferenceManager.participation.error.alreadyCancelled"
+msgstr "Цю участь уже скасовано."
+
+msgid "plugins.generic.conferenceManager.participation.error.notFound"
+msgstr "Участь не знайдено."
+
+msgid "plugins.generic.conferenceManager.participation.error.forbidden"
+msgstr "Це не ваша участь."
+
+msgid "plugins.generic.conferenceManager.listener.title"
+msgstr "Реєстрація слухача"
+
+msgid "plugins.generic.conferenceManager.listener.as"
+msgstr "Ви реєструєтеся як {$name} ({$email}). Ім'я та пошту беремо з вашого облікового запису."
+
+msgid "plugins.generic.conferenceManager.listener.submit"
+msgstr "Зареєструватися"
+
+msgid "plugins.generic.conferenceManager.listener.done"
+msgstr "Ви зареєстровані як слухач. Тут видно всі ваші участі."
+
+msgid "plugins.generic.conferenceManager.listener.error.edition"
+msgstr "Захід не знайдено."
+
+msgid "plugins.generic.conferenceManager.listener.error.closed"
+msgstr "Реєстрацію на цей захід закрито."
+
+msgid "plugins.generic.conferenceManager.listener.error.category"
+msgstr "Оберіть категорію учасника."
+
+msgid "plugins.generic.conferenceManager.listener.error.form"
+msgstr "Оберіть форму участі."
+
+msgid "plugins.generic.conferenceManager.listener.error.email"
+msgstr "В обліковому записі немає електронної пошти."
+
+msgid "plugins.generic.conferenceManager.listener.error.already"
+msgstr "Ви вже зареєстровані на цей захід як слухач."
+
+msgid "plugins.generic.conferenceManager.listener.error.spam"
+msgstr "Форму не прийнято. Оновіть сторінку й спробуйте ще раз."
+
+msgid "plugins.generic.conferenceManager.my.title"
+msgstr "Мої участі в заходах"
+
+msgid "plugins.generic.conferenceManager.my.empty"
+msgstr "У цьому журналі у вас ще немає участей у заходах."
+
+msgid "plugins.generic.conferenceManager.my.cancel"
+msgstr "Скасувати участь"
+
+msgid "plugins.generic.conferenceManager.my.cancelUntil"
+msgstr "можна до {$date}"
+
+msgid "plugins.generic.conferenceManager.public.registrationOpen"
+msgstr "Відкрито реєстрацію слухачів."
+
+msgid "plugins.generic.conferenceManager.public.registerListener"
+msgstr "Зареєструватися як слухач"
+
+msgid "plugins.generic.conferenceManager.registration.category"
+msgstr "Категорія учасника"
+
+msgid "plugins.generic.conferenceManager.registration.category.description"
+msgstr "Від категорії залежить оргвнесок. Для деяких категорій організатори попросять підтвердження."
+
+msgid "plugins.generic.conferenceManager.registration.category.choose"
+msgstr "— Оберіть категорію —"
+
+msgid "plugins.generic.conferenceManager.registration.error.categoryRequired"
+msgstr "Оберіть категорію учасника для обраного заходу."
+
+msgid "plugins.generic.conferenceManager.participants.name"
+msgstr "Ім'я"
+
+msgid "plugins.generic.conferenceManager.participants.email"
+msgstr "Електронна пошта"
+
+msgid "plugins.generic.conferenceManager.participants.affiliation"
+msgstr "Заклад (організація)"
+
+msgid "plugins.generic.conferenceManager.participants.position"
+msgstr "Посада"
+
+msgid "plugins.generic.conferenceManager.participants.country"
+msgstr "Країна"
+
+msgid "plugins.generic.conferenceManager.participants.role"
+msgstr "Роль"
+
+msgid "plugins.generic.conferenceManager.participants.category"
+msgstr "Категорія"
+
+msgid "plugins.generic.conferenceManager.participants.form"
+msgstr "Форма участі"
+
+msgid "plugins.generic.conferenceManager.participants.confirmation"
+msgstr "Підтвердження"
+
+msgid "plugins.generic.conferenceManager.participants.status"
+msgstr "Статус"
+
+msgid "plugins.generic.conferenceManager.participants.submission"
+msgstr "Подання"
+
+msgid "plugins.generic.conferenceManager.participants.createdAt"
+msgstr "Зареєстровано"
+
+msgid "plugins.generic.conferenceManager.editions.fees"
+msgstr "Оргвнески"
+
+msgid "plugins.generic.conferenceManager.editions.participants"
+msgstr "Учасники"
+
+msgid "plugins.generic.conferenceManager.editions.back"
+msgstr "← До списку заходів"
+
+msgid "plugins.generic.conferenceManager.fee.title"
+msgstr "Оргвнески"
+
+msgid "plugins.generic.conferenceManager.fee.categories"
+msgstr "Категорії учасників"
+
+msgid "plugins.generic.conferenceManager.fee.categories.description"
+msgstr "Від категорії залежить сума оргвнеску. Автор обирає категорію в анкеті доповідача, слухач — під час реєстрації."
+
+msgid "plugins.generic.conferenceManager.fee.categories.empty"
+msgstr "Категорій ще немає. Додайте їх вручну або візьміть типові для вашого закладу."
+
+msgid "plugins.generic.conferenceManager.fee.category"
+msgstr "Категорія"
+
+msgid "plugins.generic.conferenceManager.fee.category.name"
+msgstr "Назва"
+
+msgid "plugins.generic.conferenceManager.fee.category.code"
+msgstr "Код"
+
+msgid "plugins.generic.conferenceManager.fee.category.code.description"
+msgstr "Для звітів і вивантажень, наприклад students."
+
+msgid "plugins.generic.conferenceManager.fee.category.add"
+msgstr "Додати категорію"
+
+msgid "plugins.generic.conferenceManager.fee.presets"
+msgstr "Додати типові категорії"
+
+msgid "plugins.generic.conferenceManager.fee.deleteCategoryConfirm"
+msgstr "Видалити категорію «{$name}» разом з її тарифами?"
+
+msgid "plugins.generic.conferenceManager.fee.deleteTariffConfirm"
+msgstr "Видалити цей тариф?"
+
+msgid "plugins.generic.conferenceManager.fee.tariffs"
+msgstr "Тарифи"
+
+msgid "plugins.generic.conferenceManager.fee.tariffs.description"
+msgstr "Сума 0 означає безкоштовну участь. Дати — за часом заходу ({$timezone}); без дат тариф діє завжди. Тариф для конкретного типу доповіді чи кількості сторінок важливіший за загальний."
+
+msgid "plugins.generic.conferenceManager.fee.tariffs.empty"
+msgstr "Тарифів ще немає."
+
+msgid "plugins.generic.conferenceManager.fee.tariff.add"
+msgstr "Додати тариф"
+
+msgid "plugins.generic.conferenceManager.fee.material"
+msgstr "Матеріал"
+
+msgid "plugins.generic.conferenceManager.fee.presentationType"
+msgstr "Тип доповіді"
+
+msgid "plugins.generic.conferenceManager.fee.anyType"
+msgstr "будь-який"
+
+msgid "plugins.generic.conferenceManager.fee.pricing"
+msgstr "Як рахувати"
+
+msgid "plugins.generic.conferenceManager.fee.pages"
+msgstr "Сторінки"
+
+msgid "plugins.generic.conferenceManager.fee.minPages"
+msgstr "Сторінок від"
+
+msgid "plugins.generic.conferenceManager.fee.maxPages"
+msgstr "Сторінок до"
+
+msgid "plugins.generic.conferenceManager.fee.amount"
+msgstr "Сума"
+
+msgid "plugins.generic.conferenceManager.fee.amount.description"
+msgstr "Наприклад, 150 або 150.50."
+
+msgid "plugins.generic.conferenceManager.fee.currency"
+msgstr "Валюта"
+
+msgid "plugins.generic.conferenceManager.fee.period"
+msgstr "Діє"
+
+msgid "plugins.generic.conferenceManager.fee.validFrom"
+msgstr "Діє від"
+
+msgid "plugins.generic.conferenceManager.fee.validTo"
+msgstr "Діє до (не включно)"
+
+msgid "plugins.generic.conferenceManager.fee.always"
+msgstr "завжди"
+
+msgid "plugins.generic.conferenceManager.fee.free"
+msgstr "безкоштовно"
+
+msgid "plugins.generic.conferenceManager.fee.perPageShort"
+msgstr "стор."
+
+msgid "plugins.generic.conferenceManager.fee.quote"
+msgstr "Перевірити розрахунок"
+
+msgid "plugins.generic.conferenceManager.fee.quote.run"
+msgstr "Розрахувати"
+
+msgid "plugins.generic.conferenceManager.fee.quote.noTariff"
+msgstr "Для цих умов тарифу немає."
+
+msgid "plugins.generic.conferenceManager.fee.quote.pagesRequired"
+msgstr "Для цього тарифу потрібна кількість сторінок."
+
+msgid "plugins.generic.conferenceManager.fee.quote.error"
+msgstr "Не вдалося розрахувати."
+
+msgid "plugins.generic.conferenceManager.participants.title"
+msgstr "Учасники"
+
+msgid "plugins.generic.conferenceManager.participants.search"
+msgstr "Пошук: ім'я, пошта, заклад"
+
+msgid "plugins.generic.conferenceManager.participants.noCategory"
+msgstr "без категорії"
+
+msgid "plugins.generic.conferenceManager.participants.all"
+msgstr "усі"
+
+msgid "plugins.generic.conferenceManager.participants.find"
+msgstr "Знайти"
+
+msgid "plugins.generic.conferenceManager.participants.export"
+msgstr "Вивантажити CSV"
+
+msgid "plugins.generic.conferenceManager.participants.empty"
+msgstr "Учасників за цими умовами немає."
+
+msgid "plugins.generic.conferenceManager.participants.count"
+msgstr "Знайдено: {$count}"
+
+msgid "plugins.generic.conferenceManager.participants.cancel"
+msgstr "Скасувати участь"
+
+msgid "plugins.generic.conferenceManager.participants.cancelConfirm"
+msgstr "Скасувати участь: {$name}? Неоплачені рахунки буде скасовано, оплачені — передано на повернення коштів."
+
+msgid "plugins.generic.conferenceManager.participants.cancelled"
+msgstr "Участь скасовано. Рахунків скасовано: {$cancelled}, на повернення: {$refund}."
+
+msgid "plugins.generic.conferenceManager.participants.page"
+msgstr "Сторінка {$page} з {$pages}"
+
+msgid "plugins.generic.conferenceManager.fee.saved"
+msgstr "Збережено."

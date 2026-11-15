@@ -6,6 +6,7 @@ namespace APP\plugins\generic\conferenceManager\classes\Pages;
 
 use APP\core\Application;
 use APP\handler\Handler;
+use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
 use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
 use APP\plugins\generic\conferenceManager\classes\Core\IssueGateway;
 use APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory;
@@ -28,6 +29,8 @@ use PKP\facades\Locale;
  *   /{context}/conference/{edition}   page of an edition (EDN-07)
  *   /index/conference/upcoming        upcoming events of all journals (EDN-08, DST-03)
  *   /{context}/conference/confirm/{token}  a co-author confirms participation (REG-04)
+ *   /{context}/conference/{edition}/register  a listener registers (REG-05)
+ *   /{context}/conference/my          the participant's cabinet (REG-06, REG-08)
  *
  * The router calls the operation "view" or "upcoming"; the requested
  * edition path is given to the constructor by the LoadHandler hook.
@@ -55,6 +58,12 @@ class ConferencePageHandler extends Handler
         $edition = ServiceFactory::editions()->getByPath($info, $this->editionPath);
         // Drafts are visible only to managers (for preview).
         if ($edition === null || ($edition->status === EditionStatus::Draft && !$this->canManage($request))) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        if (($args[0] ?? null) === 'register') {
+            return $this->register($edition, $info, $request);
+        }
+        if (isset($args[0])) {
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
 
@@ -183,6 +192,154 @@ class ConferencePageHandler extends Handler
         return $templateMgr->display($this->plugin->getTemplateResource('frontend/confirm.tpl'));
     }
 
+    /**
+     * REG-05: the form of a listener. The person must be logged in (the
+     * account gives the name and email); spam is kept out by the login,
+     * the CSRF token, a hidden field that people leave empty, and one
+     * active registration per person and edition.
+     *
+     * @param \APP\core\Request $request
+     */
+    private function register(Edition $edition, \APP\plugins\generic\conferenceManager\classes\Application\ContextInfo $info, $request): mixed
+    {
+        $user = $request->getUser();
+        $context = $request->getContext();
+        $dispatcher = $request->getDispatcher();
+        $registerUrl = $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, $edition->path, ['register']);
+        if ($user === null) {
+            $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), 'login', null, null, ['source' => $registerUrl]));
+        }
+        $locale = Locale::getLocale();
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $service = ServiceFactory::participants();
+        $consent = ServiceFactory::consentText($info, $locale);
+        $person = (new \APP\plugins\generic\conferenceManager\classes\Core\PersonGateway())->of((int) $user->getId(), $locale);
+
+        $errors = [];
+        $values = [
+            'categoryId' => (string) $request->getUserVar('categoryId'),
+            'participationForm' => (string) $request->getUserVar('participationForm'),
+            'affiliation' => mb_substr(trim((string) ($request->isPost() ? $request->getUserVar('affiliation') : ($person['affiliation'] ?? ''))), 0, 255),
+            'position' => mb_substr(trim((string) $request->getUserVar('position')), 0, 255),
+            'consent' => (bool) $request->getUserVar('consent'),
+        ];
+        if ($request->isPost()) {
+            if (!$request->checkCSRF()) {
+                $errors['form'] = [__('plugins.generic.conferenceManager.confirm.retry')];
+            } elseif (trim((string) $request->getUserVar('website')) !== '') {
+                // The hidden field is filled only by robots.
+                $errors['form'] = [__('plugins.generic.conferenceManager.listener.error.spam')];
+            } elseif ($person !== null) {
+                $person['affiliation'] = $values['affiliation'] === '' ? null : $values['affiliation'];
+                $person['position'] = $values['position'] === '' ? null : $values['position'];
+                [$result, $validation] = $service->registerListener($info, (int) $edition->id, $person, $values, $consent->version, $now, $request->getRemoteAddr());
+                if ($result !== null) {
+                    $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my', null, ['registered' => $result['participationId']]));
+                }
+                foreach ($validation->toArray() as $field => $keys) {
+                    $errors[$field] = array_map(static fn (string $k): string => __($k), $keys);
+                }
+            }
+        }
+
+        $forms = array_map(static fn ($f): array => ['value' => $f->value, 'label' => __($f->labelKey())], ParticipantService::listenerForms($edition));
+        if ($values['participationForm'] === '' && count($forms) === 1) {
+            $values['participationForm'] = $forms[0]['value'];
+        }
+        $categories = [];
+        foreach (ServiceFactory::fees()->categories($info, (int) $edition->id) ?? [] as $category) {
+            $categories[] = ['value' => $category->id, 'label' => (string) $category->name->resolve($locale, $info->primaryLocale), 'requiresProof' => $category->requiresProof];
+        }
+
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $templateMgr->addHeader('conferenceRegisterNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
+        $vm = $this->viewModel($edition, $locale, $info->primaryLocale, $request);
+        $templateMgr->assign([
+            'edition' => $vm,
+            'registerOpen' => EditionWindows::registrationOpenAt($edition, $now),
+            'registerUrl' => $registerUrl,
+            'myUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my'),
+            'registerErrors' => $errors,
+            'registerValues' => $values,
+            'registerForms' => $forms,
+            'registerCategories' => $categories,
+            'registerPerson' => [
+                'name' => $person === null ? '' : trim(($person['givenName'][$locale] ?? (array_values($person['givenName'])[0] ?? '')) . ' ' . ($person['familyName'][$locale] ?? (array_values($person['familyName'])[0] ?? ''))),
+                'email' => $person['email'] ?? '',
+            ],
+            'consentHtml' => nl2br(htmlspecialchars($consent->text, ENT_QUOTES | ENT_HTML5, 'UTF-8'), false),
+            'pageTitleTranslated' => __('plugins.generic.conferenceManager.listener.title') . ': ' . $vm['name'],
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/register.tpl'));
+    }
+
+    /**
+     * REG-06, REG-08: the person's own participations in this journal and
+     * cancellation before the deadline.
+     *
+     * @param array $args
+     * @param \APP\core\Request $request
+     */
+    public function my($args, $request)
+    {
+        $context = $request->getContext();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $dispatcher = $request->getDispatcher();
+        $myUrl = $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my');
+        $user = $request->getUser();
+        if ($user === null) {
+            $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), 'login', null, null, ['source' => $myUrl]));
+        }
+        $info = ContextGateway::fromContext($context);
+        $locale = Locale::getLocale();
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $service = ServiceFactory::participants();
+        $email = (string) $user->getEmail();
+
+        $message = null;
+        if ($request->getUserVar('registered')) {
+            $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.listener.done')];
+        }
+        if ($request->isPost()) {
+            if (!$request->checkCSRF()) {
+                $message = ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.confirm.retry')];
+            } else {
+                $out = $service->cancel($info, (int) $request->getUserVar('participationId'), (int) $user->getId(), $email, false, $now, $request->getRemoteAddr());
+                if ($out['result'] === ParticipantService::CANCELLED) {
+                    $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my', null, ['cancelled' => 1]));
+                }
+                $message = ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.participation.error.' . $out['result'])];
+            }
+        } elseif ($request->getUserVar('cancelled')) {
+            $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.participation.cancelled')];
+        }
+
+        $items = [];
+        foreach ($service->myParticipations($info, (int) $user->getId(), $email, $locale, $now) as $p) {
+            $items[] = $p + [
+                'editionUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, (string) $p['editionPath']),
+                'startsAtText' => $this->formatDate($p['startsAt'] === null ? null : new DateTimeImmutable((string) $p['startsAt']), (string) $p['timezone'], $locale),
+                'cancelDeadlineText' => $this->formatDate($p['cancelDeadline'] === null ? null : new DateTimeImmutable((string) $p['cancelDeadline']), (string) $p['timezone'], $locale),
+            ];
+        }
+
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $templateMgr->addHeader('conferenceMyNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
+        $templateMgr->assign([
+            'myItems' => $items,
+            'myMessage' => $message,
+            'myUrl' => $myUrl,
+            'pageTitle' => 'plugins.generic.conferenceManager.my.title',
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/my.tpl'));
+    }
+
     private function canManage(PKPRequest $request): bool
     {
         $user = $request->getUser();
@@ -248,6 +405,7 @@ class ConferencePageHandler extends Handler
             'submissionsOpen' => $submissionsOpen,
             'submitUrl' => $submissionsOpen ? $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, 'submission') : null,
             'registrationOpen' => EditionWindows::registrationOpenAt($edition, $now),
+            'registerUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['register']),
             'proceedingsUrl' => $proceedingsUrl,
             'isbn' => $edition->isbn,
             'hours' => $edition->hours,

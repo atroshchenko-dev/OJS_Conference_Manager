@@ -103,6 +103,32 @@ final class ConferenceWizardStep
             'isRequired' => !$regularAllowed,
             'size' => 'large',
         ]));
+        // FEE-01: the category of the presenter. One list for all offered
+        // editions; the check on submit takes only the chosen edition's.
+        $categoryOptions = [];
+        $withCategories = 0;
+        foreach ($editions as $edition) {
+            $categories = $this->service->categories($edition->id ?? 0);
+            $withCategories += $categories === [] ? 0 : 1;
+            foreach ($categories as $category) {
+                $name = (string) $category->name->resolve($locale, $context->primaryLocale);
+                $categoryOptions[] = [
+                    'value' => $category->id,
+                    'label' => count($editions) > 1 ? $this->editionLabel($edition, $locale, $context->primaryLocale, false) . ' — ' . $name : $name,
+                ];
+            }
+        }
+        if ($categoryOptions !== []) {
+            $form->addField(new FieldSelect(F::FIELD_CATEGORY, [
+                'label' => __(self::K . 'category'),
+                'description' => __(self::K . 'category.description'),
+                'options' => array_merge([['value' => '', 'label' => __(self::K . 'category.choose')]], $categoryOptions),
+                'value' => $registration->categoryId ?? '',
+                'isRequired' => $withCategories === count($editions),
+                'showWhen' => F::FIELD_EDITION,
+                'size' => 'large',
+            ]));
+        }
         $form->addField(new FieldOptions(F::FIELD_PRESENTATION, [
             'label' => __(self::K . 'presentationType'),
             'type' => 'radio',
@@ -186,9 +212,12 @@ final class ConferenceWizardStep
         return $out;
     }
 
-    private function editionLabel(Edition $edition, string $locale, string $fallback): string
+    private function editionLabel(Edition $edition, string $locale, string $fallback, bool $withDates = true): string
     {
         $title = $edition->text('name')->resolve($locale, $fallback) ?? $edition->path;
+        if (!$withDates) {
+            return $title;
+        }
         $starts = $edition->date('startsAt')?->setTimezone(new \DateTimeZone($edition->timezone));
         $deadline = $edition->date('abstractDeadline')?->setTimezone(new \DateTimeZone($edition->timezone));
         $parts = [$title];

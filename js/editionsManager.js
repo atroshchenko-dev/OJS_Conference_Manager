@@ -33,6 +33,11 @@
 			dateFields: { type: Array, required: true },
 			options: { type: Object, required: true },
 			i18n: { type: Object, required: true },
+			/** false for registration managers: only the register of participants */
+			canEditEditions: { type: Boolean, default: true },
+			/** editions given by the page when the editions API is not open to the user */
+			initialItems: { type: Array, default: null },
+			participantOptions: { type: Object, default: function () { return { roles: [], statuses: [], confirmations: [] }; } },
 		},
 		data: function () {
 			return {
@@ -47,6 +52,7 @@
 				copyFromId: null,
 				errors: {},
 				formLocale: this.primaryLocale,
+				selected: null,
 			};
 		},
 		computed: {
@@ -110,8 +116,25 @@
 					pkp.eventBus.$emit('notify', message, type || 'success');
 				}
 			},
+			openFees: function (edition) {
+				this.selected = edition;
+				this.view = 'fees';
+			},
+			openParticipants: function (edition) {
+				this.selected = edition;
+				this.view = 'participants';
+			},
+			backToList: function () {
+				this.selected = null;
+				this.view = 'list';
+			},
 			load: function () {
 				var self = this;
+				if (self.initialItems) {
+					self.items = self.initialItems.filter(function (e) { return !self.statusFilter || e.status === self.statusFilter; });
+					self.itemsMax = self.items.length;
+					return;
+				}
 				self.isLoading = true;
 				var url = self.apiUrl + '?count=100' + (self.statusFilter ? '&status=' + encodeURIComponent(self.statusFilter) : '');
 				self.request('GET', url).then(function (r) {
@@ -329,7 +352,7 @@
 					<option v-for="s in options.statuses" :key="s.value" :value="s.value">{{ s.label }}</option>\
 				</select>\
 			</label>\
-			<pkp-button :is-primary="true" @click="create">{{ t(\'new\') }}</pkp-button>\
+			<pkp-button v-if="canEditEditions" :is-primary="true" @click="create">{{ t(\'new\') }}</pkp-button>\
 		</div>\
 		<div v-if="isLoading" class="cmEditions__loading"><spinner></spinner> {{ t(\'loading\') }}</div>\
 		<p v-else-if="!items.length" class="cmEditions__empty">{{ t(\'empty\') }}</p>\
@@ -344,15 +367,19 @@
 					<td>{{ dateRange(e) }}<div class="cmEditions__tz">{{ e.timezone }}</div></td>\
 					<td>{{ statusLabels[e.status] }}<div class="cmEditions__window" :class="{ \'cmEditions__window--open\': e.submissionsOpen }" v-if="e.submissionMode !== \'none\'">{{ e.submissionsOpen ? t(\'submissionsOpen\') : t(\'submissionsClosed\') }}</div></td>\
 					<td class="cmEditions__actions">\
-						<pkp-button @click="edit(e)">{{ t(\'edit\') }}</pkp-button>\
-						<pkp-button @click="copy(e)">{{ t(\'copy\') }}</pkp-button>\
+						<pkp-button v-if="canEditEditions" @click="edit(e)">{{ t(\'edit\') }}</pkp-button>\
+						<pkp-button v-if="canEditEditions" @click="openFees(e)">{{ t(\'fees\') }}</pkp-button>\
+						<pkp-button @click="openParticipants(e)">{{ t(\'participants\') }}</pkp-button>\
+						<pkp-button v-if="canEditEditions" @click="copy(e)">{{ t(\'copy\') }}</pkp-button>\
 						<a class="pkpButton" :href="publicLink(e)" target="_blank" rel="noopener">{{ t(\'publicPage\') }}</a>\
-						<pkp-button :is-warnable="true" @click="remove(e)">{{ t(\'delete\') }}</pkp-button>\
+						<pkp-button v-if="canEditEditions" :is-warnable="true" @click="remove(e)">{{ t(\'delete\') }}</pkp-button>\
 					</td>\
 				</tr>\
 			</tbody>\
 		</table>\
 	</div>\
+	<conference-fees-editor v-else-if="view === \'fees\'" :api-url="apiUrl + \'/\' + selected.id + \'/fees\'" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :ui-locale="uiLocale" :i18n="i18n" @back="backToList"></conference-fees-editor>\
+	<conference-participants-register v-else-if="view === \'participants\'" :api-url="apiUrl + \'/\' + selected.id + \'/participants\'" :cancel-url="apiUrl.replace(/editions$/, \'participations\')" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :primary-locale="primaryLocale" :ui-locale="uiLocale" :options="participantOptions" :i18n="i18n" @back="backToList"></conference-participants-register>\
 	<form v-else class="cmEditions__form" @submit.prevent="save" novalidate>\
 		<div v-if="errorCount" class="cmEditions__errors" role="alert">\
 			<strong>{{ t(\'errors\') }}</strong>\

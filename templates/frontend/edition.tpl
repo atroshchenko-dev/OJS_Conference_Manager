@@ -67,6 +67,13 @@
 		</div>
 	{/if}
 
+	{if $edition.registrationOpen}
+		<div class="cmEdition__call cmEdition__call--open">
+			<p>{translate key="plugins.generic.conferenceManager.public.registrationOpen"}</p>
+			<a class="cmEdition__button" href="{$edition.registerUrl|escape}">{translate key="plugins.generic.conferenceManager.public.registerListener"}</a>
+		</div>
+	{/if}
+
 	{if $edition.descriptionHtml}
 		<section class="cmEdition__section">{$edition.descriptionHtml}</section>
 	{/if}

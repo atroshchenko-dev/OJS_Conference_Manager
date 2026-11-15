@@ -17,7 +17,7 @@ use PKP\userGroup\UserGroup;
  * the plugin again, or calling ensure() many times, creates nothing new;
  * a group deleted by the manager is created again.
  */
-final class UserGroupGateway
+final class UserGroupGateway implements \APP\plugins\generic\conferenceManager\classes\Application\ParticipantGroups
 {
     public const PARTICIPANT = 'participantUserGroupId';
     public const REGISTRATION_MANAGER = 'registrationManagerUserGroupId';
@@ -58,6 +58,31 @@ final class UserGroupGateway
             $ids[$setting] = $id;
         }
         return $ids;
+    }
+
+    /**
+     * A manager of the context, a site administrator, or a member of the
+     * "Registration manager" group (REG-01, REG-07).
+     */
+    public function canManageRegistrations(int $contextId, int $userId): bool
+    {
+        $user = Repo::user()->get($userId);
+        if ($user === null) {
+            return false;
+        }
+        if ($user->hasRole([Role::ROLE_ID_MANAGER], $contextId) || $user->hasRole([Role::ROLE_ID_SITE_ADMIN], Application::SITE_CONTEXT_ID)) {
+            return true;
+        }
+        $groupId = (int) $this->plugin->getSetting($contextId, self::REGISTRATION_MANAGER);
+        return $groupId > 0 && Repo::userGroup()->userInGroup($userId, $groupId);
+    }
+
+    public function assignParticipant(int $contextId, int $userId): void
+    {
+        $groupId = $this->ensure($contextId)[self::PARTICIPANT];
+        if (!Repo::userGroup()->userInGroup($userId, $groupId)) {
+            Repo::userGroup()->assignUserToGroup($userId, $groupId);
+        }
     }
 
     /**

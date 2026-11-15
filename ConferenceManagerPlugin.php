@@ -42,7 +42,6 @@ use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
 use PKP\plugins\interfaces\HasTaskScheduler;
 use PKP\scheduledTask\PKPScheduler;
-use PKP\security\Role;
 
 class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
 {
@@ -209,7 +208,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
                 $handler = new ConferencePageHandler($this);
                 return true;
             }
-            if ($contextId !== null && $op === 'confirm' && $this->isEnabledFor((int) $contextId)) {
+            if ($contextId !== null && in_array($op, ['confirm', 'my'], true) && $this->isEnabledFor((int) $contextId)) {
                 $handler = new ConferencePageHandler($this);
                 return true;
             }
@@ -233,7 +232,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         if ($context === null || $user === null || !$this->isEnabledFor((int) $context->getId())) {
             return Hook::CONTINUE;
         }
-        if (!$user->hasRole([Role::ROLE_ID_MANAGER], (int) $context->getId()) && !$user->hasRole([Role::ROLE_ID_SITE_ADMIN], Application::SITE_CONTEXT_ID)) {
+        if (!(new UserGroupGateway($this))->canManageRegistrations((int) $context->getId(), (int) $user->getId())) {
             return Hook::CONTINUE;
         }
         $templateMgr = TemplateManager::getManager($request);

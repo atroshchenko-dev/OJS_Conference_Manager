@@ -8,6 +8,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionRepository;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionWindows;
+use APP\plugins\generic\conferenceManager\classes\Domain\Fee\FeeRepository;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\AuthorInfo;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConfirmationStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConfirmationToken;
@@ -39,6 +40,7 @@ final class SubmissionRegistrationService
         private readonly SubmissionDirectory $submissions,
         private readonly ?ParticipantNotifier $notifier = null,
         private readonly ?AuditLogger $audit = null,
+        private readonly ?FeeRepository $fees = null,
     ) {
     }
 
@@ -133,7 +135,30 @@ final class SubmissionRegistrationService
             $consentVersion,
             $now,
             $regularAllowed,
+            $edition?->id === null ? [] : $this->categoryIds($edition->id),
         );
+    }
+
+    /**
+     * @return list<\APP\plugins\generic\conferenceManager\classes\Domain\Fee\FeeCategory>
+     */
+    public function categories(int $editionId): array
+    {
+        return $this->fees?->categories($editionId) ?? [];
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function categoryIds(int $editionId): array
+    {
+        $ids = [];
+        foreach ($this->fees?->categories($editionId) ?? [] as $category) {
+            if ($category->id !== null) {
+                $ids[] = $category->id;
+            }
+        }
+        return $ids;
     }
 
     /**
@@ -184,6 +209,10 @@ final class SubmissionRegistrationService
                 $now,
                 $isSubmitter,
             );
+            if ($role === ParticipantRole::Presenter && $registration->categoryId !== null
+                && in_array($registration->categoryId, $this->categoryIds($edition->id ?? 0), true)) {
+                $this->registrations->setParticipantCategory($result['participantId'], $registration->categoryId);
+            }
             $created[] = ['participantId' => $result['participantId'], 'role' => $role->value, 'isNew' => $result['isNew']];
             if ($result['confirmationStatus'] === ConfirmationStatus::Pending) {
                 [$token, $hash] = ConfirmationToken::generate();

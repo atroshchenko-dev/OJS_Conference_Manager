@@ -23,10 +23,12 @@ final class RegistrationValidator
     public const FIELD_FORM = 'conferenceParticipationForm';
     public const FIELD_PRESENTER = 'conferencePresenterEmail';
     public const FIELD_CONSENT = 'conferenceConsent';
+    public const FIELD_CATEGORY = 'conferenceFeeCategory';
 
     /**
      * @param list<AuthorInfo> $authors authors of the current publication
      * @param bool $regularAllowed the journal also takes submissions that are not for an edition
+     * @param list<int> $categoryIds participant categories of the edition; a category is required when there are any
      */
     public function validate(
         ?SpeakerRegistration $registration,
@@ -35,6 +37,7 @@ final class RegistrationValidator
         string $consentVersion,
         DateTimeImmutable $now,
         bool $regularAllowed = false,
+        array $categoryIds = [],
     ): ValidationErrors {
         $errors = new ValidationErrors();
         if ($registration === null || $registration->editionId === null) {
@@ -55,6 +58,9 @@ final class RegistrationValidator
         }
         if ($registration->participationForm === null) {
             $errors->add(self::FIELD_FORM, self::K . 'required');
+        }
+        if ($categoryIds !== [] && !in_array($registration->categoryId, $categoryIds, true)) {
+            $errors->add(self::FIELD_CATEGORY, self::K . 'categoryRequired');
         }
         $emails = array_map(static fn (AuthorInfo $a): string => $a->normalizedEmail(), $authors);
         if ($registration->presenterEmail === null) {

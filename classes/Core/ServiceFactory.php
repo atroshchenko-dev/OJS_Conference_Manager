@@ -6,13 +6,17 @@ namespace APP\plugins\generic\conferenceManager\classes\Core;
 
 use APP\plugins\generic\conferenceManager\classes\Application\ContextInfo;
 use APP\plugins\generic\conferenceManager\classes\Application\EditionService;
+use APP\plugins\generic\conferenceManager\classes\Application\FeeService;
 use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfileService;
+use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
 use APP\plugins\generic\conferenceManager\classes\Application\SubmissionRegistrationService;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConsentText;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Queries\UpcomingEditionsQuery;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbFeeRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbParticipantRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
 use Illuminate\Support\Facades\DB;
@@ -69,6 +73,27 @@ final class ServiceFactory
         return new UpcomingEditionsQuery(DB::connection(), 'conferencemanagerplugin');
     }
 
+    public static function fees(): FeeService
+    {
+        $db = DB::connection();
+        return new FeeService(new DbFeeRepository($db), new DbEditionRepository($db), new AuditLogger($db));
+    }
+
+    public static function participants(): ParticipantService
+    {
+        $db = DB::connection();
+        $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'conferencemanagerplugin');
+        return new ParticipantService(
+            new DbParticipantRepository($db),
+            new DbEditionRepository($db),
+            new DbFeeRepository($db),
+            new SubmissionGateway(),
+            $plugin instanceof \PKP\plugins\Plugin ? new UserGroupGateway($plugin) : null,
+            new AuditLogger($db),
+            static fn (string $key): string => __($key),
+        );
+    }
+
     public static function registrations(): SubmissionRegistrationService
     {
         $db = DB::connection();
@@ -78,6 +103,7 @@ final class ServiceFactory
             new SubmissionGateway(),
             new MailGateway(),
             new AuditLogger($db),
+            new DbFeeRepository($db),
         );
     }
 

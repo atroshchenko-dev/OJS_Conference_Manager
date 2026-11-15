@@ -18,6 +18,7 @@ run context confb en
 run install /tmp/cm-v1.tar.gz
 run assert-tables conf_schema_steps,conf_institutions,conf_institution_settings,conf_signers,conf_signer_settings,conf_payment_accounts,conf_audit_log,conf_editions,conf_edition_settings,conf_participants,conf_participations,conf_fee_categories,conf_tariffs,conf_invoices,conf_invoice_items,conf_payment_proofs,conf_payment_events,conf_rooms,conf_sessions,conf_certificate_templates,conf_certificates,conf_counters,conf_mail_campaigns,conf_mail_log,conf_legacy_urls,conf_edition_partners,conf_payment_rules,conf_submission_registrations
 run migrate-twice
+run assert-column conf_submission_registrations category_id
 run enable confa
 run enable confb
 run user-groups confa
@@ -55,6 +56,7 @@ docker cp "$work/cm-next.tar.gz" "$ojs:/tmp/cm-next.tar.gz"
 run upgrade /tmp/cm-next.tar.gz
 run assert-column conf_institutions upgrade_probe
 run migrate-twice
+run assert-column conf_submission_registrations category_id
 run steps
 
 # 3. Clean up the probe so the container can be reused: reinstall v1 files.
