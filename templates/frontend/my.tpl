@@ -142,6 +142,15 @@
 		</ul>
 	{/if}
 
+	{if $myBidding}
+		<h2 class="cmMy__section">{translate key="plugins.generic.conferenceManager.bids.cabinet"}</h2>
+		<ul class="cmMy cmMy__program">
+			{foreach from=$myBidding item=b}
+				<li><a href="{$b.url|escape}">{$b.name|escape}</a> — {translate key="plugins.generic.conferenceManager.bids.cabinetUntil" until=$b.until|escape}</li>
+			{/foreach}
+		</ul>
+	{/if}
+
 	{if $myProgram}
 		<h2 class="cmMy__section">{translate key="plugins.generic.conferenceManager.myProgram.title"}</h2>
 		{foreach from=$myProgram item=e}

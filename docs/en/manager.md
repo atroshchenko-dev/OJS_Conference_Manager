@@ -391,6 +391,21 @@ The plugin compares the affiliation of the submission's editors (from the user p
 
 If the editor chose another form when assigning a reviewer, the plugin keeps it.
 
+### Reviewer bids
+In the standard and two-phase modes, reviewers of the journal can mark which submissions of the event they would like to review. The plugin proposes a distribution and you confirm it with one click.
+
+1. Click **Reviewer bids** next to the event in **Conferences**.
+2. Set **Choice open until (inclusive)** and **Reviewers per submission** (1 to 10, 2 by default), and click **Save**. An empty date turns the choice off.
+3. Click **Invite reviewers by email**: every user with the reviewer role in the journal gets an email with a link to the choice page. The link is also shown on the screen, so you can send it another way. Reviewers see it in their cabinet too.
+4. A reviewer sees the titles, sections, keywords and abstracts of the submissions, but no author names, and marks each one: **very keen**, **willing**, **rather not** or **conflict of interest**. Reviewers do not see their own submissions.
+5. Send submissions to review with the usual OJS decision. The **Proposed distribution** block shows "submission — reviewer" pairs only for submissions already in review:
+   - only those who chose "very keen" or "willing" are proposed; "very keen" first, and among them those with fewer open reviews;
+   - submissions with the fewest willing reviewers get reviewers first;
+   - authors of the submission and reviewers already assigned are never proposed, nor those who chose "rather not" or "conflict of interest".
+6. Untick the pairs you do not want and click **Assign the selected**. The plugin assigns reviewers in the current round the same way the OJS form does: with the response and review due dates from the journal settings, all review files of the round and the task in the reviewer's dashboard. The reviewer gets a "Review request" email with a link to the review page, and then accepts or declines as usual.
+
+The **Choices by submission** table shows who chose what and who is assigned already, and the **Reviewers of the journal** table shows how many submissions each reviewer wants and how many open reviews they have. You can still assign a reviewer by hand in OJS. The texts of both emails can be changed in the journal's email templates.
+
 ## How to make the book of abstracts
 
 The book of abstracts is one PDF with the abstracts of the accepted papers of the event: submissions that passed review and were not declined. The text of each abstract, its keywords and the authors with their affiliations come from the submission. To change a text, edit the abstract of the submission and download the book again.

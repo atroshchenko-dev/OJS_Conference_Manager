@@ -18,6 +18,7 @@ final class DbPersonalDataRepository implements PersonalDataRepository
         ['conf_participations', 'attended_by'],
         ['conf_session_attendance', 'marked_by'],
         ['conf_personal_program', 'user_id'],
+        ['conf_review_bids', 'user_id'],
         ['conf_payment_proofs', 'uploaded_by'],
         ['conf_payment_proofs', 'reviewed_by'],
         ['conf_payment_events', 'actor_user_id'],
@@ -81,6 +82,7 @@ final class DbPersonalDataRepository implements PersonalDataRepository
         ];
         $userIds = array_values(array_unique(array_filter(array_map(static fn (array $p): ?int => $p['user_id'] === null ? null : (int) $p['user_id'], $out['participants']))));
         $out['personalProgram'] = $rows('conf_personal_program', 'user_id', $userIds);
+        $out['reviewBids'] = $rows('conf_review_bids', 'user_id', $userIds);
         $emails = array_values(array_unique(array_map(static fn (array $p): string => (string) $p['email'], $out['participants'])));
         $out['remindersSent'] = array_map(static fn (object $r): array => (array) $r, $this->db->table('conf_reminders_sent')->whereIn('email', $emails)->orderBy('id')->get()->all());
         return $out;
@@ -131,6 +133,11 @@ final class DbPersonalDataRepository implements PersonalDataRepository
             $both = $this->db->table('conf_personal_program')->where('user_id', $newUserId)->pluck('session_id')->all();
             if ($both !== []) {
                 $this->db->table('conf_personal_program')->where('user_id', $oldUserId)->whereIn('session_id', $both)->delete();
+            }
+            // DEC-10: the same for a submission both accounts bid on; the newer account's bid stays.
+            $bid = $this->db->table('conf_review_bids')->where('user_id', $newUserId)->pluck('submission_id')->all();
+            if ($bid !== []) {
+                $this->db->table('conf_review_bids')->where('user_id', $oldUserId)->whereIn('submission_id', $bid)->delete();
             }
             foreach (self::USER_COLUMNS as [$table, $column]) {
                 $out[$table . '.' . $column] = $this->db->table($table)->where($column, $oldUserId)->update([$column => $newUserId]);

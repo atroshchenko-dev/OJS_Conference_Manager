@@ -27,7 +27,9 @@ use APP\plugins\generic\conferenceManager\classes\Application\ProgramBuilderServ
 use APP\plugins\generic\conferenceManager\classes\Application\ProgramService;
 use APP\plugins\generic\conferenceManager\classes\Application\PublicScheduleService;
 use APP\plugins\generic\conferenceManager\classes\Application\ReminderService;
+use APP\plugins\generic\conferenceManager\classes\Application\ReviewBiddingService;
 use APP\plugins\generic\conferenceManager\classes\Application\ReviewCommitteeService;
+use APP\plugins\generic\conferenceManager\classes\Application\ReviewerDirectory;
 use APP\plugins\generic\conferenceManager\classes\Application\ReviewPeople;
 use APP\plugins\generic\conferenceManager\classes\Application\SettingsStore;
 use APP\plugins\generic\conferenceManager\classes\Application\SubmissionInfo;
@@ -48,6 +50,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Shared\ValidationErrors
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Export\CsvTableWriter;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Export\XlsxTableWriter;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbBidRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbCampaignRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbDecisionBatchRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionRepository;
@@ -193,6 +196,85 @@ final class DecisionFlowTest extends TestCase
         $this->editorial->stage[$submissionId] = EditorialDirectory::STAGE_SUBMISSION;
     }
 
+    public function testReviewBidding(): void
+    {
+        [$edition, $cat] = $this->edition(['reviewMode' => 'standard']);
+        foreach ([1, 2, 3] as $id) {
+            $this->submit($id, $edition, $cat);
+        }
+        $editions = new DbEditionRepository($this->db);
+        $committee = new ReviewCommitteeService($editions, new DbRegistrationRepository($this->db), new DbVoteRepository($this->db), new FakeReviewPeople(), new FakeSettings(), new AuditLogger($this->db));
+        $dir = new FakeReviewerDirectory();
+        $dir->reviewers = [10 => 'Рецензент А', 11 => 'Рецензент Б', 12 => 'Рецензент В'];
+        $sub = static fn (int $stage, ?int $round, array $assigned, array $authors): array => ['contextId' => 1, 'stageId' => $stage, 'status' => 1, 'title' => 'Тези ' . ($round ?? 0), 'section' => 'Секція', 'abstract' => 'Анотація', 'keywords' => ['освіта'], 'roundId' => $round, 'assigned' => $assigned, 'authors' => $authors];
+        $dir->subs = [1 => $sub(3, 101, [], [12]), 2 => $sub(3, 102, [11], []), 3 => $sub(1, null, [], [])];
+        $mailer = new FakeMailer();
+        $service = new ReviewBiddingService($editions, new DbRegistrationRepository($this->db), new DbBidRepository($this->db), $dir, $committee, $mailer, new AuditLogger($this->db));
+        $ed = $editions->find(1, $edition);
+        self::assertNotNull($ed);
+
+        // Off until the manager sets the last day.
+        self::assertNull($service->reviewerPage($this->ctx, $ed, 10, 'uk', $this->now));
+        [$saved, $e] = $committee->saveSettings($this->ctx, $edition, ['biddingUntil' => '2027-02-31', 'reviewersPerSubmission' => 0]) ?? [null, null];
+        self::assertNull($saved);
+        self::assertSame(['biddingUntil', 'reviewersPerSubmission'], array_keys($e?->toArray() ?? []));
+        [$saved] = $committee->saveSettings($this->ctx, $edition, ['biddingUntil' => '2027-02-10', 'reviewersPerSubmission' => '2']) ?? [null];
+        self::assertSame(['2027-02-10', 2], [$saved?->biddingUntil, $saved?->reviewersPerSubmission]);
+        [$saved] = $committee->saveSettings($this->ctx, $edition, ['abstractFormId' => 7]) ?? [null];
+        self::assertSame('2027-02-10', $saved?->biddingUntil, 'the forms screen keeps the bidding');
+
+        // Reviewers only; an author does not see their own submission.
+        self::assertNull($service->reviewerPage($this->ctx, $ed, 99, 'uk', $this->now));
+        $page = $service->reviewerPage($this->ctx, $ed, 10, 'uk', $this->now);
+        self::assertSame([true, [1, 2, 3]], [$page['open'] ?? null, array_column($page['items'] ?? [], 'id')]);
+        self::assertSame([2, 3], array_column($service->reviewerPage($this->ctx, $ed, 12, 'uk', $this->now)['items'] ?? [], 'id'));
+        self::assertArrayNotHasKey('authors', ($page['items'] ?? [[]])[0]);
+
+        [$n, $e] = $service->saveBids($this->ctx, $ed, 10, [1 => 'eager', 2 => 'willing', 3 => 'maybe'], 'uk', $this->now) ?? [0, null];
+        self::assertSame([2, true], [$n, $e?->has('bids')]);
+        $service->saveBids($this->ctx, $ed, 11, [1 => 'willing', 3 => 'conflict'], 'uk', $this->now);
+        [$n] = $service->saveBids($this->ctx, $ed, 12, ['1' => 'eager', '2' => 'eager'], 'uk', $this->now) ?? [0];
+        self::assertSame(1, $n, 'not their own submission');
+        [$n] = $service->saveBids($this->ctx, $ed, 10, [2 => 'willing', 3 => ''], 'uk', $this->now) ?? [0];
+        self::assertSame(0, $n, 'unchanged; nothing to remove');
+        self::assertSame('eager', ($service->reviewerPage($this->ctx, $ed, 10, 'uk', $this->now)['items'] ?? [[]])[0]['bid']);
+
+        // The distribution: in review only, eager first, authors and assigned left out.
+        $o = $service->overview($this->ctx, $edition, 'uk', $this->now) ?? [];
+        self::assertSame([[1, 10, 'eager'], [1, 11, 'willing'], [2, 12, 'eager']], array_map(static fn (array $p): array => [$p['submissionId'], $p['userId'], $p['bid']], $o['proposal']));
+        self::assertSame([true, true, false], array_column($o['submissions'], 'inReview'));
+        self::assertSame(['Рецензент Б'], $o['submissions'][2]['bids']['conflict']);
+        self::assertSame(['Рецензент Б'], $o['submissions'][1]['assigned']);
+        self::assertSame([2, 1, 1], array_column($o['reviewers'], 'bids'));
+        self::assertSame('https://j.example/conf-2027/bids', $o['bidUrl']);
+
+        $out = $service->assign($this->ctx, $edition, [
+            ['submissionId' => 1, 'userId' => 10], ['submissionId' => 2, 'userId' => 12], ['submissionId' => 3, 'userId' => 10],
+            ['submissionId' => 1, 'userId' => 12], ['submissionId' => 2, 'userId' => 12], 'x',
+        ], 1, 'uk');
+        self::assertSame(['assigned' => 2, 'skipped' => 4], $out);
+        self::assertSame([[1, 101, 10], [2, 102, 12]], $dir->done);
+        self::assertSame([ParticipantMailTexts::BID_ASSIGNED, 'r10@example.org', 'https://j.example/review/1'], [$mailer->sent[0]['template'], $mailer->sent[0]['email'], $mailer->sent[0]['data']['reviewUrl']]);
+        $o = $service->overview($this->ctx, $edition, 'uk', $this->now) ?? [];
+        self::assertSame([[1, 11, 'willing']], array_map(static fn (array $p): array => [$p['submissionId'], $p['userId'], $p['bid']], $o['proposal']), 'what is left');
+
+        // The invitation and the cabinet while open; closed after the last day in Kyiv.
+        [$sent] = $service->invite($this->ctx, $edition, 1, 'uk', $this->now) ?? [null];
+        self::assertSame(3, $sent);
+        self::assertSame(ParticipantMailTexts::BIDDING, end($mailer->sent)['template']);
+        self::assertSame([['name' => 'Конференція', 'path' => 'conf-2027', 'until' => '2027-02-10']], array_map(static fn (array $b): array => ['name' => mb_substr($b['name'], 0, 11)] + $b, $service->openFor($this->ctx, 10, 'uk', $this->now)));
+        $late = new DateTimeImmutable('2027-02-10T22:30:00Z');
+        [$n, $e] = $service->saveBids($this->ctx, $ed, 10, [1 => 'unwilling'], 'uk', $late) ?? [0, null];
+        self::assertSame([0, true], [$n, $e?->has('bids')]);
+        self::assertTrue(($service->invite($this->ctx, $edition, 1, 'uk', $late) ?? [null, null])[1]?->has('biddingUntil'));
+        self::assertSame([], $service->openFor($this->ctx, 10, 'uk', $late));
+
+        // The light mode has no reviewers.
+        $this->db->table('conf_editions')->where('id', $edition)->update(['review_mode' => 'light']);
+        self::assertNull($service->reviewerPage($this->ctx, $editions->find(1, $edition) ?? $ed, 10, 'uk', $this->now));
+        self::assertSame([], ($service->overview($this->ctx, $edition, 'uk', $this->now) ?? [])['proposal']);
+    }
+
     public function testReviewCommitteeConflictsAndPhases(): void
     {
         [$edition, $cat] = $this->edition(['reviewMode' => 'light']);
@@ -232,14 +314,14 @@ final class DecisionFlowTest extends TestCase
         self::assertNull($saved);
         self::assertTrue($e?->has('paperFormId'), 'not a form of the journal');
         [$saved] = $service->saveSettings($this->ctx, $edition, ['abstractFormId' => '7', 'paperFormId' => 8]) ?? [null];
-        self::assertSame(['abstractFormId' => 7, 'paperFormId' => 8], $saved?->toArray());
+        self::assertSame(['abstractFormId' => 7, 'paperFormId' => 8, 'biddingUntil' => null, 'reviewersPerSubmission' => 2], $saved?->toArray());
         $people->rounds = [10 => 1, 11 => 2, 12 => 3];
         self::assertSame([7, 8, 8], [$service->formForAssignment($this->ctx, 1, 10), $service->formForAssignment($this->ctx, 1, 11), $service->formForAssignment($this->ctx, 1, 12)]);
         self::assertNull($service->formForAssignment($this->ctx, 1, 99), 'unknown round');
         self::assertNull($service->formForAssignment($this->ctx, 4, 10), 'not of an edition');
         $this->db->table('conf_editions')->where('id', $edition)->update(['review_mode' => 'standard']);
         self::assertNull($service->formForAssignment($this->ctx, 1, 10), 'standard review keeps the forms of the editor');
-        self::assertSame(['abstractFormId' => 7, 'paperFormId' => 8], ($service->overview($this->ctx, $edition, 'uk') ?? [])['settings']);
+        self::assertSame(['abstractFormId' => 7, 'paperFormId' => 8, 'biddingUntil' => null, 'reviewersPerSubmission' => 2], ($service->overview($this->ctx, $edition, 'uk') ?? [])['settings']);
     }
 
     public function testAcceptanceSetsTypeIssueAndInvoice(): void
@@ -834,7 +916,7 @@ final class DecisionFlowTest extends TestCase
         $db->table('email_templates_default_data')->insert(['email_key' => ParticipantMailTexts::INVOICE, 'locale' => 'uk', 'name' => 'x', 'subject' => 'Наш текст', 'body' => 'b']);
         (new Step0008Communication())->up($db->getSchemaBuilder(), $db);
         (new Step0008Communication())->up($db->getSchemaBuilder(), $db);
-        self::assertSame(18, $db->table('email_templates_default_data')->count());
+        self::assertSame(22, $db->table('email_templates_default_data')->count());
         self::assertSame('Наш текст', $db->table('email_templates_default_data')->where('email_key', ParticipantMailTexts::INVOICE)->where('locale', 'uk')->value('subject'));
         foreach (ParticipantMailTexts::all() as $key => $locales) {
             foreach ($locales as $text) {
@@ -978,7 +1060,7 @@ final class DecisionFlowTest extends TestCase
         $db->table('email_templates_default_data')->insert(['email_key' => 'CONF_DECISION_ORAL', 'locale' => 'uk', 'name' => 'Свій', 'subject' => 'Свій', 'body' => 'Свій']);
         (new ConferenceSchemaMigration())->usingConnection($db)->up();
         (new ConferenceSchemaMigration())->usingConnection($db)->up();
-        self::assertSame(30, $db->table('email_templates_default_data')->count(), '(6 + 9) letters × 2 languages, once');
+        self::assertSame(34, $db->table('email_templates_default_data')->count(), '(6 + 11) letters × 2 languages, once');
         self::assertSame('Свій', $db->table('email_templates_default_data')->where('email_key', 'CONF_DECISION_ORAL')->where('locale', 'uk')->value('body'));
         self::assertTrue($db->getSchemaBuilder()->hasTable('conf_decision_batch_items'));
     }
@@ -1235,5 +1317,51 @@ final class FakeSettings implements SettingsStore
     public function set(int $contextId, string $name, mixed $value): void
     {
         $this->values[$contextId . '/' . $name] = $value;
+    }
+}
+
+final class FakeReviewerDirectory implements ReviewerDirectory
+{
+    /** @var array<int, string> */
+    public array $reviewers = [];
+    /** @var array<int, array<string, mixed>> */
+    public array $subs = [];
+    /** @var list<array{0: int, 1: int, 2: int}> */
+    public array $done = [];
+
+    public function reviewers(int $contextId, string $locale): array
+    {
+        $out = [];
+        foreach ($this->reviewers as $id => $name) {
+            $out[] = ['userId' => $id, 'name' => $name, 'email' => 'r' . $id . '@example.org'];
+        }
+        return $out;
+    }
+
+    public function isReviewer(int $contextId, int $userId): bool
+    {
+        return isset($this->reviewers[$userId]);
+    }
+
+    public function submissions(array $submissionIds, string $locale): array
+    {
+        return array_intersect_key($this->subs, array_flip($submissionIds));
+    }
+
+    public function loads(int $contextId, array $userIds): array
+    {
+        return [10 => 3];
+    }
+
+    public function assign(int $contextId, int $submissionId, int $roundId, int $reviewerId, int $actorId): ?array
+    {
+        $this->done[] = [$submissionId, $roundId, $reviewerId];
+        $this->subs[$submissionId]['assigned'][] = $reviewerId;
+        return ['reviewId' => count($this->done), 'responseDue' => '2027-02-08', 'reviewDue' => '2027-03-01'];
+    }
+
+    public function reviewUrl(int $contextId, int $submissionId): string
+    {
+        return 'https://j.example/review/' . $submissionId;
     }
 }

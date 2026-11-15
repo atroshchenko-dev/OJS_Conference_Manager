@@ -65,6 +65,9 @@ class ConferencePageHandler extends Handler
         if (($args[0] ?? null) === 'register') {
             return $this->register($edition, $info, $request);
         }
+        if (($args[0] ?? null) === 'bids' && !isset($args[1])) {
+            return $this->bids($edition, $info, $request);
+        }
         if (($args[0] ?? null) === 'program') {
             $format = $args[1] ?? null;
             if ($format === null && !isset($args[2])) {
@@ -475,11 +478,69 @@ class ConferencePageHandler extends Handler
             'myCertificates' => $certificates,
             'mySessions' => $chaired,
             'myProgram' => $myProgram,
+            'myBidding' => array_map(static fn (array $b): array => $b + [
+                'url' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, $b['path'], ['bids']),
+            ], ServiceFactory::reviewBidding()->openFor($info, (int) $user->getId(), $locale, $now)),
             'myMessage' => $message,
             'myUrl' => $myUrl,
             'pageTitle' => 'plugins.generic.conferenceManager.my.title',
         ]);
         return $templateMgr->display($this->plugin->getTemplateResource('frontend/my.tpl'));
+    }
+
+    /**
+     * DEC-10: a reviewer of the journal marks which submissions of the
+     * edition they would like to review. Others get "not found".
+     */
+    private function bids(Edition $edition, \APP\plugins\generic\conferenceManager\classes\Application\ContextInfo $info, $request): mixed
+    {
+        $context = $request->getContext();
+        $dispatcher = $request->getDispatcher();
+        $url = $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, $edition->path, ['bids']);
+        $user = $request->getUser();
+        if ($user === null) {
+            $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), 'login', null, null, ['source' => $url]));
+        }
+        $locale = Locale::getLocale();
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $service = ServiceFactory::reviewBidding();
+        $userId = (int) $user->getId();
+        if ($service->reviewerPage($info, $edition, $userId, $locale, $now) === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $message = null;
+        if ($request->isPost()) {
+            if (!$request->checkCSRF()) {
+                $message = ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.confirm.retry')];
+            } else {
+                [$saved, $errors] = $service->saveBids($info, $edition, $userId, (array) $request->getUserVar('bid'), $locale, $now) ?? [0, null];
+                if ($errors !== null && !$errors->isEmpty()) {
+                    $message = ['type' => 'alert', 'text' => implode(' ', array_unique(array_map(static fn (string $k): string => __($k), array_merge(...array_values($errors->toArray())))))];
+                } else {
+                    $request->redirectUrl($url . '?saved=' . (int) $saved);
+                }
+            }
+        } elseif ($request->getUserVar('saved') !== null) {
+            $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.bids.saved', ['n' => (int) $request->getUserVar('saved')])];
+        }
+        $page = $service->reviewerPage($info, $edition, $userId, $locale, $now);
+        $choices = array_map(static fn (\APP\plugins\generic\conferenceManager\classes\Domain\Review\Bid $b): array => ['value' => $b->value, 'label' => __($b->labelKey())], \APP\plugins\generic\conferenceManager\classes\Domain\Review\Bid::cases());
+
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $templateMgr->addHeader('conferenceBidsNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
+        $templateMgr->assign([
+            'bidsEditionName' => (string) $edition->text('name')->resolve($locale, $info->primaryLocale),
+            'bidsEditionUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, $edition->path),
+            'bidsPage' => $page,
+            'bidsUntil' => $page === null ? '' : (new \IntlDateFormatter($locale, \IntlDateFormatter::LONG, \IntlDateFormatter::NONE, 'UTC'))->format(new DateTimeImmutable($page['until'], new DateTimeZone('UTC'))),
+            'bidsChoices' => $choices,
+            'bidsUrl' => $url,
+            'bidsMessage' => $message,
+            'pageTitle' => 'plugins.generic.conferenceManager.bids.title',
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/bids.tpl'));
     }
 
     /**

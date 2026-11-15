@@ -12,6 +12,7 @@ These guides are for everyone who works with the Conference Manager plugin in Op
 | [Journal manager and organizing committee](manager.md) | Whoever sets up the institution profile and creates event editions, fees, payment, decisions, mailings and certificates. |
 | [Registration manager](registration-manager.md) | Whoever keeps the register of participants, reviews receipts, records payments and marks attendance. |
 | [Participant: author, co-author, listener](participant.md) | Whoever submits an abstract, confirms co-authorship, registers as a listener, pays and receives a certificate. |
+| [Reviewer](reviewer.md) | Whoever reviews the submissions of an event and marks which ones they would like to review. |
 | [Presets](presets.md) | Institutions and the community that want to describe a typical event setup in one file and share it. |
 | [OCS archive migration](ocs-migration.md) | Institutions moving from OCS 2.x: migrating papers, matching and redirecting old addresses. |
 
@@ -32,7 +33,6 @@ The plugin's public pages (event page, program, registration, participant cabine
 
 ## Current limits
 
-- There is no schedule with rooms, sessions and times yet. There is a static program: accepted papers by section and presentation type.
 - There is no online card payment. The plugin issues invoices and shows instructions; a manager records the payment.
 - The plugin does not make refunds: a manager handles overpayments by hand.
 - XLSX export needs the PHP `zip` extension. Without it, CSV is available.

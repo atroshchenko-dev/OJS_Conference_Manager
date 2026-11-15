@@ -46,6 +46,7 @@ abstract class ConferenceParticipantMailable extends Mailable
         return [
             ParticipationConfirm::class, InvoiceIssuedNotify::class, ProofAcceptedNotify::class, ProofRejectedNotify::class,
             PaymentReminder::class, PaperReminder::class, EventReminder::class, ParticipantInvitation::class, WaitlistSeat::class,
+            ReviewBidding::class, ReviewBidAssigned::class,
         ];
     }
 

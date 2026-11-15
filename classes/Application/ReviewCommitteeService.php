@@ -173,7 +173,7 @@ final class ReviewCommitteeService
     }
 
     /**
-     * @param array<string, mixed> $input abstractFormId, paperFormId
+     * @param array<string, mixed> $input abstractFormId, paperFormId, biddingUntil, reviewersPerSubmission
      * @return array{0: ?ReviewSettings, 1: ValidationErrors}|null
      */
     public function saveSettings(ContextInfo $context, int $editionId, array $input, ?int $actorId = null): ?array
@@ -184,7 +184,16 @@ final class ReviewCommitteeService
         }
         $errors = new ValidationErrors();
         $forms = array_column($this->people->reviewForms($context->id, $context->primaryLocale), 'id');
-        $new = ReviewSettings::fromArray($input);
+        // Fields left out keep their values: the forms and the bidding are saved on different screens.
+        $new = ReviewSettings::fromArray(array_intersect_key($input, $before->toArray()) + $before->toArray());
+        $until = trim((string) ($input['biddingUntil'] ?? ''));
+        if ($until !== '' && !ReviewSettings::isDate($until)) {
+            $errors->add('biddingUntil', self::K . 'date');
+        }
+        if (array_key_exists('reviewersPerSubmission', $input)
+            && filter_var($input['reviewersPerSubmission'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => ReviewSettings::MAX_PER_SUBMISSION]]) === false) {
+            $errors->add('reviewersPerSubmission', self::K . 'perSubmission');
+        }
         foreach (['abstractFormId' => $new->abstractFormId, 'paperFormId' => $new->paperFormId] as $field => $id) {
             if ($id !== null && !in_array($id, $forms, true)) {
                 $errors->add($field, self::K . 'form');
@@ -202,7 +211,7 @@ final class ReviewCommitteeService
     }
 
     /**
-     * @return array{settings: array{abstractFormId: ?int, paperFormId: ?int}, forms: list<array{id: int, title: string}>, mode: string}|null
+     * @return array{settings: array{abstractFormId: ?int, paperFormId: ?int, biddingUntil: ?string, reviewersPerSubmission: int}, forms: list<array{id: int, title: string}>, mode: string}|null
      */
     public function overview(ContextInfo $context, int $editionId, string $locale): ?array
     {

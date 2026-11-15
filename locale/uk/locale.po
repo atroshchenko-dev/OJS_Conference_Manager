@@ -4904,3 +4904,159 @@ msgstr "місце в черзі: {$n}"
 
 msgid "plugins.generic.conferenceManager.waitlist.help"
 msgstr "Ви в листі очікування. Рахунок не виставлено. Коли місце звільниться, участь підтвердиться автоматично, і ви отримаєте лист."
+
+msgid "plugins.generic.conferenceManager.bids.title"
+msgstr "Вибір подань для рецензування"
+
+msgid "plugins.generic.conferenceManager.bids.help"
+msgstr "Позначте біля кожного подання, чи хотіли б ви його рецензувати. Оргкомітет розподілить подання з урахуванням ваших побажань, а запити на рецензію прийдуть звичним шляхом. Вибір відкрито до {$until} включно, змінювати його можна будь-коли до цього дня. Імена авторів не показуються, власних подань у списку немає."
+
+msgid "plugins.generic.conferenceManager.bids.closed"
+msgstr "Вибір закрито {$until}. Ваші позначки збережено, оргкомітет розподіляє подання."
+
+msgid "plugins.generic.conferenceManager.bids.empty"
+msgstr "Подань для вибору поки немає."
+
+msgid "plugins.generic.conferenceManager.bids.keywords"
+msgstr "Ключові слова"
+
+msgid "plugins.generic.conferenceManager.bids.abstract"
+msgstr "Анотація"
+
+msgid "plugins.generic.conferenceManager.bids.bid.none"
+msgstr "не обрано"
+
+msgid "plugins.generic.conferenceManager.bids.bid.eager"
+msgstr "дуже хочу"
+
+msgid "plugins.generic.conferenceManager.bids.bid.willing"
+msgstr "можу"
+
+msgid "plugins.generic.conferenceManager.bids.bid.unwilling"
+msgstr "не хочу"
+
+msgid "plugins.generic.conferenceManager.bids.bid.conflict"
+msgstr "конфлікт інтересів"
+
+msgid "plugins.generic.conferenceManager.bids.save"
+msgstr "Зберегти вибір"
+
+msgid "plugins.generic.conferenceManager.bids.saved"
+msgstr "Вибір збережено. Змінено позначок: {$n}."
+
+msgid "plugins.generic.conferenceManager.bids.cabinet"
+msgstr "Вибір подань для рецензування"
+
+msgid "plugins.generic.conferenceManager.bids.cabinetUntil"
+msgstr "вибір відкрито до {$until}"
+
+msgid "plugins.generic.conferenceManager.bids.error.closed"
+msgstr "Вибір уже закрито, зміни не збережено."
+
+msgid "plugins.generic.conferenceManager.bids.error.value"
+msgstr "Невідоме значення вибору."
+
+msgid "plugins.generic.conferenceManager.bids.error.notOpen"
+msgstr "Запросити рецензентів можна, лише поки вибір відкрито: укажіть дату закінчення вибору не раніше сьогодні."
+
+msgid "plugins.generic.conferenceManager.review.error.date"
+msgstr "Вкажіть дату у форматі РРРР-ММ-ДД."
+
+msgid "plugins.generic.conferenceManager.review.error.perSubmission"
+msgstr "Вкажіть ціле число від 1 до 10."
+
+msgid "plugins.generic.conferenceManager.bids.open"
+msgstr "Вибір рецензентами"
+
+msgid "plugins.generic.conferenceManager.bids.manager"
+msgstr "Вибір подань рецензентами"
+
+msgid "plugins.generic.conferenceManager.bids.managerHelp"
+msgstr "Рецензенти журналу переглядають назви, ключові слова й анотації подань (без імен авторів) і позначають, які хотіли б рецензувати. Плагін пропонує розподіл: кожному поданню, що вже на рецензуванні, потрібну кількість рецензентів, спершу тих, хто «дуже хоче», а серед них менш завантажених. Ви знімаєте зайві позначки й призначаєте одним натиском. Рецензенти отримують звичайний запит OJS і лист."
+
+msgid "plugins.generic.conferenceManager.bids.light"
+msgstr "У цьому заході спрощене рецензування без рецензентів, тож вибір рецензентами не застосовується."
+
+msgid "plugins.generic.conferenceManager.bids.until"
+msgstr "Вибір відкрито до (включно)"
+
+msgid "plugins.generic.conferenceManager.bids.untilHelp"
+msgstr "Порожнє поле вимикає вибір. Дата в часовому поясі заходу."
+
+msgid "plugins.generic.conferenceManager.bids.perSubmission"
+msgstr "Рецензентів на одне подання"
+
+msgid "plugins.generic.conferenceManager.bids.invite"
+msgstr "Запросити рецензентів листом"
+
+msgid "plugins.generic.conferenceManager.bids.invited"
+msgstr "Листи надіслано рецензентам: {$n}."
+
+msgid "plugins.generic.conferenceManager.bids.pageUrl"
+msgstr "Сторінка вибору для рецензентів:"
+
+msgid "plugins.generic.conferenceManager.bids.reviewers"
+msgstr "Рецензенти журналу"
+
+msgid "plugins.generic.conferenceManager.bids.noReviewers"
+msgstr "У журналі немає користувачів з роллю рецензента."
+
+msgid "plugins.generic.conferenceManager.bids.reviewer"
+msgstr "Рецензент"
+
+msgid "plugins.generic.conferenceManager.bids.wanted"
+msgstr "Хоче рецензувати"
+
+msgid "plugins.generic.conferenceManager.bids.load"
+msgstr "Відкритих рецензій"
+
+msgid "plugins.generic.conferenceManager.bids.proposal"
+msgstr "Запропонований розподіл"
+
+msgid "plugins.generic.conferenceManager.bids.proposalHelp"
+msgstr "Сюди потрапляють лише подання, які вже на рецензуванні, і лише ті рецензенти, хто обрав «дуже хочу» або «можу». Автори подання й уже призначені рецензенти не пропонуються."
+
+msgid "plugins.generic.conferenceManager.bids.noProposal"
+msgstr "Пропонувати поки нікого: немає подань на рецензуванні з охочими рецензентами або всім уже призначено потрібну кількість."
+
+msgid "plugins.generic.conferenceManager.bids.pick"
+msgstr "Призначити"
+
+msgid "plugins.generic.conferenceManager.bids.submission"
+msgstr "Подання"
+
+msgid "plugins.generic.conferenceManager.bids.bid"
+msgstr "Вибір"
+
+msgid "plugins.generic.conferenceManager.bids.assign"
+msgstr "Призначити вибраних ({$n})"
+
+msgid "plugins.generic.conferenceManager.bids.assigned"
+msgstr "Призначено рецензентів: {$n}. Пропущено: {$skipped}."
+
+msgid "plugins.generic.conferenceManager.bids.bySubmission"
+msgstr "Вибір за поданнями"
+
+msgid "plugins.generic.conferenceManager.bids.noSubmissions"
+msgstr "У заході поки немає подань, які можна рецензувати."
+
+msgid "plugins.generic.conferenceManager.bids.assignedNow"
+msgstr "Уже призначено"
+
+msgid "plugins.generic.conferenceManager.bids.notInReview"
+msgstr "ще не на рецензуванні"
+
+msgid "plugins.generic.conferenceManager.audit.entity.review_bid"
+msgstr "Вибір рецензентів"
+
+msgid "plugins.generic.conferenceManager.mailable.bidding.name"
+msgstr "Рецензенти: вибір подань"
+
+msgid "plugins.generic.conferenceManager.mailable.bidding.description"
+msgstr "Запрошення рецензентам журналу позначити, які подання заходу вони хотіли б рецензувати."
+
+msgid "plugins.generic.conferenceManager.mailable.bidAssigned.name"
+msgstr "Рецензенти: призначено за вибором"
+
+msgid "plugins.generic.conferenceManager.mailable.bidAssigned.description"
+msgstr "Лист рецензентові, якому за його вибором призначено подання на рецензію."

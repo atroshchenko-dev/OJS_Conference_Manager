@@ -43,7 +43,12 @@ final class ConflictCheckTest extends TestCase
     public function testSettings(): void
     {
         $s = ReviewSettings::fromArray(['abstractFormId' => '3', 'paperFormId' => 'x']);
-        self::assertSame(['abstractFormId' => 3, 'paperFormId' => null], $s->toArray());
+        self::assertSame(['abstractFormId' => 3, 'paperFormId' => null, 'biddingUntil' => null, 'reviewersPerSubmission' => 2], $s->toArray());
+        $b = ReviewSettings::fromArray(['biddingUntil' => '2027-02-30', 'reviewersPerSubmission' => '11']);
+        self::assertSame([null, 2], [$b->biddingUntil, $b->reviewersPerSubmission]);
+        $b = ReviewSettings::fromArray(['biddingUntil' => '2027-03-01', 'reviewersPerSubmission' => '3']);
+        self::assertSame([true, true, false], [$b->biddingOpenOn('2027-02-28'), $b->biddingOpenOn('2027-03-01'), $b->biddingOpenOn('2027-03-02')]);
+        self::assertSame(3, $b->reviewersPerSubmission);
         self::assertSame([3, null, null], [$s->formForRound(1), $s->formForRound(2), $s->formForRound(5)]);
     }
 }

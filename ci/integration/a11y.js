@@ -66,6 +66,18 @@ async function signIn(context, user, password) {
       await audit(reader, url, '.pkp_structure_main');
     }
 
+    // DEC-10: the reviewer's page of open-call, left open by bids.sh.
+    const bidCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    await signIn(bidCtx, 'bid1', 'reader12345');
+    const bidder = await bidCtx.newPage();
+    const bidPage = await bidder.goto(B + '/confa/uk/conference/open-call/bids');
+    if (bidPage && bidPage.ok()) {
+      await bidder.locator('.cmBids__abstract summary').first().click().catch(() => {});
+      await audit(bidder, 'reviewer bids', '.pkp_structure_main');
+    } else {
+      console.log('SKIP reviewer bids: no page for bid1');
+    }
+
     // ATT-04, PRG-09: the cabinet with the ticket open, the signed-in program, the ticket page.
     const ownerCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     await signIn(ownerCtx, 'owner1', 'reader12345');
@@ -111,6 +123,16 @@ async function signIn(context, user, password) {
           await audit(a, 'manager: ' + label + ' → ' + f, '.app__main');
         }
       }
+    }
+    // DEC-10: the manager's bids screen of open-call (dec-2027 may use the light review).
+    await home();
+    const bidsButton = a.locator('tr', { hasText: 'open-call' }).getByRole('button', { name: 'Вибір рецензентами', exact: true });
+    if (await bidsButton.count()) {
+      await bidsButton.first().click();
+      await a.waitForTimeout(2000);
+      await audit(a, 'manager: Вибір рецензентами (open-call)', '.app__main');
+    } else {
+      console.log('SKIP manager bids: open-call has the light review');
     }
     await a.goto(B + '/index/uk/conferenceSite');
     await audit(a, 'site overview', '.app__main');

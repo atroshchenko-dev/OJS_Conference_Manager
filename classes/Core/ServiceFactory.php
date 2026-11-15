@@ -317,6 +317,20 @@ final class ServiceFactory
         );
     }
 
+    public static function reviewBidding(): \APP\plugins\generic\conferenceManager\classes\Application\ReviewBiddingService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\ReviewBiddingService(
+            new DbEditionRepository($db),
+            new DbRegistrationRepository($db),
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbBidRepository($db),
+            new ReviewerDirectoryGateway(),
+            self::reviewCommittee(),
+            new MailGateway(),
+            new AuditLogger($db),
+        );
+    }
+
     public static function abstractBook(): \APP\plugins\generic\conferenceManager\classes\Application\AbstractBookService
     {
         $db = DB::connection();

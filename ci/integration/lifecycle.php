@@ -73,6 +73,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'seed-participants' => $this->seedParticipants($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 'add-listener' => $this->addListener($this->argv[1], (int) $this->argv[2], $this->argv[3], ($this->argv[4] ?? '') === '' ? null : $this->argv[4], $this->argv[5] ?? 'online'),
                 'participant-id' => $this->participantId((int) $this->argv[1], $this->argv[2]),
+                'review-of' => $this->reviewOf((int) $this->argv[1], $this->argv[2]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
         } catch (Throwable $e) {
@@ -278,7 +279,11 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
         $user->setDateRegistered(\PKP\core\Core::getCurrentDate());
         $id = \APP\facades\Repo::user()->add($user);
         $group = DB::table('user_groups')->where('context_id', $context->getId())
-            ->where('role_id', $role === 'manager' ? \PKP\security\Role::ROLE_ID_MANAGER : \PKP\security\Role::ROLE_ID_READER)
+            ->where('role_id', match ($role) {
+                'manager' => \PKP\security\Role::ROLE_ID_MANAGER,
+                'reviewer' => \PKP\security\Role::ROLE_ID_REVIEWER,
+                default => \PKP\security\Role::ROLE_ID_READER,
+            })
             ->orderBy('user_group_id')->value('user_group_id');
         \APP\facades\Repo::userGroup()->assignUserToGroup($id, (int) $group);
         echo $id, "\n";
@@ -491,6 +496,21 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
         ]);
         $id = \APP\facades\Repo::reviewAssignment()->add($a);
         echo 'round=', $round->round, ' form=', (int) DB::table('review_assignments')->where('review_id', $id)->value('review_form_id'), "\n";
+    }
+
+    /** DEC-10: the review assignment of a reviewer (by email) in the last round, with its files and dates. */
+    private function reviewOf(int $submissionId, string $email): void
+    {
+        $userId = (int) DB::table('users')->where('email', $email)->value('user_id');
+        $a = DB::table('review_assignments')->where('submission_id', $submissionId)->where('reviewer_id', $userId)->orderByDesc('review_id')->first();
+        if ($a === null) {
+            echo "none\n";
+            return;
+        }
+        $files = DB::table('review_files')->where('review_id', $a->review_id)->count();
+        $round = DB::table('review_round_files')->where('review_round_id', $a->review_round_id)->count();
+        $note = DB::table('notifications')->where('user_id', $userId)->where('assoc_id', $a->review_id)->count();
+        echo 'round=', $a->round, ' files=', $files, '/', $round, ' due=', $a->date_due === null ? 'no' : 'yes', ' notified=', $note, "\n";
     }
 
     /** DEC-08: the affiliation of a user and of the first author of a submission. */

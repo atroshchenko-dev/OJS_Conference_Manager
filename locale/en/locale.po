@@ -4904,3 +4904,159 @@ msgstr "place in the queue: {$n}"
 
 msgid "plugins.generic.conferenceManager.waitlist.help"
 msgstr "You are on the waiting list. No invoice was issued. When a seat is free, your participation is confirmed automatically and you get a letter."
+
+msgid "plugins.generic.conferenceManager.bids.title"
+msgstr "Choose submissions to review"
+
+msgid "plugins.generic.conferenceManager.bids.help"
+msgstr "Mark for each submission whether you would like to review it. The committee distributes the submissions taking your wishes into account, and review requests arrive as usual. The choice is open until {$until} inclusive, and you can change it any time until then. Author names are not shown, and your own submissions are not listed."
+
+msgid "plugins.generic.conferenceManager.bids.closed"
+msgstr "The choice closed on {$until}. Your marks are kept, and the committee is distributing the submissions."
+
+msgid "plugins.generic.conferenceManager.bids.empty"
+msgstr "There are no submissions to choose from yet."
+
+msgid "plugins.generic.conferenceManager.bids.keywords"
+msgstr "Keywords"
+
+msgid "plugins.generic.conferenceManager.bids.abstract"
+msgstr "Abstract"
+
+msgid "plugins.generic.conferenceManager.bids.bid.none"
+msgstr "not chosen"
+
+msgid "plugins.generic.conferenceManager.bids.bid.eager"
+msgstr "very keen"
+
+msgid "plugins.generic.conferenceManager.bids.bid.willing"
+msgstr "willing"
+
+msgid "plugins.generic.conferenceManager.bids.bid.unwilling"
+msgstr "rather not"
+
+msgid "plugins.generic.conferenceManager.bids.bid.conflict"
+msgstr "conflict of interest"
+
+msgid "plugins.generic.conferenceManager.bids.save"
+msgstr "Save my choice"
+
+msgid "plugins.generic.conferenceManager.bids.saved"
+msgstr "Your choice is saved. Marks changed: {$n}."
+
+msgid "plugins.generic.conferenceManager.bids.cabinet"
+msgstr "Choosing submissions to review"
+
+msgid "plugins.generic.conferenceManager.bids.cabinetUntil"
+msgstr "open until {$until}"
+
+msgid "plugins.generic.conferenceManager.bids.error.closed"
+msgstr "The choice is closed; nothing was saved."
+
+msgid "plugins.generic.conferenceManager.bids.error.value"
+msgstr "Unknown choice."
+
+msgid "plugins.generic.conferenceManager.bids.error.notOpen"
+msgstr "Reviewers can be invited only while the choice is open: set the end date of the choice to today or later."
+
+msgid "plugins.generic.conferenceManager.review.error.date"
+msgstr "Enter a date as YYYY-MM-DD."
+
+msgid "plugins.generic.conferenceManager.review.error.perSubmission"
+msgstr "Enter a whole number from 1 to 10."
+
+msgid "plugins.generic.conferenceManager.bids.open"
+msgstr "Reviewer bids"
+
+msgid "plugins.generic.conferenceManager.bids.manager"
+msgstr "Reviewer bids"
+
+msgid "plugins.generic.conferenceManager.bids.managerHelp"
+msgstr "Reviewers of the journal look through the titles, keywords and abstracts of the submissions (without author names) and mark which ones they would like to review. The plugin proposes a distribution: each submission already in review gets the set number of reviewers, the \"very keen\" first and among them the less busy. You untick what you do not want and assign with one click. Reviewers get the usual OJS request and an email."
+
+msgid "plugins.generic.conferenceManager.bids.light"
+msgstr "This event uses the light review without reviewers, so reviewer bids do not apply."
+
+msgid "plugins.generic.conferenceManager.bids.until"
+msgstr "Choice open until (inclusive)"
+
+msgid "plugins.generic.conferenceManager.bids.untilHelp"
+msgstr "An empty field turns the choice off. The date is in the time zone of the event."
+
+msgid "plugins.generic.conferenceManager.bids.perSubmission"
+msgstr "Reviewers per submission"
+
+msgid "plugins.generic.conferenceManager.bids.invite"
+msgstr "Invite reviewers by email"
+
+msgid "plugins.generic.conferenceManager.bids.invited"
+msgstr "Emails sent to reviewers: {$n}."
+
+msgid "plugins.generic.conferenceManager.bids.pageUrl"
+msgstr "Choice page for reviewers:"
+
+msgid "plugins.generic.conferenceManager.bids.reviewers"
+msgstr "Reviewers of the journal"
+
+msgid "plugins.generic.conferenceManager.bids.noReviewers"
+msgstr "The journal has no users with the reviewer role."
+
+msgid "plugins.generic.conferenceManager.bids.reviewer"
+msgstr "Reviewer"
+
+msgid "plugins.generic.conferenceManager.bids.wanted"
+msgstr "Wants to review"
+
+msgid "plugins.generic.conferenceManager.bids.load"
+msgstr "Open reviews"
+
+msgid "plugins.generic.conferenceManager.bids.proposal"
+msgstr "Proposed distribution"
+
+msgid "plugins.generic.conferenceManager.bids.proposalHelp"
+msgstr "Only submissions already in review are here, and only reviewers who chose \"very keen\" or \"willing\". Authors of the submission and reviewers already assigned are never proposed."
+
+msgid "plugins.generic.conferenceManager.bids.noProposal"
+msgstr "Nobody to propose yet: there are no submissions in review with willing reviewers, or all of them already have enough reviewers."
+
+msgid "plugins.generic.conferenceManager.bids.pick"
+msgstr "Assign"
+
+msgid "plugins.generic.conferenceManager.bids.submission"
+msgstr "Submission"
+
+msgid "plugins.generic.conferenceManager.bids.bid"
+msgstr "Choice"
+
+msgid "plugins.generic.conferenceManager.bids.assign"
+msgstr "Assign the selected ({$n})"
+
+msgid "plugins.generic.conferenceManager.bids.assigned"
+msgstr "Reviewers assigned: {$n}. Skipped: {$skipped}."
+
+msgid "plugins.generic.conferenceManager.bids.bySubmission"
+msgstr "Choices by submission"
+
+msgid "plugins.generic.conferenceManager.bids.noSubmissions"
+msgstr "The event has no submissions to review yet."
+
+msgid "plugins.generic.conferenceManager.bids.assignedNow"
+msgstr "Assigned now"
+
+msgid "plugins.generic.conferenceManager.bids.notInReview"
+msgstr "not in review yet"
+
+msgid "plugins.generic.conferenceManager.audit.entity.review_bid"
+msgstr "Reviewer bids"
+
+msgid "plugins.generic.conferenceManager.mailable.bidding.name"
+msgstr "Reviewers: choosing submissions"
+
+msgid "plugins.generic.conferenceManager.mailable.bidding.description"
+msgstr "Invites the reviewers of the journal to mark which submissions of the event they would like to review."
+
+msgid "plugins.generic.conferenceManager.mailable.bidAssigned.name"
+msgstr "Reviewers: assigned by choice"
+
+msgid "plugins.generic.conferenceManager.mailable.bidAssigned.description"
+msgstr "Sent to a reviewer who was assigned a submission they chose."

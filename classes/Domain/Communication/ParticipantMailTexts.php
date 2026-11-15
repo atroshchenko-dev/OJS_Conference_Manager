@@ -24,6 +24,8 @@ final class ParticipantMailTexts
     public const REMIND_EVENT = 'CONF_REMINDER_EVENT';
     public const INVITATION = 'CONF_INVITATION';
     public const SEAT = 'CONF_WAITLIST_SEAT';
+    public const BIDDING = 'CONF_REVIEW_BIDDING';
+    public const BID_ASSIGNED = 'CONF_REVIEW_BID_ASSIGNED';
 
     public const COMMON = ['recipientName', 'conferenceName', 'cabinetUrl', 'contextName'];
 
@@ -38,6 +40,8 @@ final class ParticipantMailTexts
         self::REMIND_EVENT => ['startsAt', 'venue', 'eventUrl'],
         self::INVITATION => ['participantRole', 'invitationNote', 'eventUrl'],
         self::SEAT => ['eventUrl'],
+        self::BIDDING => ['bidUrl', 'biddingUntil'],
+        self::BID_ASSIGNED => ['submissionTitle', 'reviewUrl', 'responseDue', 'reviewDue'],
     ];
 
     /** @return array<string, array<string, array{name: string, subject: string, body: string}>> key => locale => text */
@@ -75,6 +79,12 @@ final class ParticipantMailTexts
                 '<p>Шановна/шановний {$recipientName}!</p><p>Для вас звільнилося місце на заході «{$conferenceName}». Вашу реєстрацію слухачем очно підтверджено.</p>'
                 . '<p>Якщо оргвнесок платний, рахунок уже в особистому кабінеті: <a href="{$cabinetUrl}">{$cabinetUrl}</a>. Якщо ви не зможете прийти, скасуйте участь у кабінеті, щоб місце отримав наступний у черзі.</p>'
                 . '<p>Програма й подробиці: <a href="{$eventUrl}">{$eventUrl}</a></p><p>{$contextName}</p>'],
+            self::BIDDING => ['Рецензенти: вибір подань', 'Оберіть подання для рецензування: {$conferenceName}',
+                '<p>Шановна/шановний {$recipientName}!</p><p>До заходу «{$conferenceName}» надійшли подання. Перегляньте їхні назви й анотації та позначте, які ви хотіли б рецензувати, а які ні, або де у вас конфлікт інтересів.</p>'
+                . '<p>Вибір відкрито до {$biddingUntil} включно: <a href="{$bidUrl}">{$bidUrl}</a></p><p>Після цього оргкомітет розподілить подання з урахуванням ваших побажань, і ви отримаєте запити на рецензію звичним шляхом.</p><p>{$contextName}</p>'],
+            self::BID_ASSIGNED => ['Рецензенти: призначено за вибором', 'Запит на рецензію: {$submissionTitle}',
+                '<p>Шановна/шановний {$recipientName}!</p><p>За вашим вибором вам призначено на рецензію подання «{$submissionTitle}» до заходу «{$conferenceName}».</p>'
+                . '<p>Прийміть або відхиліть запит до {$responseDue}. Рецензію очікуємо до {$reviewDue}.</p><p>Сторінка рецензії: <a href="{$reviewUrl}">{$reviewUrl}</a></p><p>{$contextName}</p>'],
         ];
         $en = [
             self::CONFIRM => ['Participants: co-authorship confirmation', 'Please confirm your participation: {$conferenceName}',
@@ -108,6 +118,12 @@ final class ParticipantMailTexts
                 '<p>Dear {$recipientName},</p><p>A seat has become free for you at “{$conferenceName}”. Your in-person listener registration is confirmed.</p>'
                 . '<p>If there is a fee, the invoice is already in your cabinet: <a href="{$cabinetUrl}">{$cabinetUrl}</a>. If you cannot come, please cancel your participation in the cabinet so that the next person in the queue gets the seat.</p>'
                 . '<p>Programme and details: <a href="{$eventUrl}">{$eventUrl}</a></p><p>{$contextName}</p>'],
+            self::BIDDING => ['Reviewers: choosing submissions', 'Choose submissions to review: {$conferenceName}',
+                '<p>Dear {$recipientName},</p><p>Submissions to “{$conferenceName}” have arrived. Please look through their titles and abstracts and mark which ones you would like to review, which you would rather not, and where you have a conflict of interest.</p>'
+                . '<p>The choice is open until {$biddingUntil} inclusive: <a href="{$bidUrl}">{$bidUrl}</a></p><p>After that the committee distributes the submissions taking your wishes into account, and you receive review requests as usual.</p><p>{$contextName}</p>'],
+            self::BID_ASSIGNED => ['Reviewers: assigned by choice', 'Review request: {$submissionTitle}',
+                '<p>Dear {$recipientName},</p><p>As you chose, the submission “{$submissionTitle}” to “{$conferenceName}” is assigned to you for review.</p>'
+                . '<p>Please accept or decline the request by {$responseDue}. The review is due by {$reviewDue}.</p><p>Review page: <a href="{$reviewUrl}">{$reviewUrl}</a></p><p>{$contextName}</p>'],
         ];
         $out = [];
         foreach ($uk as $key => [$name, $subject, $body]) {
