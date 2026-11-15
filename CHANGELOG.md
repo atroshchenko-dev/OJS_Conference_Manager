@@ -15,6 +15,9 @@
 - Сторінки: `conference/certificate/{id}` (PDF власнику або менеджеру), `conference/verify/{код}` (публічна). Шляхи `certificate` і `verify` зарезервовані й не можуть бути шляхом заходу.
 - Крок схеми `0009_attendance`: стовпець `conf_participations.attended_minutes`.
 
+### Виправлено
+- В OJS 3.5.0-5 завдання плагіна (вікна прийому й нагадування) зупиняли планувальник OJS помилкою «A scheduled event name is required». Тепер завдання мають назву.
+
 ## [0.9.0.0] — 2026-11-15
 
 ### Додано

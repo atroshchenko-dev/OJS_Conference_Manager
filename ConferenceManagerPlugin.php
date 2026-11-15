@@ -552,9 +552,12 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
     {
         $scheduler->addSchedule(new EditionWindowsTask())
             ->everyFifteenMinutes()
+            // OJS 3.5.0-5 does not name the event itself; withoutOverlapping() needs a name.
+            ->name(EditionWindowsTask::class)
             ->withoutOverlapping();
         $scheduler->addSchedule(new ReminderTask())
             ->hourly()
+            ->name(ReminderTask::class)
             ->withoutOverlapping();
     }
 

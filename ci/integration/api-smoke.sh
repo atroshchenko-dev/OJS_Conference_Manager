@@ -543,7 +543,7 @@ if [ "$maillog" = 1 ]; then
   grep -q 'payer4@example.org' <<<"$rout" || fail "reminder letter: $(head -c 600 <<<"$rout")"
 fi
 sch="$(docker exec -w /var/www/html "${OJS_CONTAINER:-ojs}" php lib/pkp/tools/scheduler.php list 2>&1 || true)"
-grep -q 'ReminderTask' <<<"$sch" || echo "note: scheduler list did not show ReminderTask: $(head -c 300 <<<"$sch")"
+grep -q 'ReminderTask' <<<"$sch" || fail "scheduler list must show ReminderTask: $(head -c 300 <<<"$sch")"
 ok "COM-03 payment reminder once, in the window, off by default"
 
 pv="$(post "$api/editions/$did/campaigns/preview" '{}')"
@@ -633,7 +633,7 @@ cert="$(j 'd["items"][0]["id"]' <<<"$cl")"; vurl="$(j 'd["items"][0]["verifyUrl"
 cpdf="$(mktemp)"
 curl -s -L -b "$jar" "$B/confa/uk/conference/certificate/$cert" -D /tmp/cm-ch.txt -o "$cpdf"
 grep -qi 'content-type: application/pdf' /tmp/cm-ch.txt && [ "$(head -c 4 "$cpdf")" = '%PDF' ] || fail "CRT-04 PDF: $(head -c 300 "$cpdf")"
-pdfinfo "$cpdf" 2>/dev/null | grep -q 'Page size: *841.89 x 595.28' || fail "A4 landscape: $(pdfinfo "$cpdf" 2>&1 | grep -i size)"
+grep -aq '/MediaBox \[0 0 841.890 595.280\]' "$cpdf" || fail "A4 landscape: $(grep -ao '/MediaBox [^]]*' "$cpdf" | head -1)"
 [ -n "${CM_SHOTS:-}" ] && cp "$cpdf" "$CM_SHOTS/certificate.pdf"
 [ "$(curl -s -L -b "$pj4" "$B/confa/uk/conference/certificate/$cert" -o /dev/null -w '%{http_code}')" = 404 ] || fail "a stranger cannot download the certificate"
 vpage="$(curl -s -L "$vurl")"
