@@ -19,14 +19,15 @@ use DateTimeImmutable;
 /**
  * EDN-09: what a copied edition takes from its source besides its own
  * fields: participant categories with tariffs, payment rules, rooms of the
- * program, review and abstract book settings. Tariff validity dates (an
+ * program, review and abstract book settings, co-organisers and partners
+ * with their logos (INS-04). Tariff validity dates (an
  * early-bird price) move by as many days as the event itself moved.
  * Participants, invoices, submissions and the program's sessions are never
  * copied: they belong to one event.
  */
 final class EditionCopyService
 {
-    public const PARTS = ['fees', 'paymentRules', 'rooms', 'settings'];
+    public const PARTS = ['fees', 'paymentRules', 'rooms', 'settings', 'partners'];
     /** Settings keyed by edition id. */
     private const EDITION_SETTINGS = [ReviewCommitteeService::SETTING, AbstractBookService::SETTING];
 
@@ -37,6 +38,7 @@ final class EditionCopyService
         private readonly ?ProgramRepository $program = null,
         private readonly ?SettingsStore $settings = null,
         private readonly ?AuditLogger $audit = null,
+        private readonly ?PartnerService $partners = null,
     ) {
     }
 
@@ -45,7 +47,7 @@ final class EditionCopyService
      * same journal.
      *
      * @param list<string> $parts of self::PARTS
-     * @return array{categories: int, tariffs: int, paymentRules: int, rooms: int, settings: int, shiftDays: int}|null
+     * @return array{categories: int, tariffs: int, paymentRules: int, rooms: int, settings: int, partners: int, shiftDays: int}|null
      */
     public function copyParts(ContextInfo $context, int $sourceId, int $targetId, array $parts, ?int $actorUserId = null): ?array
     {
@@ -56,7 +58,7 @@ final class EditionCopyService
         }
         $parts = array_values(array_intersect(self::PARTS, $parts));
         $shift = self::shiftDays($source, $target);
-        $out = ['categories' => 0, 'tariffs' => 0, 'paymentRules' => 0, 'rooms' => 0, 'settings' => 0, 'shiftDays' => $shift];
+        $out = ['categories' => 0, 'tariffs' => 0, 'paymentRules' => 0, 'rooms' => 0, 'settings' => 0, 'partners' => 0, 'shiftDays' => $shift];
 
         /** @var array<int, int> old category id => new */
         $categoryMap = [];
@@ -122,6 +124,10 @@ final class EditionCopyService
                     $out['settings']++;
                 }
             }
+        }
+
+        if (in_array('partners', $parts, true) && $this->partners !== null) {
+            $out['partners'] = $this->partners->copyAll($context, $sourceId, $targetId, $actorUserId);
         }
 
         $this->audit?->log($context->id, $actorUserId, 'edition', $targetId, 'copy_parts', null, ['from' => $sourceId] + $out);

@@ -286,3 +286,21 @@
 	font-size: 0.875rem;
 }
 .cmCopyParts__item { display: block; margin: .25rem 0; }
+/* INS-04 partners */
+.cmPartners__list { list-style: none; margin: 1rem 0; padding: 0; }
+.cmPartners__item { display: flex; gap: 1rem; align-items: flex-start; padding: .75rem 0; border-bottom: 1px solid #ddd; }
+.cmPartners__logo { flex: 0 0 8rem; height: 4rem; display: flex; align-items: center; justify-content: center; background: #f7f7f7; border: 1px solid #ddd; border-radius: 4px; }
+.cmPartners__logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.cmPartners__noLogo { color: #595959; font-size: .75rem; }
+.cmPartners__body { flex: 1 1 auto; min-width: 0; }
+.cmPartners__body .cmEditions__buttons { margin-top: .5rem; flex-wrap: wrap; }
+.cmPartners__role { display: inline-block; margin-inline-start: .5rem; padding: 0 .375rem; border-radius: 3px; background: #eef3f8; color: #1e3a5f; font-size: .75rem; }
+.cmPartners__account { font-size: .8125rem; margin-top: .25rem; }
+.cmPartners__upload { position: relative; display: inline-block; cursor: pointer; padding: .4375rem .75rem; border: 1px solid #ddd; border-radius: 4px; font-weight: 700; font-size: .875rem; line-height: 1.25rem; color: #006798; background: #fff; }
+.cmPartners__upload:focus-within { outline: 2px solid #006798; outline-offset: 2px; }
+.cmPartners__file { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.cmPartners__error { color: #b00; font-size: .8125rem; margin: .25rem 0; }
+.cmPartners__form { margin-top: 1.5rem; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; max-width: 40rem; }
+.cmPartners__form .cmFees__field { margin-bottom: .75rem; }
+.cmPartners__form label { display: block; font-weight: 700; margin-bottom: .25rem; }
+.cmPartners__form input[type=text], .cmPartners__form input[type=url], .cmPartners__form select { width: 100%; max-width: 32rem; padding: .375rem; border: 1px solid #767676; border-radius: 3px; }

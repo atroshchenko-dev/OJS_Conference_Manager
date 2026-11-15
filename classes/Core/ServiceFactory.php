@@ -101,6 +101,7 @@ final class ServiceFactory
             new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbProgramRepository($db),
             self::settings(),
             new AuditLogger($db),
+            self::partners(),
         );
     }
 
@@ -409,6 +410,37 @@ final class ServiceFactory
             static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
             new AuditLogger($db),
         );
+    }
+
+    /** INS-04: co-organisers and partners; logos go to {public_files_dir}/conferenceManager/partners. */
+    public static function partners(): \APP\plugins\generic\conferenceManager\classes\Application\PartnerService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\PartnerService(
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPartnerRepository($db),
+            new DbEditionRepository($db),
+            self::institutionProfiles(),
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Files\PublicLogoStore(self::partnerLogoDir()),
+            new AuditLogger($db),
+        );
+    }
+
+    private static function partnerLogoDir(): string
+    {
+        $public = trim((string) Config::getVar('files', 'public_files_dir'), '/');
+        if ($public === '') {
+            return '';
+        }
+        $base = str_starts_with((string) Config::getVar('files', 'public_files_dir'), '/') ? '/' . $public : \PKP\core\Core::getBaseDir() . '/' . $public;
+        return $base . '/conferenceManager/partners';
+    }
+
+    /** @return \Closure(string): string the address of a stored logo */
+    public static function partnerLogoUrl(): \Closure
+    {
+        $public = trim((string) Config::getVar('files', 'public_files_dir'), '/');
+        $base = rtrim((string) \APP\core\Application::get()->getRequest()->getBaseUrl(), '/');
+        return static fn (string $key): string => $base . '/' . $public . '/conferenceManager/partners/' . $key;
     }
 
     /** RPT-02, RPT-03 */

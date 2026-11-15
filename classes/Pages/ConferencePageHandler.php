@@ -85,15 +85,17 @@ class ConferencePageHandler extends Handler
         $templateMgr = TemplateManager::getManager($request);
         $locale = Locale::getLocale();
         $vm = $this->viewModel($edition, $locale, $info->primaryLocale, $request);
+        $partners = ServiceFactory::partners()->publicGroups($info, (int) $edition->id, $locale, ServiceFactory::partnerLogoUrl());
         $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
         $templateMgr->addHeader('conferenceEditionJsonLd', '<script type="application/ld+json">'
-            . json_encode($this->jsonLd($edition, $vm, $request), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG)
+            . json_encode($this->jsonLd($edition, $vm, $request, $partners), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG)
             . '</script>', ['contexts' => 'frontend']);
         if ($edition->status === EditionStatus::Draft) {
             $templateMgr->addHeader('conferenceEditionNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
         }
         $templateMgr->assign([
             'edition' => $vm,
+            'partnerGroups' => $partners,
             'pageTitleTranslated' => $vm['name'],
         ]);
         return $templateMgr->display($this->plugin->getTemplateResource('frontend/edition.tpl'));
@@ -893,7 +895,10 @@ class ConferencePageHandler extends Handler
      * @param array<string, mixed> $vm
      * @return array<string, mixed>
      */
-    private function jsonLd(Edition $edition, array $vm, PKPRequest $request): array
+    /**
+     * @param list<array{role: string, partners: list<array{name: string, url: string, logoUrl: ?string, receivesFees: bool}>}> $partners INS-04
+     */
+    private function jsonLd(Edition $edition, array $vm, PKPRequest $request, array $partners = []): array
     {
         $mode = match ($edition->format) {
             EventFormat::InPerson => 'https://schema.org/OfflineEventAttendanceMode',
@@ -923,6 +928,19 @@ class ConferencePageHandler extends Handler
                 'url' => $context ? $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath()) : '',
             ],
         ];
+        // INS-04: co-organisers join the journal as organizers; sponsors are named too.
+        $orgs = ['co_organizer' => [], 'sponsor' => []];
+        foreach ($partners as $group) {
+            foreach (isset($orgs[$group['role']]) ? $group['partners'] : [] as $p) {
+                $orgs[$group['role']][] = array_filter(['@type' => 'Organization', 'name' => $p['name'], 'url' => $p['url'], 'logo' => $p['logoUrl']], static fn ($v) => $v !== null && $v !== '');
+            }
+        }
+        if ($orgs['co_organizer'] !== []) {
+            $data['organizer'] = [$data['organizer'], ...$orgs['co_organizer']];
+        }
+        if ($orgs['sponsor'] !== []) {
+            $data['sponsor'] = count($orgs['sponsor']) === 1 ? $orgs['sponsor'][0] : $orgs['sponsor'];
+        }
         if ($vm['description'] !== '') {
             $data['description'] = mb_substr(trim(strip_tags($vm['description'])), 0, 5000);
         }

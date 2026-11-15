@@ -4363,7 +4363,7 @@ msgid "plugins.generic.conferenceManager.editions.copy.part.settings"
 msgstr "Налаштування рецензування й збірника тез"
 
 msgid "plugins.generic.conferenceManager.editions.copy.done"
-msgstr "Захід скопійовано: категорій {$categories}, тарифів {$tariffs}, правил оплати {$rules}, залів {$rooms}. Строки тарифів зсунуто на {$days} дн."
+msgstr "Захід скопійовано: категорій {$categories}, тарифів {$tariffs}, правил оплати {$rules}, залів {$rooms}, партнерів {$partners}. Строки тарифів зсунуто на {$days} дн."
 
 msgid "plugins.generic.conferenceManager.site.submissions"
 msgstr "Доповідей"
@@ -4382,3 +4382,135 @@ msgstr "Завантажити таблицю в CSV"
 
 msgid "plugins.generic.conferenceManager.site.allEditions"
 msgstr "Усього заходів"
+
+msgid "plugins.generic.conferenceManager.partner.open"
+msgstr "Партнери"
+
+msgid "plugins.generic.conferenceManager.partner.title"
+msgstr "Співорганізатори й партнери"
+
+msgid "plugins.generic.conferenceManager.partner.help"
+msgstr "Організації, що проводять захід разом із журналом або підтримують його. Вони показуються на публічній сторінці заходу в цьому порядку, згруповані за роллю."
+
+msgid "plugins.generic.conferenceManager.partner.empty"
+msgstr "Партнерів ще немає."
+
+msgid "plugins.generic.conferenceManager.partner.logoOf"
+msgstr "Логотип: {$name}"
+
+msgid "plugins.generic.conferenceManager.partner.noLogo"
+msgstr "Без логотипа"
+
+msgid "plugins.generic.conferenceManager.partner.receivesFees"
+msgstr "Отримує оргвнески на рахунок «{$account}»"
+
+msgid "plugins.generic.conferenceManager.partner.moveUp"
+msgstr "Вище"
+
+msgid "plugins.generic.conferenceManager.partner.moveDown"
+msgstr "Нижче"
+
+msgid "plugins.generic.conferenceManager.partner.replaceLogo"
+msgstr "Замінити логотип"
+
+msgid "plugins.generic.conferenceManager.partner.uploadLogo"
+msgstr "Додати логотип"
+
+msgid "plugins.generic.conferenceManager.partner.removeLogo"
+msgstr "Прибрати логотип"
+
+msgid "plugins.generic.conferenceManager.partner.deleteConfirm"
+msgstr "Натисніть ще раз, щоб видалити"
+
+msgid "plugins.generic.conferenceManager.partner.logoHelp"
+msgstr "Логотип: PNG, JPEG або WebP до 1 МБ. Краще горизонтальний, на прозорому чи білому тлі."
+
+msgid "plugins.generic.conferenceManager.partner.logoSaved"
+msgstr "Логотип збережено."
+
+msgid "plugins.generic.conferenceManager.partner.add"
+msgstr "Додати партнера"
+
+msgid "plugins.generic.conferenceManager.partner.limit"
+msgstr "У заході може бути не більше {$n} партнерів."
+
+msgid "plugins.generic.conferenceManager.partner.role"
+msgstr "Роль"
+
+msgid "plugins.generic.conferenceManager.partner.name"
+msgstr "Назва"
+
+msgid "plugins.generic.conferenceManager.partner.url"
+msgstr "Сайт"
+
+msgid "plugins.generic.conferenceManager.partner.account"
+msgstr "Рахунок для оргвнесків"
+
+msgid "plugins.generic.conferenceManager.partner.noAccount"
+msgstr "Оргвнески приймає журнал"
+
+msgid "plugins.generic.conferenceManager.partner.accountHelp"
+msgstr "Рахунки з видом «рахунок співорганізатора» з профілю закладу. Щоб рахунок використовувався в рахунках учасників, виберіть його також у правилах оплати."
+
+msgid "plugins.generic.conferenceManager.partner.noAccounts"
+msgstr "У профілі закладу немає активних рахунків з видом «рахунок співорганізатора». Додайте рахунок співорганізатора в профілі закладу."
+
+msgid "plugins.generic.conferenceManager.partner.role.co_organizer"
+msgstr "Співорганізатор"
+
+msgid "plugins.generic.conferenceManager.partner.role.partner"
+msgstr "Партнер"
+
+msgid "plugins.generic.conferenceManager.partner.role.sponsor"
+msgstr "Спонсор"
+
+msgid "plugins.generic.conferenceManager.partner.role.info_partner"
+msgstr "Інформаційний партнер"
+
+msgid "plugins.generic.conferenceManager.partner.group.co_organizer"
+msgstr "Співорганізатори"
+
+msgid "plugins.generic.conferenceManager.partner.group.partner"
+msgstr "Партнери"
+
+msgid "plugins.generic.conferenceManager.partner.group.sponsor"
+msgstr "Спонсори"
+
+msgid "plugins.generic.conferenceManager.partner.group.info_partner"
+msgstr "Інформаційні партнери"
+
+msgid "plugins.generic.conferenceManager.partner.public.title"
+msgstr "Організатори й партнери"
+
+msgid "plugins.generic.conferenceManager.partner.public.receivesFees"
+msgstr "приймає оргвнески"
+
+msgid "plugins.generic.conferenceManager.partner.public.site"
+msgstr "сайт: {$name}"
+
+msgid "plugins.generic.conferenceManager.partner.error.account"
+msgstr "Виберіть активний рахунок з видом «рахунок співорганізатора» з профілю закладу."
+
+msgid "plugins.generic.conferenceManager.partner.error.accountRole"
+msgstr "Рахунок для оргвнесків можна вказати лише для співорганізатора."
+
+msgid "plugins.generic.conferenceManager.partner.error.tooMany"
+msgstr "У заході вже максимальна кількість партнерів."
+
+msgid "plugins.generic.conferenceManager.partner.error.logoEmpty"
+msgstr "Виберіть файл логотипа."
+
+msgid "plugins.generic.conferenceManager.partner.error.logoTooLarge"
+msgstr "Логотип завеликий: не більше 1 МБ."
+
+msgid "plugins.generic.conferenceManager.partner.error.logoType"
+msgstr "Логотип має бути у форматі PNG, JPEG або WebP."
+
+msgid "plugins.generic.conferenceManager.partner.error.logoStore"
+msgstr "Не вдалося зберегти логотип. Перевірте права на теку публічних файлів OJS."
+
+msgid "plugins.generic.conferenceManager.audit.entity.partner"
+msgstr "Партнер заходу"
+
+msgid "plugins.generic.conferenceManager.editions.copy.part.partners"
+msgstr "Співорганізатори й партнери з логотипами"

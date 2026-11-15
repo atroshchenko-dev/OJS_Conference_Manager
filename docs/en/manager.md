@@ -138,12 +138,23 @@ The usual order: "Draft" → "Call open" → "Call closed" → "Held" → "Proce
 
 ### Copying and deleting
 
-- **Copy** opens the form filled in from an existing edition, without dates and ISBN. At the bottom of the form, **What else to copy** lets you take from the previous event: **Participant categories and tariffs**, **Payment rules**, **Program rooms**, **Review and abstract book settings**. All are ticked by default. Tariff validity dates (an early-bird price, for example) move by as many days as the event's start date moved; check them after copying. Participants, invoices, submissions and program sessions are never copied.
+- **Copy** opens the form filled in from an existing edition, without dates and ISBN. At the bottom of the form, **What else to copy** lets you take from the previous event: **Participant categories and tariffs**, **Payment rules**, **Program rooms**, **Review and abstract book settings**, **Co-organisers and partners with logos**. All are ticked by default. Tariff validity dates (an early-bird price, for example) move by as many days as the event's start date moved; check them after copying. Participants, invoices, submissions and program sessions are never copied.
 - **Delete** works only for an edition without participants, invoices and submissions. Otherwise the edition can only be archived.
 
 ### Public page
 
 **Public page** opens `/{journal}/conference/{path}`: type, format, dates, venue, submission windows, call for papers, workload, ISBN. The **Submit** button appears only while the call is actually open. **Register as a listener** appears while registration is open. The page carries schema.org/Event markup for search engines.
+
+### Co-organisers and partners
+
+**Partners** in the edition's row opens the organisations that hold the event together with the journal or support it (up to 30 per event).
+
+- **Add a partner**: choose the **Role** (co-organiser, partner, sponsor, media partner), enter the **Name** in the journal's languages (the primary one is required) and, if needed, the **Website**.
+- **Add logo**: PNG, JPEG or WebP up to 1 MB. SVG is refused because it can carry scripts. The file goes to the OJS public files folder, so the page shows it without extra requests.
+- The **↑** and **↓** arrows change the order. On the public page partners are grouped by role, co-organisers first, and keep this order within a group.
+- **Account for the fees** can be set only for a co-organiser. The list holds the active accounts of the "co-organizer account" kind from the institution profile. The account used in participants' invoices is still chosen in the payment rules; the mark on the partner only shows on the public page who receives the fees.
+
+The public page of the event shows an **Organisers and partners** block with logos and links. In the schema.org markup co-organisers join the organizers and sponsors are listed as sponsor.
 
 ## How to set up participant categories and tariffs
 

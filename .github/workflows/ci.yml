@@ -81,6 +81,7 @@ jobs:
       - run: ci/integration/review.sh
       - run: ci/integration/groups.sh
       - run: ci/integration/reports.sh
+      - run: ci/integration/partners.sh
       - run: ci/integration/a11y.sh
       - run: ci/integration/segments.sh
       - if: failure()

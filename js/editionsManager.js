@@ -56,7 +56,7 @@
 				form: null,
 				editingId: null,
 				copyFromId: null,
-				copyParts: ['fees', 'paymentRules', 'rooms', 'settings'],
+				copyParts: ['fees', 'paymentRules', 'rooms', 'settings', 'partners'],
 				errors: {},
 				formLocale: this.primaryLocale,
 				selected: null,
@@ -187,6 +187,10 @@
 			openReview: function (edition) {
 				this.selected = edition;
 				this.view = 'review';
+			},
+			openPartners: function (edition) {
+				this.selected = edition;
+				this.view = 'partners';
 			},
 			openBook: function (edition) {
 				this.selected = edition;
@@ -324,7 +328,7 @@
 				self.form = form;
 				self.editingId = null;
 				self.copyFromId = edition.id;
-				self.copyParts = ['fees', 'paymentRules', 'rooms', 'settings'];
+				self.copyParts = ['fees', 'paymentRules', 'rooms', 'settings', 'partners'];
 				self.errors = {};
 				self.view = 'form';
 			},
@@ -391,7 +395,7 @@
 					self.isSaving = false;
 					if (r.ok) {
 						var c = r.data && r.data.copied;
-						self.notify(c ? self.t('copy.done', { categories: c.categories, tariffs: c.tariffs, rules: c.paymentRules, rooms: c.rooms, days: c.shiftDays }) : self.t('saved'));
+						self.notify(c ? self.t('copy.done', { categories: c.categories, tariffs: c.tariffs, rules: c.paymentRules, rooms: c.rooms, partners: c.partners || 0, days: c.shiftDays }) : self.t('saved'));
 						self.view = 'list';
 						self.form = null;
 						self.errors = {};
@@ -490,6 +494,7 @@
 						<pkp-button v-if="canEditEditions && e.submissionMode !== \'none\'" @click="openDecisions(e)">{{ t(\'decisions\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions" @click="openProgram(e)">{{ t(\'program.builder.open\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions && e.reviewMode === \'two_phase\'" @click="openReview(e)">{{ t(\'review.settings.open\') }}</pkp-button>\
+						<pkp-button v-if="canEditEditions" @click="openPartners(e)">{{ t(\'partner.open\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions && e.submissionMode !== \'none\'" @click="openBook(e)">{{ t(\'book.open\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions" @click="copy(e)">{{ t(\'copy\') }}</pkp-button>\
 						<a class="pkpButton" :href="publicLink(e)" target="_blank" rel="noopener">{{ t(\'publicPage\') }}</a>\
@@ -512,6 +517,7 @@
 	<conference-setup-wizard v-else-if="view === \'setup\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :ui-locale="uiLocale" :default-timezone="defaultTimezone" :i18n="i18n" @back="backToList" @created="setupCreated"></conference-setup-wizard>\
 	<conference-program-builder v-else-if="view === \'program\'" :api-url="apiUrl + \'/\' + selected.id" :public-url="publicLink(selected) + \'/program\'" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :i18n="i18n" @back="backToList"></conference-program-builder>\
 	<conference-review-settings v-else-if="view === \'review\'" :api-url="apiUrl + \'/\' + selected.id" :forms-url="reviewFormsUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-review-settings>\
+	<conference-partners v-else-if="view === \'partners\'" :api-url="apiUrl + \'/\' + selected.id" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :i18n="i18n" @back="backToList"></conference-partners>\
 	<conference-abstract-book v-else-if="view === \'book\'" :api-url="apiUrl + \'/\' + selected.id" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-abstract-book>\
 	<conference-legacy-urls v-else-if="view === \'legacy\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-legacy-urls>\
 	<conference-personal-data v-else-if="view === \'privacy\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-personal-data>\
@@ -630,7 +636,7 @@
 		<fieldset v-if="editingId === null && copyFromId !== null" class="cmEditions__section cmCopyParts">\
 			<legend>{{ t(\'copy.partsTitle\') }}</legend>\
 			<p class="cmPanel__muted">{{ t(\'copy.partsHelp\') }}</p>\
-			<label v-for="part in [\'fees\', \'paymentRules\', \'rooms\', \'settings\']" :key="part" class="cmCopyParts__item"><input type="checkbox" :value="part" v-model="copyParts"> {{ t(\'copy.part.\' + part) }}</label>\
+			<label v-for="part in [\'fees\', \'paymentRules\', \'rooms\', \'settings\', \'partners\']" :key="part" class="cmCopyParts__item"><input type="checkbox" :value="part" v-model="copyParts"> {{ t(\'copy.part.\' + part) }}</label>\
 		</fieldset>\
 		<div class="cmEditions__buttons">\
 			<pkp-button :is-primary="true" :disabled="isSaving" @click="save">{{ t(\'save\') }}</pkp-button>\

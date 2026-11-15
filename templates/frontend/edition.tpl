@@ -101,6 +101,29 @@
 			<p><a href="{$edition.proceedingsUrl|escape}">{translate key="plugins.generic.conferenceManager.public.proceedingsLink"}</a></p>
 		</section>
 	{/if}
+	{if $partnerGroups}
+		<section class="cmEdition__section cmEdition__partners" aria-labelledby="cmPartnersTitle">
+			<h2 id="cmPartnersTitle">{translate key="plugins.generic.conferenceManager.partner.public.title"}</h2>
+			{foreach from=$partnerGroups item=group}
+				<h3>{translate key="plugins.generic.conferenceManager.partner.group.`$group.role`"}</h3>
+				<ul class="cmPartnerList">
+					{foreach from=$group.partners item=p}
+						<li class="cmPartnerList__item">
+							{if $p.url}<a class="cmPartnerList__link" href="{$p.url|escape}" rel="noopener">{/if}
+							{if $p.logoUrl}
+								<img class="cmPartnerList__logo" src="{$p.logoUrl|escape}" alt="" loading="lazy">
+								<span class="cmPartnerList__name">{$p.name|escape}</span>
+							{else}
+								<span class="cmPartnerList__name cmPartnerList__name--text">{$p.name|escape}</span>
+							{/if}
+							{if $p.url}</a>{/if}
+							{if $p.receivesFees}<span class="cmPartnerList__fees">{translate key="plugins.generic.conferenceManager.partner.public.receivesFees"}</span>{/if}
+						</li>
+					{/foreach}
+				</ul>
+			{/foreach}
+		</section>
+	{/if}
 </div>
 
 {include file="frontend/components/footer.tpl"}

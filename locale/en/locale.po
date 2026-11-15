@@ -4363,7 +4363,7 @@ msgid "plugins.generic.conferenceManager.editions.copy.part.settings"
 msgstr "Review and abstract book settings"
 
 msgid "plugins.generic.conferenceManager.editions.copy.done"
-msgstr "Event copied: {$categories} categories, {$tariffs} tariffs, {$rules} payment rules, {$rooms} rooms. Tariff dates moved by {$days} days."
+msgstr "Event copied: {$categories} categories, {$tariffs} tariffs, {$rules} payment rules, {$rooms} rooms, {$partners} partners. Tariff dates moved by {$days} days."
 
 msgid "plugins.generic.conferenceManager.site.submissions"
 msgstr "Papers"
@@ -4382,3 +4382,135 @@ msgstr "Download the table as CSV"
 
 msgid "plugins.generic.conferenceManager.site.allEditions"
 msgstr "All events"
+
+msgid "plugins.generic.conferenceManager.partner.open"
+msgstr "Partners"
+
+msgid "plugins.generic.conferenceManager.partner.title"
+msgstr "Co-organisers and partners"
+
+msgid "plugins.generic.conferenceManager.partner.help"
+msgstr "Organisations that hold the event together with the journal or support it. They are shown on the public page of the event in this order, grouped by role."
+
+msgid "plugins.generic.conferenceManager.partner.empty"
+msgstr "There are no partners yet."
+
+msgid "plugins.generic.conferenceManager.partner.logoOf"
+msgstr "Logo: {$name}"
+
+msgid "plugins.generic.conferenceManager.partner.noLogo"
+msgstr "No logo"
+
+msgid "plugins.generic.conferenceManager.partner.receivesFees"
+msgstr "Receives the fees to the account “{$account}”"
+
+msgid "plugins.generic.conferenceManager.partner.moveUp"
+msgstr "Move up"
+
+msgid "plugins.generic.conferenceManager.partner.moveDown"
+msgstr "Move down"
+
+msgid "plugins.generic.conferenceManager.partner.replaceLogo"
+msgstr "Replace logo"
+
+msgid "plugins.generic.conferenceManager.partner.uploadLogo"
+msgstr "Add logo"
+
+msgid "plugins.generic.conferenceManager.partner.removeLogo"
+msgstr "Remove logo"
+
+msgid "plugins.generic.conferenceManager.partner.deleteConfirm"
+msgstr "Press again to delete"
+
+msgid "plugins.generic.conferenceManager.partner.logoHelp"
+msgstr "Logo: PNG, JPEG or WebP up to 1 MB. A horizontal one on a transparent or white background works best."
+
+msgid "plugins.generic.conferenceManager.partner.logoSaved"
+msgstr "The logo is saved."
+
+msgid "plugins.generic.conferenceManager.partner.add"
+msgstr "Add a partner"
+
+msgid "plugins.generic.conferenceManager.partner.limit"
+msgstr "An event can have at most {$n} partners."
+
+msgid "plugins.generic.conferenceManager.partner.role"
+msgstr "Role"
+
+msgid "plugins.generic.conferenceManager.partner.name"
+msgstr "Name"
+
+msgid "plugins.generic.conferenceManager.partner.url"
+msgstr "Website"
+
+msgid "plugins.generic.conferenceManager.partner.account"
+msgstr "Account for the fees"
+
+msgid "plugins.generic.conferenceManager.partner.noAccount"
+msgstr "The journal receives the fees"
+
+msgid "plugins.generic.conferenceManager.partner.accountHelp"
+msgstr "Accounts of the “co-organizer account” kind from the institution profile. To use the account in participants' invoices, also choose it in the payment rules."
+
+msgid "plugins.generic.conferenceManager.partner.noAccounts"
+msgstr "The institution profile has no active accounts of the “co-organizer account” kind. Add the co-organiser's account in the institution profile."
+
+msgid "plugins.generic.conferenceManager.partner.role.co_organizer"
+msgstr "Co-organiser"
+
+msgid "plugins.generic.conferenceManager.partner.role.partner"
+msgstr "Partner"
+
+msgid "plugins.generic.conferenceManager.partner.role.sponsor"
+msgstr "Sponsor"
+
+msgid "plugins.generic.conferenceManager.partner.role.info_partner"
+msgstr "Media partner"
+
+msgid "plugins.generic.conferenceManager.partner.group.co_organizer"
+msgstr "Co-organisers"
+
+msgid "plugins.generic.conferenceManager.partner.group.partner"
+msgstr "Partners"
+
+msgid "plugins.generic.conferenceManager.partner.group.sponsor"
+msgstr "Sponsors"
+
+msgid "plugins.generic.conferenceManager.partner.group.info_partner"
+msgstr "Media partners"
+
+msgid "plugins.generic.conferenceManager.partner.public.title"
+msgstr "Organisers and partners"
+
+msgid "plugins.generic.conferenceManager.partner.public.receivesFees"
+msgstr "receives the fees"
+
+msgid "plugins.generic.conferenceManager.partner.public.site"
+msgstr "website: {$name}"
+
+msgid "plugins.generic.conferenceManager.partner.error.account"
+msgstr "Choose an active account of the “co-organizer account” kind from the institution profile."
+
+msgid "plugins.generic.conferenceManager.partner.error.accountRole"
+msgstr "An account for the fees can be set only for a co-organiser."
+
+msgid "plugins.generic.conferenceManager.partner.error.tooMany"
+msgstr "The event already has the maximum number of partners."
+
+msgid "plugins.generic.conferenceManager.partner.error.logoEmpty"
+msgstr "Choose a logo file."
+
+msgid "plugins.generic.conferenceManager.partner.error.logoTooLarge"
+msgstr "The logo is too large: at most 1 MB."
+
+msgid "plugins.generic.conferenceManager.partner.error.logoType"
+msgstr "The logo must be PNG, JPEG or WebP."
+
+msgid "plugins.generic.conferenceManager.partner.error.logoStore"
+msgstr "The logo could not be saved. Check the permissions of the OJS public files folder."
+
+msgid "plugins.generic.conferenceManager.audit.entity.partner"
+msgstr "Event partner"
+
+msgid "plugins.generic.conferenceManager.editions.copy.part.partners"
+msgstr "Co-organisers and partners with logos"
