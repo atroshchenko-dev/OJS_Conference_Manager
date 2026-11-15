@@ -131,6 +131,9 @@ class InstitutionSettingsForm extends Form
                 fn (PaymentAccountKind $k) => in_array($k, $profile->allowedAccountKinds(), true),
             )),
             'legalIdLabel' => $profile->getLegalIdLabelKey(),
+            // JUR-06: examples for the lawyer of the institution, shown next to the fields.
+            'privacyNoticeSample' => $profile->getSampleText('privacyNotice', \PKP\facades\Locale::getLocale()),
+            'retentionNoticeSample' => $profile->getSampleText('retentionNotice', \PKP\facades\Locale::getLocale()),
             'extraFields' => $profile->getInstitutionExtraFields(),
             'accountExtraFields' => array_combine(
                 array_map(static fn (PaymentAccountKind $k): string => $k->value, PaymentAccountKind::cases()),

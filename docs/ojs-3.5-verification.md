@@ -54,5 +54,7 @@
 | 47 | Обмеження частоти запитів | У 3.5 є `Illuminate\Cache\RateLimiter`; сховище кешу OJS — `app('cache')->store()` | Сторінка перевірки сертифіката: 30 запитів за хвилину з адреси, далі 429 з `Retry-After` |
 | 49 | Рецензенти подання | Завершені рецензії — `review_assignments` з `date_completed`, без `declined` і `cancelled`; ім'я й заклад рецензента — `user_settings` | `Core\EditorialGateway::completedReviewers`; дані рецензента лише копіюються в учасників заходу |
 | 50 | Пакетна видача в черзі | Завдання `PKP\jobs\BaseJob` через `dispatch()` виконує обробник черги OJS (`jobs.php` або після веб-запитів) | `Core\Jobs\IssueCertificates` по 25 документів; видача ідемпотентна, тож повтор завдання нічого не дублює |
+| 51 | Злиття користувачів | `PKP\user\UserAction::mergeUsers` викликає хук `UserAction::mergeUsers` з `[&$oldUserId, &$newUserId]` до того, як OJS переносить свої дані й видаляє старого користувача | Плагін у цьому хуку переносить `user_id` у своїх таблицях; тест перевіряє перенесення |
+| 52 | Теги Google Scholar | Плагін Google Scholar з OJS додає теги через `addHeader()` з назвами `googleScholarJournalTitle`, `googleScholarIsbn`, `googleScholarPublisher`; заголовок з тією самою назвою, доданий пізніше, замінює попередній | Плагін у `TemplateManager::display` для `frontend/pages/article.tpl` додає заголовки з тими самими назвами: `citation_conference_title`, ISBN і видавець |
 
-Ще не перевірено (залишається у спайках спринту 1 за планом): QR у mPDF, вимкнення прийому подань, злиття користувачів.
+Ще не перевірено (залишається у спайках спринту 1 за планом): QR у mPDF, вимкнення прийому подань.

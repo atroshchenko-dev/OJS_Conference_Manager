@@ -392,6 +392,7 @@ class ConferencePageHandler extends Handler
             'myItems' => $items,
             'myInvoices' => $invoices,
             'payerFields' => $payerFields,
+            'myDataUrl' => $dispatcher->url($request, Application::ROUTE_API, $context->getPath(), 'conference/me/personal-data'),
             'myCertificates' => $certificates,
             'myMessage' => $message,
             'myUrl' => $myUrl,

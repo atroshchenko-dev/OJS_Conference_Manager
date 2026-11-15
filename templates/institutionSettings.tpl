@@ -62,12 +62,25 @@
 	{fbvFormArea id="confManagerInstitutionPrivacy" title="plugins.generic.conferenceManager.institution.section.privacy"}
 		{fbvFormSection label="plugins.generic.conferenceManager.field.privacyNotice" description="plugins.generic.conferenceManager.institution.privacyNotice.description"}
 			{fbvElement type="textarea" id="privacyNotice" value=$privacyNotice multilingual=true rich=true}
+			{if $privacyNoticeSample}
+				<details class="cmSample">
+					<summary>{translate key="plugins.generic.conferenceManager.institution.sample"}</summary>
+					<p class="description">{translate key="plugins.generic.conferenceManager.institution.sample.description"}</p>
+					<div class="cmSample__text">{$privacyNoticeSample}</div>
+				</details>
+			{/if}
 		{/fbvFormSection}
 		{fbvFormSection label="plugins.generic.conferenceManager.field.privacyContact"}
 			{fbvElement type="text" id="privacyContact" value=$privacyContact multilingual=true maxlength="500"}
 		{/fbvFormSection}
 		{fbvFormSection label="plugins.generic.conferenceManager.field.retentionNotice"}
 			{fbvElement type="textarea" id="retentionNotice" value=$retentionNotice multilingual=true rows=3}
+			{if $retentionNoticeSample}
+				<details class="cmSample">
+					<summary>{translate key="plugins.generic.conferenceManager.institution.sample"}</summary>
+					<pre class="cmSample__text">{$retentionNoticeSample|escape}</pre>
+				</details>
+			{/if}
 		{/fbvFormSection}
 	{/fbvFormArea}
 
@@ -176,6 +189,10 @@
 		#confManagerInstitutionForm .confManager_row label input.text,
 		#confManagerInstitutionForm .confManager_row select {ldelim} display: block; width: 100%; {rdelim}
 		#confManagerInstitutionForm .confManager_inline {ldelim} display: inline-block; min-width: 0 !important; margin-right: 1rem; {rdelim}
+		#confManagerInstitutionForm .cmSample {ldelim} margin-top: 0.5rem; {rdelim}
+		#confManagerInstitutionForm .cmSample summary {ldelim} cursor: pointer; font-weight: 600; {rdelim}
+		#confManagerInstitutionForm .cmSample__text {ldelim} max-height: 24rem; overflow: auto; border: 1px solid #ddd; padding: 0.5rem 1rem; background: #fafafa; white-space: pre-wrap; font-family: inherit; {rdelim}
+		#confManagerInstitutionForm div.cmSample__text {ldelim} white-space: normal; {rdelim}
 	</style>
 
 	{fbvFormButtons}

@@ -714,6 +714,36 @@ grep -q 'payerTaxId' <<<"$(curl -s -L -b "$pj4" "$myu")" || fail "JUR-05 tax num
 put "$api/invoice-settings" '{"personalTaxId":false}' >/dev/null
 ok "JUR-05 payer organisation with ЄДРПОУ in the invoice; tax number only when turned on"
 
+# Sprint 12: personal data (DAT-02, 03, 04, 06), Google Scholar (PUB-02), sample notices (JUR-06).
+[ "$(curl -s -b "$jar" "$api/retention" | j 'd["proofsMonths"], d["participantsMonths"]')" = "(0, 0)" ] || fail "DAT-02 off by default"
+[ "$(put "$api/retention" '{"proofsMonths":200,"participantsMonths":-1}' | tail -1)" = 400 ] || fail "DAT-02 validation"
+[ "$(put "$api/retention" '{"proofsMonths":36,"participantsMonths":0}' | head -1 | j 'd["proofsMonths"]')" = 36 ] || fail "DAT-02 save"
+[ "$(curl -s -b "$pj4" "$api/retention" -o /dev/null -w '%{http_code}')" = 403 ] || fail "a reader has no retention settings"
+grep -q 'RetentionTask' <<<"$sch" || grep -q 'RetentionTask' <<<"$(docker exec -w /var/www/html "${OJS_CONTAINER:-ojs}" php lib/pkp/tools/scheduler.php list 2>&1 || true)" || fail "scheduler list must show RetentionTask"
+md="$(curl -s -b "$pj4" "$api/me/personal-data" -D /tmp/cm-h.txt)"
+grep -qi 'attachment; filename="personal-data-' /tmp/cm-h.txt || fail "DAT-03 download header"
+[ "$(j 'd["person"]["email"], len(d["participantIds"]) > 0, len(d["data"]["invoices"]) > 0' <<<"$md")" = "('payer4@example.org', True, True)" ] || fail "DAT-03 own data: $(head -c 400 <<<"$md")"
+grep -q 'file_path\|pdf_path\|token_hash' <<<"$md" && fail "DAT-03 export leaks storage paths"
+[ "$(curl -s -b "$pj4" "$api/personal-data?email=admin@example.org" -o /dev/null -w '%{http_code}')" = 403 ] || fail "a reader cannot export others"
+[ "$(curl -s -b "$jar" "$api/personal-data?email=payer4@example.org" | j 'd["participantIds"]')" = "$(j 'd["participantIds"]' <<<"$md")" ] || fail "DAT-03 manager export by email"
+[ "$(post "$api/personal-data/anonymize" '{"email":"nobody"}' | tail -1)" = 404 ] || fail "DAT-04 bad email"
+an="$(post "$api/personal-data/anonymize" '{"email":"payer4@example.org"}')"
+[ "$(head -1 <<<"$an" | j 'd["anonymized"]')" = "$(j 'len(d["participantIds"])' <<<"$md")" ] || fail "DAT-04 anonymize: $an"
+[ "$(curl -s -b "$jar" "$api/personal-data?email=payer4@example.org" | j 'd["participantIds"]')" = "[]" ] || fail "DAT-04 nothing left by the email"
+regs="$(curl -s -b "$jar" "$api/editions/$rid/participants?count=100")"
+[ "$(j '"Анонімізовано" in [i["name"] for i in d["items"]], "payer4@example.org" in [i["email"] for i in d["items"]]' <<<"$regs")" = "(True, False)" ] || fail "DAT-04 register: $(head -c 400 <<<"$regs")"
+[ "$(curl -s -b "$jar" "$api/invoices/$rinv" | j 'd["payer"]["name"]')" = "Київський ліцей № 1" ] || fail "DAT-04 the invoice keeps its copy"
+art="$(curl -s -L "$B/confa/en/article/view/$s1")"
+if grep -q 'citation_title' <<<"$art"; then
+  grep -q 'name="citation_conference_title"' <<<"$art" && ! grep -q 'citation_journal_title' <<<"$art" || fail "PUB-02 Google Scholar tags: $(grep -o '<meta name="citation_[a-z_]*" content="[^"]*"' <<<"$art" | head -8)"
+  pub="conference title"
+else
+  pub="no Scholar tags on the page"
+fi
+inst="$(curl -s -b "$jar" "$B/confa/\$\$\$call\$\$\$/grid/settings/plugins/settings-plugin-grid/manage?verb=institution&plugin=conferencemanagerplugin&category=generic")"
+grep -q '2297-VI' <<<"$inst" || fail "JUR-06 sample notice in the institution form"
+ok "DAT-02 retention (off by default, task scheduled); DAT-03 export; DAT-04 anonymisation keeps the invoice; PUB-02 ($pub); JUR-06 sample notices"
+
 lim=""
 for k in $(seq 1 31); do lim="$(curl -s -L "${vurl%/*}/00000000-0000-4000-8000-00000000000$((k % 10))" -o /dev/null -w '%{http_code}')"; done
 [ "$lim" = 429 ] || fail "CRT-07 rate limit: $lim"

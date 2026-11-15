@@ -161,6 +161,10 @@
 				this.selected = null;
 				this.view = 'certificateTemplates';
 			},
+			openPrivacy: function () {
+				this.selected = null;
+				this.view = 'privacy';
+			},
 			openAudit: function () {
 				this.selected = null;
 				this.view = 'audit';
@@ -400,6 +404,7 @@
 			<pkp-button @click="openReminders">{{ t(\'reminders\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" @click="openCertificateTemplates">{{ t(\'certificateTemplates\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" @click="openAudit">{{ t(\'audit\') }}</pkp-button>\
+			<pkp-button v-if="canEditEditions" @click="openPrivacy">{{ t(\'privacy.title\') }}</pkp-button>\
 			<pkp-button v-if="canEditEditions" :is-primary="true" @click="create">{{ t(\'new\') }}</pkp-button>\
 		</div>\
 		<div v-if="isLoading" class="cmEditions__loading"><spinner></spinner> {{ t(\'loading\') }}</div>\
@@ -443,6 +448,7 @@
 	<conference-reminders v-else-if="view === \'reminders\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :can-edit="canEditEditions" :i18n="i18n" @back="backToList"></conference-reminders>\
 	<conference-certificates v-else-if="view === \'certificates\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :edition-id="selected.id" :edition-name="localized(selected.name)" :pdf-url="certificatePdfUrl" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-certificates>\
 	<conference-certificate-templates v-else-if="view === \'certificateTemplates\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-certificate-templates>\
+	<conference-personal-data v-else-if="view === \'privacy\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-personal-data>\
 	<conference-audit-log v-else-if="view === \'audit\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-audit-log>\
 	<conference-invoices-list v-else-if="view === \'invoices\'" :api-url="apiUrl + \'/\' + selected.id + \'/invoices\'" :invoice-api-url="apiUrl.replace(/editions$/, \'invoices\')" :pdf-url="invoicePdfUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-invoices-list>\
 	<form v-else class="cmEditions__form" @submit.prevent="save" novalidate>\

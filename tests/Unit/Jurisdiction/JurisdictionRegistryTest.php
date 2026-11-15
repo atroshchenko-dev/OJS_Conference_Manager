@@ -44,4 +44,18 @@ final class JurisdictionRegistryTest extends TestCase
         self::assertSame([], (new GenericProfile())->getFeatures());
         self::assertSame([], (new GenericProfile())->getInstitutionExtraFields());
     }
+
+    /** JUR-06: sample texts for the institution's notices. */
+    public function testSampleTexts(): void
+    {
+        $ua = new UaProfile();
+        $uk = (string) $ua->getSampleText('privacyNotice', 'uk_UA');
+        self::assertStringContainsString('2297-VI', $uk);
+        self::assertStringNotContainsString('<script', $uk);
+        self::assertStringContainsString('2297-VI', (string) $ua->getSampleText('privacyNotice', 'en'));
+        self::assertNotSame('', trim((string) $ua->getSampleText('retentionNotice', 'uk')));
+        self::assertSame($ua->getSampleText('retentionNotice', 'en'), $ua->getSampleText('retentionNotice', 'pl'));
+        self::assertNull($ua->getSampleText('../../etc/passwd', 'uk'));
+        self::assertNull((new GenericProfile())->getSampleText('privacyNotice', 'uk'));
+    }
 }

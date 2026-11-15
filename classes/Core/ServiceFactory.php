@@ -18,6 +18,7 @@ use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfile
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceDocumentService;
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceService;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
+use APP\plugins\generic\conferenceManager\classes\Application\PersonalDataService;
 use APP\plugins\generic\conferenceManager\classes\Application\ProofService;
 use APP\plugins\generic\conferenceManager\classes\Application\ReminderService;
 use APP\plugins\generic\conferenceManager\classes\Application\SubmissionRegistrationService;
@@ -35,6 +36,7 @@ use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\Db
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbParticipantRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPaymentRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPersonalDataRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbReminderRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
@@ -142,6 +144,19 @@ final class ServiceFactory
             new LocalProofStore($files === '' ? '' : rtrim($files, '/') . '/conferenceManager/proofs'),
             new MailGateway(),
             new AuditLogger(DB::connection()),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
+        );
+    }
+
+    public static function personalData(): PersonalDataService
+    {
+        $db = DB::connection();
+        $files = (string) Config::getVar('files', 'files_dir');
+        return new PersonalDataService(
+            new DbPersonalDataRepository($db),
+            new LocalProofStore($files === '' ? '' : rtrim($files, '/') . '/conferenceManager/proofs'),
+            self::settings(),
+            new AuditLogger($db),
             static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
         );
     }

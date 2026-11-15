@@ -1,0 +1,1 @@
+Example (to be adapted by the institution's lawyer): participant data is kept for [N] months after the event and then anonymised. Receipt scans are removed [N] months after upload. Invoices and payment records are kept for the period required by accounting and archive law. Records of issued certificates are kept in the register for [period] so that they can be verified.

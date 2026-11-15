@@ -139,6 +139,7 @@
 			{/foreach}
 		</ul>
 	{/if}
+	<p class="cmMy__data"><a href="{$myDataUrl|escape}" download>{translate key="plugins.generic.conferenceManager.privacy.myData"}</a></p>
 </div>
 
 {include file="frontend/components/footer.tpl"}

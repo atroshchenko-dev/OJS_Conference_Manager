@@ -3014,3 +3014,84 @@ msgstr "Payer code (legal id / tax number)"
 
 msgid "plugins.generic.conferenceManager.invoice.event.payer_changed"
 msgstr "Payer details changed"
+
+msgid "plugins.generic.conferenceManager.privacy.title"
+msgstr "Personal data"
+
+msgid "plugins.generic.conferenceManager.privacy.retention"
+msgstr "Retention periods"
+
+msgid "plugins.generic.conferenceManager.privacy.retentionHelp"
+msgstr "After the period a daily OJS task removes receipt files and anonymises participants of ended events. Invoice records and issued documents stay: accounting and the register of documents need them. 0 means keep. The institution sets the period by its accounting and archive rules."
+
+msgid "plugins.generic.conferenceManager.privacy.proofsMonths"
+msgstr "Receipt files, months after upload"
+
+msgid "plugins.generic.conferenceManager.privacy.participantsMonths"
+msgstr "Participant data, months after the event ended"
+
+msgid "plugins.generic.conferenceManager.privacy.person"
+msgstr "A person's request"
+
+msgid "plugins.generic.conferenceManager.privacy.personHelp"
+msgstr "At a person's request you can download all their data in this journal (JSON) or anonymise it. Anonymisation cannot be undone. Invoices and issued documents keep their copies of the data."
+
+msgid "plugins.generic.conferenceManager.privacy.export"
+msgstr "Download the data (JSON)"
+
+msgid "plugins.generic.conferenceManager.privacy.anonymize"
+msgstr "Anonymise"
+
+msgid "plugins.generic.conferenceManager.privacy.anonymizeConfirm"
+msgstr "Anonymise all records of {$email} in this journal? This cannot be undone."
+
+msgid "plugins.generic.conferenceManager.privacy.anonymized"
+msgstr "Records anonymised: {$count}."
+
+msgid "plugins.generic.conferenceManager.privacy.anonymizedName"
+msgstr "Anonymized"
+
+msgid "plugins.generic.conferenceManager.privacy.error.months"
+msgstr "Enter a whole number of months from 0 to 120."
+
+msgid "plugins.generic.conferenceManager.privacy.myData"
+msgstr "Download my data (JSON)"
+
+msgid "plugins.generic.conferenceManager.task.retention"
+msgstr "Retention of personal data (Conference Manager)"
+
+msgid "plugins.generic.conferenceManager.task.retention.done"
+msgstr "Receipt files removed: {$proofs}, participants anonymised: {$participants}."
+
+msgid "plugins.generic.conferenceManager.audit.entity.retention"
+msgstr "Retention"
+
+msgid "plugins.generic.conferenceManager.audit.entity.personal_data"
+msgstr "Personal data"
+
+msgid "plugins.generic.conferenceManager.audit.entity.user"
+msgstr "Account"
+
+msgid "plugins.generic.conferenceManager.audit.entity.certificate"
+msgstr "Document"
+
+msgid "plugins.generic.conferenceManager.audit.entity.certificate_settings"
+msgstr "Document settings"
+
+msgid "plugins.generic.conferenceManager.audit.entity.certificate_template"
+msgstr "Document template"
+
+msgid "plugins.generic.conferenceManager.audit.entity.invoice_settings"
+msgstr "Invoice settings"
+
+msgid "plugins.generic.conferenceManager.audit.entity.invoice_template"
+msgstr "Invoice template"
+
+msgid "plugins.generic.conferenceManager.institution.sample"
+msgstr "Example text for the lawyer to adapt"
+
+msgid "plugins.generic.conferenceManager.institution.sample.description"
+msgstr "Copy the text into the field above and adapt it to your institution. The example is not legal advice."
+
+msgid "plugins.generic.conferenceManager.privacy.email"
+msgstr "Email address of the person"

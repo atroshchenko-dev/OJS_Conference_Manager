@@ -40,6 +40,13 @@ interface JurisdictionProfile extends JurisdictionRules
     public function getInstitutionExtraFields(): array;
 
     /**
+     * JUR-06: example texts of the privacy notice ("privacyNotice", HTML) and
+     * of the retention notice ("retentionNotice", plain text) under national
+     * law, for the institution's lawyer to adapt; null when there is none.
+     */
+    public function getSampleText(string $field, string $locale): ?string;
+
+    /**
      * Extra fields of a payment account of this kind, shown on invoices
      * (PAY-03: e.g. the budget income code of a treasury account).
      *

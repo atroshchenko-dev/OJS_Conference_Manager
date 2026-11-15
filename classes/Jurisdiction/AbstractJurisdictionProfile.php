@@ -47,6 +47,27 @@ abstract class AbstractJurisdictionProfile implements JurisdictionProfile
         return [];
     }
 
+    public function getSampleText(string $field, string $locale): ?string
+    {
+        $dir = $this->samplesDir();
+        if ($dir === null || !in_array($field, ['privacyNotice', 'retentionNotice'], true)) {
+            return null;
+        }
+        foreach ([strtolower(substr($locale, 0, 2)), 'en'] as $lang) {
+            $file = $dir . '/' . $field . '.' . $lang . ($field === 'privacyNotice' ? '.html' : '.txt');
+            if (is_file($file)) {
+                return (string) file_get_contents($file);
+            }
+        }
+        return null;
+    }
+
+    /** Directory with "{field}.{language}.html|txt"; null when the profile has no samples. */
+    protected function samplesDir(): ?string
+    {
+        return null;
+    }
+
     public function getPaymentAccountExtraFields(PaymentAccountKind $kind): array
     {
         return [

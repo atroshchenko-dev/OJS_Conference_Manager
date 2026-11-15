@@ -44,6 +44,11 @@ final class UaProfile extends AbstractJurisdictionProfile
         return Rnokpp::isValid($taxId) ? null : self::K . 'rnokpp';
     }
 
+    protected function samplesDir(): string
+    {
+        return __DIR__ . '/samples';
+    }
+
     public function getPersonalTaxIdLabelKey(): string
     {
         return 'plugins.generic.conferenceManager.jurisdiction.ua.rnokpp';

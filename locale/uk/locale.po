@@ -3014,3 +3014,84 @@ msgstr "Код платника (ЄДРПОУ / податковий номер)
 
 msgid "plugins.generic.conferenceManager.invoice.event.payer_changed"
 msgstr "Змінено реквізити платника"
+
+msgid "plugins.generic.conferenceManager.privacy.title"
+msgstr "Персональні дані"
+
+msgid "plugins.generic.conferenceManager.privacy.retention"
+msgstr "Строки зберігання"
+
+msgid "plugins.generic.conferenceManager.privacy.retentionHelp"
+msgstr "Після строку щоденне завдання OJS видаляє файли квитанцій і знеособлює учасників заходів, що завершилися. Записи рахунків і виданих документів лишаються: їх вимагає бухгалтерський облік і реєстр документів. 0 означає «зберігати». Строк визначає заклад за своїми правилами бухгалтерського обліку й архівної справи."
+
+msgid "plugins.generic.conferenceManager.privacy.proofsMonths"
+msgstr "Файли квитанцій, місяців після завантаження"
+
+msgid "plugins.generic.conferenceManager.privacy.participantsMonths"
+msgstr "Дані учасників, місяців після завершення заходу"
+
+msgid "plugins.generic.conferenceManager.privacy.person"
+msgstr "Запит особи"
+
+msgid "plugins.generic.conferenceManager.privacy.personHelp"
+msgstr "За запитом особи можна вивантажити всі її дані в цьому журналі (JSON) або знеособити їх. Знеособлення не можна скасувати. Рахунки й видані документи зберігають свої копії даних."
+
+msgid "plugins.generic.conferenceManager.privacy.export"
+msgstr "Вивантажити дані (JSON)"
+
+msgid "plugins.generic.conferenceManager.privacy.anonymize"
+msgstr "Знеособити"
+
+msgid "plugins.generic.conferenceManager.privacy.anonymizeConfirm"
+msgstr "Знеособити всі записи {$email} у цьому журналі? Скасувати це не можна."
+
+msgid "plugins.generic.conferenceManager.privacy.anonymized"
+msgstr "Знеособлено записів: {$count}."
+
+msgid "plugins.generic.conferenceManager.privacy.anonymizedName"
+msgstr "Анонімізовано"
+
+msgid "plugins.generic.conferenceManager.privacy.error.months"
+msgstr "Вкажіть ціле число місяців від 0 до 120."
+
+msgid "plugins.generic.conferenceManager.privacy.myData"
+msgstr "Завантажити мої дані (JSON)"
+
+msgid "plugins.generic.conferenceManager.task.retention"
+msgstr "Строки зберігання персональних даних (Conference Manager)"
+
+msgid "plugins.generic.conferenceManager.task.retention.done"
+msgstr "Видалено файлів квитанцій: {$proofs}, знеособлено учасників: {$participants}."
+
+msgid "plugins.generic.conferenceManager.audit.entity.retention"
+msgstr "Строки зберігання"
+
+msgid "plugins.generic.conferenceManager.audit.entity.personal_data"
+msgstr "Персональні дані"
+
+msgid "plugins.generic.conferenceManager.audit.entity.user"
+msgstr "Обліковий запис"
+
+msgid "plugins.generic.conferenceManager.audit.entity.certificate"
+msgstr "Документ"
+
+msgid "plugins.generic.conferenceManager.audit.entity.certificate_settings"
+msgstr "Налаштування документів"
+
+msgid "plugins.generic.conferenceManager.audit.entity.certificate_template"
+msgstr "Шаблон документа"
+
+msgid "plugins.generic.conferenceManager.audit.entity.invoice_settings"
+msgstr "Налаштування рахунків"
+
+msgid "plugins.generic.conferenceManager.audit.entity.invoice_template"
+msgstr "Шаблон рахунку"
+
+msgid "plugins.generic.conferenceManager.institution.sample"
+msgstr "Приклад тексту для адаптації юристом"
+
+msgid "plugins.generic.conferenceManager.institution.sample.description"
+msgstr "Скопіюйте текст у поле вище й адаптуйте його до свого закладу. Приклад не є юридичною консультацією."
+
+msgid "plugins.generic.conferenceManager.privacy.email"
+msgstr "Адреса електронної пошти особи"

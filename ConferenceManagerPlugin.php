@@ -30,12 +30,14 @@ use APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory;
 use APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway;
 use APP\plugins\generic\conferenceManager\classes\Domain\Decision\AcceptanceDecision;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
+use APP\plugins\generic\conferenceManager\classes\Domain\Edition\ScholarTags;
 use APP\plugins\generic\conferenceManager\classes\Forms\InstitutionSettingsForm;
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
 use APP\plugins\generic\conferenceManager\classes\Pages\ConferencePageHandler;
 use APP\plugins\generic\conferenceManager\classes\Pages\ManageConferenceHandler;
 use APP\plugins\generic\conferenceManager\classes\Tasks\EditionWindowsTask;
 use APP\plugins\generic\conferenceManager\classes\Tasks\ReminderTask;
+use APP\plugins\generic\conferenceManager\classes\Tasks\RetentionTask;
 use APP\plugins\generic\conferenceManager\classes\Wizard\ConferenceWizardStep;
 use APP\template\TemplateManager;
 use DateTimeImmutable;
@@ -90,6 +92,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         Hook::add('TemplateManager::setupBackendPage', $this->addBackendMenu(...));
         Hook::add('TemplateManager::display', $this->addWizardStep(...));
         Hook::add('TemplateManager::display', $this->addWorkflowScript(...));
+        Hook::add('TemplateManager::display', $this->addScholarTags(...));
         Hook::add('Submission::validateSubmit', $this->validateSubmit(...));
         Hook::add('Publication::validatePublish', $this->validatePublish(...));
         Event::listen(SubmissionSubmitted::class, $this->onSubmissionSubmitted(...));
@@ -97,6 +100,8 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         Hook::add('Decision::types', $this->addDecisionTypes(...));
         Hook::add('Workflow::Decisions', $this->addWorkflowDecisions(...));
         Hook::add('Mailer::Mailables', $this->addMailables(...));
+        // DAT-06: OJS calls this before it moves the old account's data and deletes it.
+        Hook::add('UserAction::mergeUsers', $this->mergeUsers(...));
 
         return true;
     }
@@ -270,6 +275,42 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
             ? $menu + ['conferenceManager' => $item]
             : array_slice($menu, 0, $index, true) + ['conferenceManager' => $item] + array_slice($menu, $index, null, true);
         $templateMgr->setState(['menu' => $menu]);
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * PUB-02: a paper of a conference edition is a conference paper for
+     * Google Scholar: citation_conference_title instead of
+     * citation_journal_title, the ISBN of the proceedings and the
+     * institution as publisher. Runs after the Google Scholar plugin has
+     * added its tags and replaces them by the same header names.
+     */
+    public function addScholarTags(string $hookName, array $args): bool
+    {
+        if ($args[1] !== 'frontend/pages/article.tpl') {
+            return Hook::CONTINUE;
+        }
+        $templateMgr = $args[0];
+        $context = Application::get()->getRequest()->getContext();
+        $publication = $templateMgr->getTemplateVars('publication');
+        $editionId = (int) ($publication?->getData('conferenceEditionId') ?? 0);
+        if ($context === null || $editionId === 0 || !$this->isEnabledFor((int) $context->getId())) {
+            return Hook::CONTINUE;
+        }
+        try {
+            $info = ContextGateway::fromContext($context);
+            $edition = ServiceFactory::editions()->get($info, $editionId);
+            if ($edition === null) {
+                return Hook::CONTINUE;
+            }
+            $locale = (string) ($publication->getData('locale') ?: $info->primaryLocale);
+            $publisher = (string) ServiceFactory::institutionProfiles()->getOrDraft($info)->text('name')->resolve($info->primaryLocale, $info->primaryLocale);
+            foreach (ScholarTags::of($edition, $locale, $info->primaryLocale, $publisher) as $name => $html) {
+                $templateMgr->addHeader($name, $html);
+            }
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: scholar tags: ' . $e->getMessage());
+        }
         return Hook::CONTINUE;
     }
 
@@ -548,6 +589,21 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
     /**
      * EDN-03: close calls whose deadline has passed, every 15 minutes.
      */
+    /**
+     * DAT-06: the plugin's records of the old account move to the new one.
+     *
+     * @param string $hookName
+     * @param array{0: int, 1: int} $args
+     */
+    public function mergeUsers($hookName, $args): bool
+    {
+        [$oldUserId, $newUserId] = [(int) $args[0], (int) $args[1]];
+        if ($oldUserId > 0 && $newUserId > 0 && \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasTable('conf_participants')) {
+            ServiceFactory::personalData()->mergeUsers($oldUserId, $newUserId);
+        }
+        return Hook::CONTINUE;
+    }
+
     public function registerSchedules(PKPScheduler $scheduler): void
     {
         $scheduler->addSchedule(new EditionWindowsTask())
@@ -558,6 +614,10 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         $scheduler->addSchedule(new ReminderTask())
             ->hourly()
             ->name(ReminderTask::class)
+            ->withoutOverlapping();
+        $scheduler->addSchedule(new RetentionTask())
+            ->daily()
+            ->name(RetentionTask::class)
             ->withoutOverlapping();
     }
 

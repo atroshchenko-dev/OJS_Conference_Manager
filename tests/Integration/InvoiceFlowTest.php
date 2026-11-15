@@ -13,6 +13,7 @@ use APP\plugins\generic\conferenceManager\classes\Application\InvoiceNotifier;
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceService;
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceTemplateStore;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
+use APP\plugins\generic\conferenceManager\classes\Application\PersonalDataService;
 use APP\plugins\generic\conferenceManager\classes\Application\ProofNotifier;
 use APP\plugins\generic\conferenceManager\classes\Application\ProofService;
 use APP\plugins\generic\conferenceManager\classes\Domain\Institution\InstitutionType;
@@ -31,6 +32,7 @@ use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\Db
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbParticipantRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPaymentRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPersonalDataRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
@@ -608,6 +610,80 @@ final class InvoiceFlowTest extends TestCase
         }
         self::assertSame([], $offenders, 'code that changes the payment journal');
     }
+
+    /** DAT-02, DAT-03, DAT-04, DAT-06 on the same records. */
+    public function testPersonalData(): void
+    {
+        [$editionId, $invoice] = $this->openInvoice();
+        [$proofs, , $dir] = $this->proofService();
+        $iid = (int) $invoice->id;
+        [$proof] = $proofs->upload($this->ctx, $iid, 1, 'olena@example.org', self::file("%PDF-1.7\nreceipt\n"), 'r.pdf', $this->now, 'uk') ?? [null];
+        self::assertSame([], $proofs->accept($this->ctx, (int) $proof['id'], null, 3, $this->now)?->toArray());
+        $key = (string) $this->db->table('conf_payment_proofs')->value('file_path');
+        self::assertFileExists($dir . '/' . $key);
+
+        $settings = new FakeSettings();
+        $service = new PersonalDataService(
+            new DbPersonalDataRepository($this->db),
+            new LocalProofStore($dir),
+            $settings,
+            new AuditLogger($this->db),
+            static fn (string $k, array $p, string $l): string => 'Анонімізовано',
+        );
+
+        // Retention is off by default and is validated.
+        self::assertSame(['proofsMonths' => 0, 'participantsMonths' => 0], $service->retention($this->ctx));
+        self::assertSame(['proofs' => 0, 'participants' => 0], $service->runRetention($this->ctx, $this->now->modify('+5 years')));
+        self::assertTrue($service->saveRetention($this->ctx, ['proofsMonths' => -1, 'participantsMonths' => 'x'], 3)->has('proofsMonths'));
+        self::assertTrue($service->saveRetention($this->ctx, ['proofsMonths' => 121], 3)->has('proofsMonths'));
+        self::assertTrue($service->saveRetention($this->ctx, ['proofsMonths' => 1.5], 3)->has('proofsMonths'));
+        self::assertTrue($service->saveRetention($this->ctx, ['proofsMonths' => 1, 'participantsMonths' => 0], 3)->isEmpty());
+        self::assertSame(['proofsMonths' => 1, 'participantsMonths' => 0], $service->retention($this->ctx));
+
+        // Not yet expired, then removed: the file goes, the record stays.
+        self::assertSame(0, $service->runRetention($this->ctx, $this->now->modify('+20 days'))['proofs']);
+        self::assertSame(['proofs' => 1, 'participants' => 0], $service->runRetention($this->ctx, $this->now->modify('+2 months')));
+        self::assertFileDoesNotExist($dir . '/' . $key);
+        $row = $this->db->table('conf_payment_proofs')->first();
+        self::assertNull($row->file_path);
+        self::assertNotNull($row->purged_at);
+        self::assertSame(0, $service->runRetention($this->ctx, $this->now->modify('+3 months'))['proofs'], 'once only');
+        self::assertSame(0, $service->runRetention(new ContextInfo(2, 'uk', ['uk']), $this->now->modify('+3 months'))['proofs']);
+
+        // Export: own data by account or email, nothing from another journal, no secrets.
+        $export = $service->export($this->ctx, 1, '', 1, $this->now);
+        self::assertCount(1, $export['participantIds']);
+        self::assertSame($export['participantIds'], $service->export($this->ctx, null, ' OLENA@example.org', 3, $this->now)['participantIds']);
+        self::assertSame([], $service->export(new ContextInfo(2, 'uk', ['uk']), 1, 'olena@example.org', 1, $this->now)['participantIds']);
+        $data = $export['data'];
+        self::assertSame('olena@example.org', $data['participants'][0]['email'] ?? null);
+        self::assertSame($iid, (int) ($data['invoices'][0]['id'] ?? 0));
+        self::assertNotEmpty($data['participations']);
+        $json = (string) json_encode($export, JSON_UNESCAPED_UNICODE);
+        self::assertStringNotContainsString('file_path', $json);
+        self::assertStringNotContainsString('token_hash', $json);
+        self::assertStringContainsString('Коваль', $json);
+
+        // DAT-06: the plugin's records follow a merge of accounts.
+        $moved = $service->mergeUsers(1, 2);
+        self::assertSame(1, $moved['conf_participants.user_id'] ?? null);
+        self::assertSame([], $service->export($this->ctx, 1, '', 1, $this->now)['participantIds']);
+        self::assertSame($export['participantIds'], $service->export($this->ctx, 2, '', 2, $this->now)['participantIds']);
+
+        // DAT-04: the person disappears, the invoice keeps its copy.
+        $snapshot = $this->db->table('conf_invoices')->where('id', $iid)->value('payer_snapshot');
+        self::assertSame(1, $service->anonymize($this->ctx, null, 'olena@example.org', 3, $this->now));
+        self::assertSame(0, $service->anonymize($this->ctx, $export['participantIds'], '', 3, $this->now), 'once only');
+        $p = $this->db->table('conf_participants')->where('id', $export['participantIds'][0])->first();
+        self::assertSame('anonymized-' . $p->id . '@invalid', $p->email);
+        self::assertNull($p->user_id);
+        self::assertNull($p->affiliation);
+        self::assertSame(['Анонімізовано'], $this->db->table('conf_participant_settings')->where('participant_id', $p->id)->pluck('setting_value')->all());
+        self::assertSame($snapshot, $this->db->table('conf_invoices')->where('id', $iid)->value('payer_snapshot'));
+        self::assertSame([], $service->export($this->ctx, 2, 'olena@example.org', 2, $this->now)['participantIds']);
+        self::assertSame(1, $this->db->table('conf_audit_log')->where('entity', 'participant')->where('action', 'anonymized')->count());
+        self::assertSame($editionId, (int) $p->edition_id);
+    }
 }
 
 final class FakeInvoiceNotifier implements InvoiceNotifier
@@ -650,4 +726,5 @@ final class FakeProofNotifier implements ProofNotifier
     {
         $this->sent[] = [$invoice, $accepted, $note];
     }
+
 }
