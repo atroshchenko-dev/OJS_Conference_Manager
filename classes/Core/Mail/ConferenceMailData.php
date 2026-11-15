@@ -50,7 +50,7 @@ final class ConferenceMailData
         $editionId = (int) $submission->getCurrentPublication()?->getData('conferenceEditionId');
         $edition = $editionId > 0 ? (new DbEditionRepository(DB::connection()))->find((int) $context->getId(), $editionId) : null;
         $date = $edition?->date('paperDeadline');
-        if ($date === null || $edition === null) {
+        if ($edition === null || $date === null) {
             return __('plugins.generic.conferenceManager.mailable.paperDeadline.none', [], (string) ($submission->getData('locale') ?: $context->getPrimaryLocale()));
         }
         return $date->setTimezone(new \DateTimeZone($edition->timezone))->format('d.m.Y H:i');
