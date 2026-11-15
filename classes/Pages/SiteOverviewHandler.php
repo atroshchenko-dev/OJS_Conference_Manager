@@ -61,6 +61,7 @@ class SiteOverviewHandler extends Handler
             $form->initData();
         }
         $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceSite', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/site.css', ['contexts' => 'backend']);
         $templateMgr->assign([
             'pageTitle' => __('plugins.generic.conferenceManager.site.title'),
             'siteFormHtml' => $form->fetch($request),

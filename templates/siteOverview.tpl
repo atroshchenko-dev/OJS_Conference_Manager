@@ -62,11 +62,11 @@
 	<h3>{translate key="plugins.generic.conferenceManager.site.load"}</h3>
 	<p class="cmSite__hint">{translate key="plugins.generic.conferenceManager.site.loadHelp"}</p>
 	{fbvFormArea id="confManagerSiteLoad"}
-		{fbvFormSection title="plugins.generic.conferenceManager.site.profile"}
-			{fbvElement type="select" id="loadProfile" from=$profileOptions selected=$loadProfile translate=false size=$fbvStyles.size.MEDIUM}
+		{fbvFormSection}
+			{fbvElement type="select" id="loadProfile" label="plugins.generic.conferenceManager.site.profile" from=$profileOptions selected=$loadProfile translate=false size=$fbvStyles.size.MEDIUM}
 		{/fbvFormSection}
-		{fbvFormSection title="plugins.generic.conferenceManager.site.mailsPerHour" description="plugins.generic.conferenceManager.site.mailsPerHourHelp"}
-			{fbvElement type="text" id="mailsPerHour" value=$mailsPerHour size=$fbvStyles.size.SMALL}
+		{fbvFormSection description="plugins.generic.conferenceManager.site.mailsPerHourHelp"}
+			{fbvElement type="text" id="mailsPerHour" label="plugins.generic.conferenceManager.site.mailsPerHour" value=$mailsPerHour size=$fbvStyles.size.SMALL}
 		{/fbvFormSection}
 	{/fbvFormArea}
 	<p class="cmSite__current">
@@ -98,17 +98,6 @@
 		</div>
 	{/if}
 
-	<style>
-		#confManagerSiteForm .cmSite__table {ldelim} width: 100%; border-collapse: collapse; margin: 1rem 0 0.25rem; {rdelim}
-		#confManagerSiteForm .cmSite__table th, #confManagerSiteForm .cmSite__table td {ldelim} border-bottom: 1px solid #ddd; padding: 0.4rem 0.5rem; text-align: left; vertical-align: top; {rdelim}
-		#confManagerSiteForm .cmSite__table td:nth-child(n+2), #confManagerSiteForm .cmSite__table th:nth-child(n+2) {ldelim} text-align: right; {rdelim}
-		#confManagerSiteForm .cmSite__off {ldelim} color: #777; {rdelim}
-		#confManagerSiteForm .cmSite__hint {ldelim} color: #555; font-size: 0.875rem; {rdelim}
-		#confManagerSiteForm .cmSite__advice {ldelim} border-left: 4px solid #d00a6c; padding: 0.5rem 1rem 0.5rem 2rem; background: #fff5f9; {rdelim}
-		#confManagerSiteForm .cmSite__tasks {ldelim} margin: 0.5rem 0 1rem; {rdelim}
-		.cmSite__saved {ldelim} border-left: 4px solid #00b28d; padding: 0.5rem 1rem; background: #f0fbf8; {rdelim}
-		@media (max-width: 700px) {ldelim} #confManagerSiteForm .cmSite__table {ldelim} display: block; overflow-x: auto; {rdelim} {rdelim}
-	</style>
 
 	{fbvFormButtons hideCancel=true submitText="common.save"}
 </form>

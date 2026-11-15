@@ -93,6 +93,22 @@
 		mounted: function () {
 			this.load();
 		},
+		watch: {
+			// WCAG 2.4.3: the button that opened a view is gone, so the
+			// keyboard focus moves to the heading of the new view.
+			view: function () {
+				var root = this.$el;
+				this.$nextTick(function () {
+					window.setTimeout(function () {
+						var h = root && root.querySelector('h2, h3, legend');
+						if (h) {
+							h.setAttribute('tabindex', '-1');
+							h.focus({ preventScroll: false });
+						}
+					}, 50);
+				});
+			},
+		},
 		methods: {
 			t: function (key) {
 				return this.i18n[key] || key;

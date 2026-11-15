@@ -47,7 +47,7 @@
 		{/fbvFormSection}
 		{foreach from=$extraFields item=field}
 			{fbvFormSection label=$field->labelKey description=$field->descriptionKey}
-				<input type="text" name="extra[{$field->name|escape}]" id="extra-{$field->name|escape}" value="{$extra[$field->name]|default:''|escape}" maxlength="{$field->maxLength}" class="field text" />
+				<input type="text" name="extra[{$field->name|escape}]" id="extra-{$field->name|escape}" aria-label="{$field->labelKey|translate|escape}" value="{$extra[$field->name]|default:''|escape}" maxlength="{$field->maxLength}" class="field text" />
 			{/fbvFormSection}
 		{/foreach}
 		{fbvFormSection label="plugins.generic.conferenceManager.field.address"}

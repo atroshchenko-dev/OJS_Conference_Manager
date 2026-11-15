@@ -26,6 +26,10 @@ If you run the server or the whole OJS installation, start with the site adminis
 - **Institution profile.** Name, legal details, signers, payment accounts and privacy texts. These details go into invoices, certificates and public pages.
 - **Jurisdiction profile.** Switches national rules on. "Ukraine" adds the EDRPOU code, treasury accounts, professional development certificates and the export for the "Vector" platform. "Generic (no national rules)" is for organizers in other countries.
 
+## Accessibility
+
+The plugin's public pages (event page, program, registration, participant cabinet, documents, "Upcoming events") and the manager's screens meet WCAG 2.1 level AA by an automatic axe check: no serious or critical violations, checked in CI on every change. Everything done with a mouse can be done with a keyboard: in the program builder a paper is moved into a session with the "Move to" list too. When a manager's screen changes, focus moves to the heading of the new screen. A manual check with a screen reader is best done with pilot institutions.
+
 ## Current limits
 
 - There is no schedule with rooms, sessions and times yet. There is a static program: accepted papers by section and presentation type.
