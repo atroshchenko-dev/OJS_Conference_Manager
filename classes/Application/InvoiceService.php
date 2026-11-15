@@ -1,0 +1,547 @@
+<?php
+
+declare(strict_types=1);
+
+namespace APP\plugins\generic\conferenceManager\classes\Application;
+
+use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
+use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionRepository;
+use APP\plugins\generic\conferenceManager\classes\Domain\Fee\FeeRepository;
+use APP\plugins\generic\conferenceManager\classes\Domain\Fee\MaterialType;
+use APP\plugins\generic\conferenceManager\classes\Domain\Fee\Money;
+use APP\plugins\generic\conferenceManager\classes\Domain\Fee\PricingMode;
+use APP\plugins\generic\conferenceManager\classes\Domain\Fee\Quote;
+use APP\plugins\generic\conferenceManager\classes\Domain\Fee\TariffCalculator;
+use APP\plugins\generic\conferenceManager\classes\Domain\Fee\TariffQuery;
+use APP\plugins\generic\conferenceManager\classes\Domain\Institution\DocumentType;
+use APP\plugins\generic\conferenceManager\classes\Domain\Institution\InstitutionProfile;
+use APP\plugins\generic\conferenceManager\classes\Domain\Institution\PaymentAccount;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\AmountInWords;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Invoice;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceItem;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceStatus;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentMode;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentRepository;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentRule;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentRuleValidator;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRepository;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRole;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationStatus;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\RegistrationRepository;
+use APP\plugins\generic\conferenceManager\classes\Domain\Shared\DateInput;
+use APP\plugins\generic\conferenceManager\classes\Domain\Shared\LocalizedText;
+use APP\plugins\generic\conferenceManager\classes\Domain\Shared\TextTemplate;
+use APP\plugins\generic\conferenceManager\classes\Domain\Shared\ValidationErrors;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
+use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionProfile;
+use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
+use DateTimeImmutable;
+
+/**
+ * Payment modes of an edition and invoices (PAY-01…08, FEE-04…07).
+ *
+ * An invoice is issued for a listener right after registration and for a
+ * presenter after the acceptance decision. No rule, the "free" mode or a
+ * zero tariff mean nothing to pay: no invoice.
+ */
+final class InvoiceService
+{
+    private const K = 'plugins.generic.conferenceManager.payment.error.';
+    private const I = 'plugins.generic.conferenceManager.invoice.';
+
+    public const ISSUED = 'issued';
+    public const FREE = 'free';
+    public const NO_TARIFF = 'noTariff';
+    public const PAGES_REQUIRED = 'pagesRequired';
+    public const EXISTS = 'exists';
+    public const NOT_FOUND = 'notFound';
+
+    public function __construct(
+        private readonly PaymentRepository $payments,
+        private readonly FeeRepository $fees,
+        private readonly EditionRepository $editions,
+        private readonly ParticipantRepository $participants,
+        private readonly RegistrationRepository $registrations,
+        /** @var \Closure(ContextInfo): InstitutionProfile */
+        private readonly \Closure $institution,
+        private readonly ?InvoiceNotifier $notifier = null,
+        private readonly ?AuditLogger $audit = null,
+        /** @var (\Closure(string, array<string, mixed>, string): string)|null translates a key with params into a locale */
+        private readonly ?\Closure $translate = null,
+        private readonly ?JurisdictionRegistry $jurisdictions = null,
+    ) {
+    }
+
+    public function edition(ContextInfo $context, int $editionId): ?Edition
+    {
+        return $this->editions->find($context->id, $editionId);
+    }
+
+    /** @return list<PaymentRule>|null */
+    public function rules(ContextInfo $context, int $editionId): ?array
+    {
+        return $this->edition($context, $editionId) === null ? null : $this->payments->rules($editionId);
+    }
+
+    /**
+     * @param array<string, mixed> $input categoryId, mode, paymentAccountId, externalUrl, instructions{locale}
+     * @return array{0: ?PaymentRule, 1: ValidationErrors}|null
+     */
+    public function saveRule(ContextInfo $context, int $editionId, ?int $id, array $input, ?int $actorId = null): ?array
+    {
+        if ($this->edition($context, $editionId) === null || ($id !== null && $this->payments->findRule($editionId, $id) === null)) {
+            return null;
+        }
+        $errors = new ValidationErrors();
+        $mode = PaymentMode::tryFrom((string) ($input['mode'] ?? ''));
+        if ($mode === null) {
+            $errors->add('mode', 'plugins.generic.conferenceManager.validation.required');
+            return [null, $errors];
+        }
+        $categoryId = ($input['categoryId'] ?? null) === null || $input['categoryId'] === '' || (int) $input['categoryId'] === 0 ? null : (int) $input['categoryId'];
+        if ($categoryId !== null && $this->fees->findCategory($editionId, $categoryId) === null) {
+            $errors->add('categoryId', 'plugins.generic.conferenceManager.listener.error.category');
+            return [null, $errors];
+        }
+        $account = ($input['paymentAccountId'] ?? null) === null || $input['paymentAccountId'] === '' ? null : (int) $input['paymentAccountId'];
+        $url = trim((string) ($input['externalUrl'] ?? ''));
+        $rule = new PaymentRule(
+            $id,
+            $editionId,
+            $categoryId,
+            $mode,
+            $mode->needsAccount() || $mode === PaymentMode::ExternalOrganizer ? $account : null,
+            $url === '' || $mode === PaymentMode::Free ? null : mb_substr($url, 0, 2048),
+            new LocalizedText(array_map(static fn (mixed $v): string => mb_substr(trim((string) $v), 0, 5000), (array) ($input['instructions'] ?? []))),
+        );
+        $errors = (new PaymentRuleValidator())->validate($rule, $this->payments->rules($editionId), ($this->institution)($context)->activePaymentAccounts());
+        if (!$errors->isEmpty()) {
+            return [null, $errors];
+        }
+        $saved = $this->payments->saveRule($rule);
+        $this->audit?->log($context->id, $actorId, 'payment_rule', $saved->id, $id === null ? 'create' : 'update', null, $saved->toArray());
+        return [$saved, $errors];
+    }
+
+    public function deleteRule(ContextInfo $context, int $editionId, int $id, ?int $actorId = null): bool
+    {
+        if ($this->edition($context, $editionId) === null || !$this->payments->deleteRule($editionId, $id)) {
+            return false;
+        }
+        $this->audit?->log($context->id, $actorId, 'payment_rule', $id, 'delete');
+        return true;
+    }
+
+    /**
+     * Issues the invoice of a participation (FEE-04): a listener's fee, or
+     * the fee for the submission of a presenter. Runs once: an existing
+     * current invoice is returned as it is.
+     *
+     * @return array{result: string, invoice: ?Invoice}
+     */
+    public function issueFor(ContextInfo $context, int $participationId, ?int $pages, ?int $actorId, DateTimeImmutable $now): array
+    {
+        $p = $this->participants->findParticipation($context->id, $participationId);
+        if ($p === null || $p['status'] !== ParticipationStatus::Active->value) {
+            return ['result' => self::NOT_FOUND, 'invoice' => null];
+        }
+        $existing = $this->payments->currentFor($participationId, $p['role'] === ParticipantRole::Listener->value ? null : $p['submissionId']);
+        if ($existing !== null) {
+            return ['result' => self::EXISTS, 'invoice' => $existing];
+        }
+        $edition = $this->edition($context, $p['editionId']);
+        $payer = $this->participants->payer($p['participantId'], $context->primaryLocale);
+        if ($edition === null || $payer === null) {
+            return ['result' => self::NOT_FOUND, 'invoice' => null];
+        }
+        $rule = PaymentRule::pick($this->payments->rules($edition->id ?? 0), $payer['categoryId']);
+        if ($rule === null || !$rule->mode->issuesInvoice() || $payer['categoryId'] === null) {
+            return ['result' => self::FREE, 'invoice' => null];
+        }
+
+        $presentation = null;
+        if ($p['role'] === ParticipantRole::Listener->value) {
+            $material = MaterialType::Listener;
+        } else {
+            $material = $pages === null ? MaterialType::Abstract : MaterialType::Paper;
+            $presentation = $p['submissionId'] === null ? null : $this->registrations->findBySubmission($p['submissionId'])?->presentationType;
+        }
+        $quote = (new TariffCalculator())->quote(
+            $this->fees->tariffs($edition->id ?? 0),
+            new TariffQuery($payer['categoryId'], $material, $now, $pages, $presentation),
+        );
+        if (!$quote->isOk()) {
+            return ['result' => $quote->problem === Quote::PAGES_REQUIRED ? self::PAGES_REQUIRED : self::NO_TARIFF, 'invoice' => null];
+        }
+        if ($quote->isFree()) {
+            return ['result' => self::FREE, 'invoice' => null];
+        }
+
+        $total = $quote->total;
+        $tariff = $quote->tariff;
+        if ($total === null || $tariff === null) {
+            return ['result' => self::NO_TARIFF, 'invoice' => null];
+        }
+        $perPage = $tariff->pricing === PricingMode::PerPage;
+        $locale = $context->primaryLocale;
+        $editionName = (string) $edition->text('name')->resolve($locale, $locale);
+        $item = new InvoiceItem(
+            $this->t(self::I . 'item.' . $material->value, ['edition' => $editionName], $locale),
+            $perPage ? (int) $quote->pages : 1,
+            $perPage ? $tariff->amount : $total,
+            $total,
+            $participationId,
+            $p['submissionId'],
+            $tariff->id,
+        );
+        $invoice = $this->payments->createInvoice(new Invoice(
+            null,
+            $context->id,
+            $edition->id ?? 0,
+            $p['participantId'],
+            $rule->mode,
+            InvoiceStatus::Issued,
+            $total,
+            [$item],
+            $rule->paymentAccountId,
+            dueAt: $edition->date('paymentDeadline'),
+            payer: ['name' => $payer['name'], 'email' => $payer['email'], 'affiliation' => $payer['affiliation']],
+            recipient: $this->recipient($context, $rule, $edition),
+            method: $rule->mode->method(),
+        ), $actorId, $now);
+        $this->audit?->log($context->id, $actorId, 'invoice', $invoice->id, 'issued', null, ['number' => $invoice->number, 'total' => $total->minor]);
+        try {
+            $this->notifier?->invoiceIssued($context, $invoice, $this->present($context, $invoice, $locale));
+        } catch (\Throwable $e) {
+            // A failed letter must not undo the invoice: it is in the cabinet.
+            error_log('conferenceManager: invoice letter failed: ' . $e->getMessage());
+        }
+        return ['result' => self::ISSUED, 'invoice' => $invoice];
+    }
+
+    /**
+     * FEE-04: after an acceptance decision the presenter gets the invoice.
+     *
+     * @return array{result: string, invoice: ?Invoice}
+     */
+    public function onAccepted(ContextInfo $context, int $submissionId, ?int $actorId, DateTimeImmutable $now): array
+    {
+        $participationId = $this->participants->presenterOf($submissionId);
+        if ($participationId === null) {
+            return ['result' => self::NOT_FOUND, 'invoice' => null];
+        }
+        return $this->issueFor($context, $participationId, null, $actorId, $now);
+    }
+
+    /**
+     * The manager records a payment. A smaller amount is a part payment:
+     * the invoice stays open with what is still due.
+     */
+    public function markPaid(ContextInfo $context, int $invoiceId, ?string $amount, ?string $note, ?int $actorId, DateTimeImmutable $now): ?ValidationErrors
+    {
+        $invoice = $this->payments->findInvoice($context->id, $invoiceId);
+        if ($invoice === null) {
+            return null;
+        }
+        $errors = new ValidationErrors();
+        if (!$invoice->status->isOpen()) {
+            $errors->add('status', self::K . 'notOpen');
+            return $errors;
+        }
+        $paid = $amount === null || trim($amount) === '' ? $invoice->due() : Money::parse($amount, $invoice->total->currency);
+        if ($paid === null || $paid->minor <= 0) {
+            $errors->add('amount', 'plugins.generic.conferenceManager.fee.error.amount');
+            return $errors;
+        }
+        $sum = $invoice->paidAmount()->minor + $paid->minor;
+        $full = $sum >= $invoice->total->minor;
+        $this->payments->changeStatus(
+            $invoiceId,
+            $full ? InvoiceStatus::Paid : $invoice->status,
+            ['paid_minor' => $sum] + ($full ? ['paid_at' => DateInput::toStorage($now)] : []),
+            $full ? 'paid' : 'part_paid',
+            $actorId,
+            ['amount' => $paid->minor, 'note' => $note === null ? null : mb_substr($note, 0, 1000)],
+            $now,
+        );
+        $this->audit?->log($context->id, $actorId, 'invoice', $invoiceId, $full ? 'paid' : 'part_paid', null, ['amount' => $paid->minor]);
+        return $errors;
+    }
+
+    /**
+     * FEE-07: exemption = a new invoice with zero total, method "waiver" and
+     * the reason; the old one becomes "superseded". Not for paid invoices.
+     *
+     * @return array{0: ?Invoice, 1: ValidationErrors}|null
+     */
+    public function waive(ContextInfo $context, int $invoiceId, string $reason, ?int $actorId, DateTimeImmutable $now): ?array
+    {
+        $invoice = $this->payments->findInvoice($context->id, $invoiceId);
+        if ($invoice === null) {
+            return null;
+        }
+        $errors = new ValidationErrors();
+        $reason = mb_substr(trim($reason), 0, 1000);
+        if ($reason === '') {
+            $errors->add('reason', self::K . 'reason');
+        }
+        if (!$invoice->status->isOpen() || $invoice->paidAmount()->minor > 0) {
+            $errors->add('status', self::K . 'notOpen');
+        }
+        if (!$errors->isEmpty()) {
+            return [null, $errors];
+        }
+        $zero = Money::zero($invoice->total->currency);
+        $items = array_map(static fn (InvoiceItem $i): InvoiceItem => new InvoiceItem($i->description, $i->quantity, $zero, $zero, $i->participationId, $i->submissionId, $i->tariffId), $invoice->items);
+        $waiver = $this->payments->createInvoice($invoice->with([
+            'id' => null,
+            'status' => InvoiceStatus::Waived,
+            'total' => $zero,
+            'items' => $items,
+            'paid' => $zero,
+            'waiverReason' => $reason,
+            'supersedesId' => $invoice->id,
+            'method' => 'waiver',
+            'number' => null,
+            'numberYear' => null,
+            'paymentReference' => null,
+        ]), $actorId, $now);
+        $this->audit?->log($context->id, $actorId, 'invoice', $waiver->id, 'waived', ['invoice' => $invoiceId], ['reason' => $reason]);
+        return [$waiver, $errors];
+    }
+
+    public function cancel(ContextInfo $context, int $invoiceId, ?int $actorId, DateTimeImmutable $now): ?ValidationErrors
+    {
+        $invoice = $this->payments->findInvoice($context->id, $invoiceId);
+        if ($invoice === null) {
+            return null;
+        }
+        $errors = new ValidationErrors();
+        if (!$invoice->status->isOpen() || $invoice->paidAmount()->minor > 0) {
+            $errors->add('status', self::K . 'notOpen');
+            return $errors;
+        }
+        $this->payments->changeStatus($invoiceId, InvoiceStatus::Cancelled, [], 'cancelled', $actorId, ['reason' => 'manager'], $now);
+        $this->audit?->log($context->id, $actorId, 'invoice', $invoiceId, 'cancelled');
+        return $errors;
+    }
+
+    public function find(ContextInfo $context, int $invoiceId): ?Invoice
+    {
+        return $this->payments->findInvoice($context->id, $invoiceId);
+    }
+
+    /**
+     * Whether the person may see the invoice: its payer (by account or email).
+     */
+    /**
+     * The person's own invoices (cabinet), found by user id or email.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function mine(ContextInfo $context, int $userId, string $email, string $locale): array
+    {
+        $ids = array_values(array_unique(array_map(static fn (array $p): int => $p['participantId'], $this->participants->ofPerson($context->id, $userId, $email))));
+        return $this->ofParticipants($context, $ids, $locale);
+    }
+
+    public function isPayer(Invoice $invoice, ?int $userId, string $email): bool
+    {
+        $payer = $this->participants->payer($invoice->payerParticipantId, 'en');
+        if ($payer === null) {
+            return false;
+        }
+        return ($userId !== null && $payer['userId'] === $userId)
+            || ($email !== '' && mb_strtolower(trim($email)) === mb_strtolower($payer['email']));
+    }
+
+    /**
+     * @return array{items: list<array<string, mixed>>, itemsMax: int}|null
+     */
+    public function ofEdition(ContextInfo $context, int $editionId, ?InvoiceStatus $status, string $search, int $count, int $offset, string $locale): ?array
+    {
+        if ($this->edition($context, $editionId) === null) {
+            return null;
+        }
+        $page = $this->payments->ofEdition($context->id, $editionId, $status, $search, $count, $offset);
+        return [
+            'items' => array_map(fn (Invoice $i): array => $this->present($context, $i, $locale), $page['items']),
+            'itemsMax' => $page['itemsMax'],
+        ];
+    }
+
+    /**
+     * Invoices of the person in the context (REG-06 cabinet), newest first.
+     *
+     * @param list<int> $participantIds
+     * @return list<array<string, mixed>>
+     */
+    public function ofParticipants(ContextInfo $context, array $participantIds, string $locale): array
+    {
+        return array_map(fn (Invoice $i): array => $this->present($context, $i, $locale), $this->payments->ofParticipants($participantIds));
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function events(ContextInfo $context, int $invoiceId): array
+    {
+        $invoice = $this->payments->findInvoice($context->id, $invoiceId);
+        if ($invoice === null) {
+            return [];
+        }
+        $currency = $invoice->total->currency;
+        return array_map(static function (array $e) use ($currency): array {
+            $amount = is_array($e['payload'] ?? null) && is_int($e['payload']['amount'] ?? null) ? $e['payload']['amount'] : null;
+            return $e + ['amount' => $amount === null ? null : (new Money($amount, $currency))->toArray()];
+        }, $this->payments->events($invoiceId));
+    }
+
+    /**
+     * Everything an invoice shows: in the cabinet, the list, the letter and
+     * the PDF. Built from the snapshots, so it does not change later.
+     *
+     * @return array<string, mixed>
+     */
+    public function present(ContextInfo $context, Invoice $invoice, string $locale): array
+    {
+        $r = $invoice->recipient;
+        $editionName = (string) (new LocalizedText((array) ($r['editionName'] ?? [])))->resolve($locale, $context->primaryLocale);
+        $purpose = (new TextTemplate((string) ($r['purposeTemplate'] ?? '')))->render([
+            'invoiceNumber' => (string) $invoice->number,
+            'paymentReference' => (string) $invoice->paymentReference,
+            'payerName' => (string) ($invoice->payer['name'] ?? ''),
+            'editionTitle' => $editionName,
+            'editionPath' => (string) ($r['editionPath'] ?? ''),
+            'year' => (string) $invoice->numberYear,
+            'amount' => $invoice->total->decimal(),
+            'currency' => $invoice->total->currency,
+        ]);
+        $instructions = (string) (new LocalizedText((array) ($r['instructions'] ?? [])))->resolve($locale, $context->primaryLocale);
+        if ($instructions === '') {
+            $instructions = $this->t(self::I . 'instructions.' . $invoice->mode->value, [], $locale);
+        }
+        if (!empty($r['cardWarning']) && $invoice->mode->hasDocument()) {
+            $instructions = trim($instructions . "\n\n" . $this->t(self::I . 'instructions.noCard', [], $locale));
+        }
+        return [
+            'id' => $invoice->id,
+            'editionId' => $invoice->editionId,
+            'editionName' => $editionName,
+            'payerParticipantId' => $invoice->payerParticipantId,
+            'number' => $invoice->number,
+            'paymentReference' => $invoice->paymentReference,
+            'status' => $invoice->status->value,
+            'statusLabel' => $this->t($invoice->status->labelKey(), [], $locale),
+            'mode' => $invoice->mode->value,
+            'modeLabel' => $this->t($invoice->mode->labelKey(), [], $locale),
+            'method' => $invoice->method,
+            'hasDocument' => $invoice->mode->hasDocument() && !$invoice->isWaiver(),
+            'total' => $invoice->total->toArray(),
+            'paid' => $invoice->paidAmount()->toArray(),
+            'due' => $invoice->due()->toArray(),
+            'totalInWords' => AmountInWords::format($invoice->total, $locale),
+            'waiverReason' => $invoice->waiverReason,
+            'supersedesId' => $invoice->supersedesId,
+            'issuedAt' => DateInput::toIsoUtc($invoice->issuedAt),
+            'dueAt' => DateInput::toIsoUtc($invoice->dueAt),
+            'paidAt' => DateInput::toIsoUtc($invoice->paidAt),
+            'timezone' => (string) ($r['timezone'] ?? 'UTC'),
+            'payer' => $invoice->payer,
+            'recipient' => [
+                'institution' => (string) (new LocalizedText((array) ($r['institution'] ?? [])))->resolve($locale, $context->primaryLocale),
+                'institutionLegalId' => (string) ($r['institutionLegalId'] ?? ''),
+                'address' => (string) (new LocalizedText((array) ($r['address'] ?? [])))->resolve($locale, $context->primaryLocale),
+                'account' => (array) ($r['account'] ?? []),
+                'accountFields' => (array) ($r['accountFields'] ?? []),
+                'signerName' => (string) (new LocalizedText((array) ($r['signer']['fullName'] ?? [])))->resolve($locale, $context->primaryLocale),
+                'signerPosition' => (string) (new LocalizedText((array) ($r['signer']['position'] ?? [])))->resolve($locale, $context->primaryLocale),
+            ],
+            'purpose' => $purpose,
+            'instructions' => $instructions,
+            'externalUrl' => $r['externalUrl'] ?? null,
+            'items' => array_map(static fn (InvoiceItem $i): array => $i->toArray(), $invoice->items),
+            'isOpen' => $invoice->status->isOpen(),
+        ];
+    }
+
+    /**
+     * The recipient as it is at issue time (FEE-06).
+     *
+     * @return array<string, mixed>
+     */
+    private function recipient(ContextInfo $context, PaymentRule $rule, Edition $edition): array
+    {
+        $profile = ($this->institution)($context);
+        $account = null;
+        foreach ($profile->activePaymentAccounts() as $a) {
+            if ($a->id === $rule->paymentAccountId) {
+                $account = $a;
+            }
+        }
+        $jurisdiction = $this->jurisdiction($profile);
+        $features = $jurisdiction?->getFeatures() ?? [];
+        $locale = $context->primaryLocale;
+        return [
+            'institution' => $profile->text('name')->toArray(),
+            'institutionLegalId' => (string) $profile->legalId,
+            'address' => $profile->text('address')->toArray(),
+            'account' => $account === null ? [] : array_intersect_key($account->toArray(), array_flip(['kind', 'recipientName', 'iban', 'bankName', 'legalId', 'extra'])),
+            'accountFields' => $account === null ? [] : $this->accountFields($account, $jurisdiction, $locale),
+            'purposeTemplate' => $account !== null && $account->purposeTemplate !== ''
+                ? $account->purposeTemplate
+                : $this->t(self::I . 'purpose.default', [], $locale),
+            'instructions' => $rule->instructions->toArray(),
+            'externalUrl' => $rule->externalUrl,
+            'editionName' => $edition->text('name')->toArray(),
+            'editionPath' => $edition->path,
+            'timezone' => $edition->timezone,
+            'cardWarning' => in_array(JurisdictionProfile::FEATURE_CARD_WARNING, $features, true),
+            'signer' => $this->signer($profile),
+        ];
+    }
+
+    /**
+     * Labelled extra fields of the account (PAY-03), in the primary language.
+     *
+     * @return list<array{label: string, value: string}>
+     */
+    private function accountFields(PaymentAccount $account, ?JurisdictionProfile $jurisdiction, string $locale): array
+    {
+        $labels = [];
+        foreach ($jurisdiction?->getPaymentAccountExtraFields($account->kind) ?? [] as $field) {
+            $labels[$field->name] = $this->t($field->labelKey, [], $locale);
+        }
+        $out = [];
+        foreach ($account->extra as $name => $value) {
+            if ($value !== null && trim((string) $value) !== '') {
+                $out[] = ['label' => (string) ($labels[$name] ?? $name), 'value' => (string) $value];
+            }
+        }
+        return $out;
+    }
+
+    /** @return array{fullName: array<string, string>, position: array<string, string>}|null */
+    private function signer(InstitutionProfile $profile): ?array
+    {
+        foreach ($profile->signers as $s) {
+            if ($s->signs(DocumentType::Invoice)) {
+                return ['fullName' => $s->fullName->toArray(), 'position' => $s->position->toArray()];
+            }
+        }
+        return null;
+    }
+
+    private function jurisdiction(InstitutionProfile $profile): ?JurisdictionProfile
+    {
+        return $this->jurisdictions !== null && $this->jurisdictions->has($profile->jurisdiction)
+            ? $this->jurisdictions->get($profile->jurisdiction)
+            : null;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function t(string $key, array $params, string $locale): string
+    {
+        return $this->translate === null ? $key : ($this->translate)($key, $params, $locale);
+    }
+}

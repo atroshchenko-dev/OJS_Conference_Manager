@@ -33,7 +33,7 @@ class ConferenceApiController extends PKPBaseController
      */
     public function __construct(?array $modules = null)
     {
-        $this->modules = $modules ?? [new InstitutionRoutes($this), new EditionRoutes($this), new FeeRoutes($this), new RegistrationRoutes($this), new ParticipantRoutes($this), new MyParticipationRoutes($this)];
+        $this->modules = $modules ?? [new InstitutionRoutes($this), new EditionRoutes($this), new FeeRoutes($this), new RegistrationRoutes($this), new ParticipantRoutes($this), new InvoiceRoutes($this), new MyParticipationRoutes($this)];
     }
 
     public function getHandlerPath(): string

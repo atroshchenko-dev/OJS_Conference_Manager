@@ -1145,3 +1145,339 @@ msgstr "Page {$page} of {$pages}"
 
 msgid "plugins.generic.conferenceManager.fee.saved"
 msgstr "Saved."
+
+msgid "plugins.generic.conferenceManager.editions.payments"
+msgstr "Payment"
+
+msgid "plugins.generic.conferenceManager.editions.invoices"
+msgstr "Invoices"
+
+msgid "plugins.generic.conferenceManager.payment.mode.free"
+msgstr "Free"
+
+msgid "plugins.generic.conferenceManager.payment.mode.bank_transfer"
+msgstr "Bank transfer by invoice"
+
+msgid "plugins.generic.conferenceManager.payment.mode.treasury_transfer"
+msgstr "Treasury transfer"
+
+msgid "plugins.generic.conferenceManager.payment.mode.external_organizer"
+msgstr "Paid by a co-organizer"
+
+msgid "plugins.generic.conferenceManager.payment.mode.external_link"
+msgstr "Payment on an external page"
+
+msgid "plugins.generic.conferenceManager.payment.error.duplicate"
+msgstr "This category already has a rule. There can be only one rule without a category."
+
+msgid "plugins.generic.conferenceManager.payment.error.account"
+msgstr "Choose an account of the institution profile."
+
+msgid "plugins.generic.conferenceManager.payment.error.treasuryAccount"
+msgstr "A treasury transfer needs a treasury account."
+
+msgid "plugins.generic.conferenceManager.payment.error.bankAccount"
+msgstr "A bank transfer needs a bank account."
+
+msgid "plugins.generic.conferenceManager.payment.error.url"
+msgstr "Enter the payment page address starting with https://."
+
+msgid "plugins.generic.conferenceManager.payment.error.notOpen"
+msgstr "The invoice is already paid, cancelled or replaced."
+
+msgid "plugins.generic.conferenceManager.payment.error.reason"
+msgstr "Enter the reason for the waiver."
+
+msgid "plugins.generic.conferenceManager.payment.title"
+msgstr "Payment"
+
+msgid "plugins.generic.conferenceManager.payment.rules"
+msgstr "How participant categories pay"
+
+msgid "plugins.generic.conferenceManager.payment.rules.description"
+msgstr "A rule without a category applies to every category that has no rule of its own. Without rules or with the “Free” mode no invoices are issued."
+
+msgid "plugins.generic.conferenceManager.payment.rules.empty"
+msgstr "There are no rules yet, so no invoices are issued."
+
+msgid "plugins.generic.conferenceManager.payment.rule.add"
+msgstr "Add a rule"
+
+msgid "plugins.generic.conferenceManager.payment.rule.default"
+msgstr "All other categories"
+
+msgid "plugins.generic.conferenceManager.payment.rule.deleteConfirm"
+msgstr "Delete this rule? Invoices already issued will not change."
+
+msgid "plugins.generic.conferenceManager.payment.mode"
+msgstr "Payment mode"
+
+msgid "plugins.generic.conferenceManager.payment.account"
+msgstr "Recipient account"
+
+msgid "plugins.generic.conferenceManager.payment.account.none"
+msgstr "The institution profile has no accounts yet. Add them in the plugin settings."
+
+msgid "plugins.generic.conferenceManager.payment.externalUrl"
+msgstr "Payment page link"
+
+msgid "plugins.generic.conferenceManager.payment.instructions"
+msgstr "Instructions for the payer"
+
+msgid "plugins.generic.conferenceManager.payment.instructions.description"
+msgstr "The participant sees the instructions in the letter and the cabinet. If empty, the standard instructions of the mode are used."
+
+msgid "plugins.generic.conferenceManager.invoice.status.draft"
+msgstr "draft"
+
+msgid "plugins.generic.conferenceManager.invoice.status.issued"
+msgstr "issued"
+
+msgid "plugins.generic.conferenceManager.invoice.status.overdue"
+msgstr "overdue"
+
+msgid "plugins.generic.conferenceManager.invoice.status.paid"
+msgstr "paid"
+
+msgid "plugins.generic.conferenceManager.invoice.status.waived"
+msgstr "waived"
+
+msgid "plugins.generic.conferenceManager.invoice.status.cancelled"
+msgstr "cancelled"
+
+msgid "plugins.generic.conferenceManager.invoice.status.superseded"
+msgstr "superseded"
+
+msgid "plugins.generic.conferenceManager.invoice.status.refund_requested"
+msgstr "refund requested"
+
+msgid "plugins.generic.conferenceManager.invoice.status.refunded"
+msgstr "refunded"
+
+msgid "plugins.generic.conferenceManager.invoice.item.abstract"
+msgstr "Registration fee for “{$edition}” (abstract)"
+
+msgid "plugins.generic.conferenceManager.invoice.item.paper"
+msgstr "Registration fee for “{$edition}” (paper)"
+
+msgid "plugins.generic.conferenceManager.invoice.item.listener"
+msgstr "Registration fee for “{$edition}” (listener)"
+
+msgid "plugins.generic.conferenceManager.invoice.item.any"
+msgstr "Registration fee for “{$edition}”"
+
+msgid "plugins.generic.conferenceManager.invoice.purpose.default"
+msgstr "Registration fee for “{editionTitle}”, invoice No. {invoiceNumber}, {payerName}"
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.free"
+msgstr "Participation is free."
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.bank_transfer"
+msgstr "Pay to the account details of the invoice at a bank or in online banking. Copy the payment purpose exactly as in the invoice."
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.treasury_transfer"
+msgstr "Pay to the treasury account using the invoice details. Copy the payment purpose and the income code exactly as in the invoice."
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.external_organizer"
+msgstr "The fee is paid through a co-organizer of the event. The organizers will contact you about the payment."
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.external_link"
+msgstr "Pay on the payment page linked below. Put the invoice number in the comment."
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.noCard"
+msgstr "Note: a transfer to a card number is not a payment to the institution's account. Pay only to the IBAN in the invoice."
+
+msgid "plugins.generic.conferenceManager.invoice.document.no"
+msgstr "No."
+
+msgid "plugins.generic.conferenceManager.invoice.document.description"
+msgstr "Description"
+
+msgid "plugins.generic.conferenceManager.invoice.document.quantity"
+msgstr "Quantity"
+
+msgid "plugins.generic.conferenceManager.invoice.document.price"
+msgstr "Price"
+
+msgid "plugins.generic.conferenceManager.invoice.document.amount"
+msgstr "Amount"
+
+msgid "plugins.generic.conferenceManager.invoice.document.total"
+msgstr "Total"
+
+msgid "plugins.generic.conferenceManager.invoice.mail.subject"
+msgstr "Invoice No. {$number}: {$edition}"
+
+msgid "plugins.generic.conferenceManager.invoice.mail.body"
+msgstr "<p>Dear {$name},</p><p>An invoice No. {$number} for {$amount} has been issued for your participation in “{$edition}”.</p><p>Payment purpose: {$purpose}<br>Payment reference: {$reference}</p><p>{$instructions}</p><p>The invoice PDF and the payment status are in “My event participations”: <a href=\"{$url}\">{$url}</a></p><p>{$journal}</p>"
+
+msgid "plugins.generic.conferenceManager.invoice.result.free"
+msgstr "No payment is needed for this participation: no payment rule, a free mode or a zero tariff."
+
+msgid "plugins.generic.conferenceManager.invoice.result.noTariff"
+msgstr "There is no tariff for the participant's category and material. Add one under “Fees”."
+
+msgid "plugins.generic.conferenceManager.invoice.result.pagesRequired"
+msgstr "The tariff depends on the number of pages. Enter the number of pages."
+
+msgid "plugins.generic.conferenceManager.invoice.title"
+msgstr "Invoices"
+
+msgid "plugins.generic.conferenceManager.invoice.search"
+msgstr "Number, reference or email"
+
+msgid "plugins.generic.conferenceManager.invoice.empty"
+msgstr "There are no invoices yet."
+
+msgid "plugins.generic.conferenceManager.invoice.number"
+msgstr "Number"
+
+msgid "plugins.generic.conferenceManager.invoice.numberShort"
+msgstr "Invoice No. {$number}"
+
+msgid "plugins.generic.conferenceManager.invoice.payer"
+msgstr "Payer"
+
+msgid "plugins.generic.conferenceManager.invoice.total"
+msgstr "Amount"
+
+msgid "plugins.generic.conferenceManager.invoice.dueLeft"
+msgstr "{$amount} {$currency} left to pay"
+
+msgid "plugins.generic.conferenceManager.invoice.paidPart"
+msgstr "paid {$amount}"
+
+msgid "plugins.generic.conferenceManager.invoice.mode"
+msgstr "Payment method"
+
+msgid "plugins.generic.conferenceManager.invoice.issuedAt"
+msgstr "Issued"
+
+msgid "plugins.generic.conferenceManager.invoice.dueAt"
+msgstr "Due date"
+
+msgid "plugins.generic.conferenceManager.invoice.reference"
+msgstr "Payment reference"
+
+msgid "plugins.generic.conferenceManager.invoice.purpose"
+msgstr "Payment purpose"
+
+msgid "plugins.generic.conferenceManager.invoice.waiverReason"
+msgstr "Waiver reason"
+
+msgid "plugins.generic.conferenceManager.invoice.download"
+msgstr "Download the invoice (PDF)"
+
+msgid "plugins.generic.conferenceManager.invoice.payExternal"
+msgstr "Go to payment"
+
+msgid "plugins.generic.conferenceManager.invoice.markPaid"
+msgstr "Mark paid"
+
+msgid "plugins.generic.conferenceManager.invoice.waive"
+msgstr "Waive"
+
+msgid "plugins.generic.conferenceManager.invoice.history"
+msgstr "History"
+
+msgid "plugins.generic.conferenceManager.invoice.paidPrompt"
+msgstr "What amount was received? Due: {$amount} {$currency}. A smaller amount is recorded as a part payment."
+
+msgid "plugins.generic.conferenceManager.invoice.paidDone"
+msgstr "Payment recorded."
+
+msgid "plugins.generic.conferenceManager.invoice.waivePrompt"
+msgstr "Reason for the waiver (the participant will see it):"
+
+msgid "plugins.generic.conferenceManager.invoice.waiveDone"
+msgstr "The participant is waived from payment."
+
+msgid "plugins.generic.conferenceManager.invoice.cancelConfirm"
+msgstr "Cancel invoice No. {$number}?"
+
+msgid "plugins.generic.conferenceManager.invoice.cancelDone"
+msgstr "Invoice cancelled."
+
+msgid "plugins.generic.conferenceManager.invoice.issue"
+msgstr "Invoice"
+
+msgid "plugins.generic.conferenceManager.invoice.issued"
+msgstr "Invoice No. {$number} issued."
+
+msgid "plugins.generic.conferenceManager.invoice.pagesPrompt"
+msgstr "Number of pages of the paper (leave empty for an abstract):"
+
+msgid "plugins.generic.conferenceManager.invoice.event.issued"
+msgstr "issued"
+
+msgid "plugins.generic.conferenceManager.invoice.event.part_paid"
+msgstr "part payment"
+
+msgid "plugins.generic.conferenceManager.invoice.event.paid"
+msgstr "paid"
+
+msgid "plugins.generic.conferenceManager.invoice.event.waived"
+msgstr "waived"
+
+msgid "plugins.generic.conferenceManager.invoice.event.superseded"
+msgstr "replaced by a new invoice"
+
+msgid "plugins.generic.conferenceManager.invoice.event.cancelled"
+msgstr "cancelled"
+
+msgid "plugins.generic.conferenceManager.invoice.event.status_cancelled"
+msgstr "cancelled with the participation"
+
+msgid "plugins.generic.conferenceManager.invoice.event.status_refund_requested"
+msgstr "refund requested"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.title"
+msgstr "Invoice templates"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.description"
+msgstr "The invoice PDF is built from an HTML template. There are two built-in templates, bank and treasury. You can adapt them to your institution; “Restore built-in” undoes the changes."
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.kind.bank"
+msgstr "Invoice (bank)"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.kind.treasury"
+msgstr "Invoice (treasury)"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.custom"
+msgstr "changed"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.builtIn"
+msgstr "built-in"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.variables"
+msgstr "Variables:"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.reset"
+msgstr "Restore built-in"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.error.tooLong"
+msgstr "The template is too long (100,000 characters at most)."
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.error.variables"
+msgstr "The template has unknown variables. Use only the variables from the list."
+
+msgid "plugins.generic.conferenceManager.my.invoices"
+msgstr "My invoices"
+
+msgid "plugins.generic.conferenceManager.account.swift"
+msgstr "SWIFT (BIC)"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.incomeCode"
+msgstr "Budget income classification code"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.incomeCode.description"
+msgstr "For example 25010100, fees for services of budget institutions."
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.kpkv"
+msgstr "Budget programme code (KPKV)"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.treasuryNote"
+msgstr "Note for the payer"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.treasuryNote.description"
+msgstr "Additional treasury requirements for the payment, if any."

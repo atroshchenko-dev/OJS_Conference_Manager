@@ -64,4 +64,14 @@ interface ParticipantRepository
     public function register(int $contextId, int $editionId, ParticipantFilter $filter, string $locale): array;
 
     public function setCategory(int $participantId, ?int $categoryId): void;
+
+    /**
+     * The payer of an invoice: name in the locale, email, affiliation, category.
+     *
+     * @return array{participantId: int, editionId: int, userId: ?int, name: string, email: string, affiliation: string, categoryId: ?int}|null
+     */
+    public function payer(int $participantId, string $locale): ?array;
+
+    /** Active presenter participation of a submission (FEE-04). */
+    public function presenterOf(int $submissionId): ?int;
 }

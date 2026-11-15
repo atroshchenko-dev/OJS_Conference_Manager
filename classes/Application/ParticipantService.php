@@ -48,6 +48,8 @@ final class ParticipantService
         private readonly ?AuditLogger $audit = null,
         /** @var (\Closure(string): string)|null translates a locale key; the key itself without it */
         private readonly ?\Closure $translate = null,
+        /** issues the listener's invoice right after registration (FEE-04) */
+        private readonly ?InvoiceService $invoices = null,
     ) {
     }
 
@@ -146,6 +148,12 @@ final class ParticipantService
             'participationForm' => $form->value,
             'consentVersion' => $consentVersion,
         ], $ip);
+        try {
+            $this->invoices?->issueFor($context, $result['participationId'], null, $person['userId'], $now);
+        } catch (\Throwable $e) {
+            // The registration stands; the manager can issue the invoice later.
+            error_log('conferenceManager: listener invoice failed: ' . $e->getMessage());
+        }
         return [$result, $errors];
     }
 

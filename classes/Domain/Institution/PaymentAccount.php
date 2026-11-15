@@ -68,7 +68,7 @@ final class PaymentAccount
         $extra = [];
         foreach ((array) ($data['extra'] ?? []) as $k => $v) {
             if (is_string($k) && (is_scalar($v) || $v === null)) {
-                $extra[$k] = $v;
+                $extra[$k] = is_string($v) ? mb_substr(trim($v), 0, 500) : $v;
             }
         }
         return new self(

@@ -60,7 +60,19 @@ final class UaProfile extends AbstractJurisdictionProfile
 
     public function getFeatures(): array
     {
-        return [self::FEATURE_TREASURY, self::FEATURE_VECTOR, self::FEATURE_PK_CERTIFICATE];
+        return [self::FEATURE_TREASURY, self::FEATURE_VECTOR, self::FEATURE_PK_CERTIFICATE, self::FEATURE_CARD_WARNING];
+    }
+
+    public function getPaymentAccountExtraFields(PaymentAccountKind $kind): array
+    {
+        if ($kind !== PaymentAccountKind::Treasury) {
+            return parent::getPaymentAccountExtraFields($kind);
+        }
+        return [
+            new FieldDefinition('incomeCode', 'plugins.generic.conferenceManager.jurisdiction.ua.incomeCode', descriptionKey: 'plugins.generic.conferenceManager.jurisdiction.ua.incomeCode.description', maxLength: 16),
+            new FieldDefinition('kpkv', 'plugins.generic.conferenceManager.jurisdiction.ua.kpkv', maxLength: 16),
+            new FieldDefinition('treasuryNote', 'plugins.generic.conferenceManager.jurisdiction.ua.treasuryNote', descriptionKey: 'plugins.generic.conferenceManager.jurisdiction.ua.treasuryNote.description', maxLength: 500),
+        ];
     }
 
     public function getInstitutionExtraFields(): array

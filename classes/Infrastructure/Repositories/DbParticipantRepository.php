@@ -243,6 +243,31 @@ final class DbParticipantRepository implements ParticipantRepository
         $this->db->table('conf_participants')->where('id', $participantId)->update(['category_id' => $categoryId, 'updated_at' => gmdate('Y-m-d H:i:s')]);
     }
 
+    public function payer(int $participantId, string $locale): ?array
+    {
+        $p = $this->db->table('conf_participants')->where('id', $participantId)->first();
+        if ($p === null) {
+            return null;
+        }
+        return [
+            'participantId' => (int) $p->id,
+            'editionId' => (int) $p->edition_id,
+            'userId' => $p->user_id === null ? null : (int) $p->user_id,
+            'name' => $this->names([(int) $p->id], $locale)[(int) $p->id] ?? '',
+            'email' => (string) $p->email,
+            'affiliation' => (string) ($p->affiliation ?? ''),
+            'categoryId' => $p->category_id === null ? null : (int) $p->category_id,
+        ];
+    }
+
+    public function presenterOf(int $submissionId): ?int
+    {
+        $id = $this->db->table('conf_participations')->where('submission_id', $submissionId)
+            ->where('role', ParticipantRole::Presenter->value)->where('status', ParticipationStatus::Active->value)
+            ->orderBy('id')->value('id');
+        return $id === null ? null : (int) $id;
+    }
+
     /**
      * @param list<int> $ids
      * @return array<int, string> "Given Family" in the locale, else in any locale

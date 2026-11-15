@@ -1145,3 +1145,339 @@ msgstr "Сторінка {$page} з {$pages}"
 
 msgid "plugins.generic.conferenceManager.fee.saved"
 msgstr "Збережено."
+
+msgid "plugins.generic.conferenceManager.editions.payments"
+msgstr "Оплата"
+
+msgid "plugins.generic.conferenceManager.editions.invoices"
+msgstr "Рахунки"
+
+msgid "plugins.generic.conferenceManager.payment.mode.free"
+msgstr "Безкоштовно"
+
+msgid "plugins.generic.conferenceManager.payment.mode.bank_transfer"
+msgstr "Банківський переказ за рахунком"
+
+msgid "plugins.generic.conferenceManager.payment.mode.treasury_transfer"
+msgstr "Переказ через казначейство"
+
+msgid "plugins.generic.conferenceManager.payment.mode.external_organizer"
+msgstr "Платить співорганізатор"
+
+msgid "plugins.generic.conferenceManager.payment.mode.external_link"
+msgstr "Оплата на зовнішній сторінці"
+
+msgid "plugins.generic.conferenceManager.payment.error.duplicate"
+msgstr "Для цієї категорії вже є правило. Правило без категорії може бути лише одне."
+
+msgid "plugins.generic.conferenceManager.payment.error.account"
+msgstr "Оберіть рахунок закладу з профілю."
+
+msgid "plugins.generic.conferenceManager.payment.error.treasuryAccount"
+msgstr "Для переказу через казначейство потрібен казначейський рахунок."
+
+msgid "plugins.generic.conferenceManager.payment.error.bankAccount"
+msgstr "Для банківського переказу потрібен банківський рахунок."
+
+msgid "plugins.generic.conferenceManager.payment.error.url"
+msgstr "Вкажіть адресу сторінки оплати, що починається з https://."
+
+msgid "plugins.generic.conferenceManager.payment.error.notOpen"
+msgstr "Рахунок уже оплачено, скасовано або замінено."
+
+msgid "plugins.generic.conferenceManager.payment.error.reason"
+msgstr "Вкажіть причину звільнення від оплати."
+
+msgid "plugins.generic.conferenceManager.payment.title"
+msgstr "Оплата"
+
+msgid "plugins.generic.conferenceManager.payment.rules"
+msgstr "Як платять категорії учасників"
+
+msgid "plugins.generic.conferenceManager.payment.rules.description"
+msgstr "Правило без категорії діє для всіх категорій, яким не задано власного. Без правил або з режимом «Безкоштовно» рахунки не виставляються."
+
+msgid "plugins.generic.conferenceManager.payment.rules.empty"
+msgstr "Правил ще немає, тому рахунки не виставляються."
+
+msgid "plugins.generic.conferenceManager.payment.rule.add"
+msgstr "Додати правило"
+
+msgid "plugins.generic.conferenceManager.payment.rule.default"
+msgstr "Усі інші категорії"
+
+msgid "plugins.generic.conferenceManager.payment.rule.deleteConfirm"
+msgstr "Видалити це правило? Уже виставлені рахунки не зміняться."
+
+msgid "plugins.generic.conferenceManager.payment.mode"
+msgstr "Режим оплати"
+
+msgid "plugins.generic.conferenceManager.payment.account"
+msgstr "Рахунок отримувача"
+
+msgid "plugins.generic.conferenceManager.payment.account.none"
+msgstr "У профілі закладу ще немає рахунків. Додайте їх у налаштуваннях плагіна."
+
+msgid "plugins.generic.conferenceManager.payment.externalUrl"
+msgstr "Посилання на сторінку оплати"
+
+msgid "plugins.generic.conferenceManager.payment.instructions"
+msgstr "Інструкція для платника"
+
+msgid "plugins.generic.conferenceManager.payment.instructions.description"
+msgstr "Інструкцію побачить учасник у листі й кабінеті. Якщо поле порожнє, буде типова інструкція для режиму."
+
+msgid "plugins.generic.conferenceManager.invoice.status.draft"
+msgstr "чернетка"
+
+msgid "plugins.generic.conferenceManager.invoice.status.issued"
+msgstr "виставлено"
+
+msgid "plugins.generic.conferenceManager.invoice.status.overdue"
+msgstr "прострочено"
+
+msgid "plugins.generic.conferenceManager.invoice.status.paid"
+msgstr "оплачено"
+
+msgid "plugins.generic.conferenceManager.invoice.status.waived"
+msgstr "звільнено від оплати"
+
+msgid "plugins.generic.conferenceManager.invoice.status.cancelled"
+msgstr "скасовано"
+
+msgid "plugins.generic.conferenceManager.invoice.status.superseded"
+msgstr "замінено"
+
+msgid "plugins.generic.conferenceManager.invoice.status.refund_requested"
+msgstr "повернення коштів"
+
+msgid "plugins.generic.conferenceManager.invoice.status.refunded"
+msgstr "кошти повернуто"
+
+msgid "plugins.generic.conferenceManager.invoice.item.abstract"
+msgstr "Організаційний внесок за участь у заході «{$edition}» (тези)"
+
+msgid "plugins.generic.conferenceManager.invoice.item.paper"
+msgstr "Організаційний внесок за участь у заході «{$edition}» (стаття)"
+
+msgid "plugins.generic.conferenceManager.invoice.item.listener"
+msgstr "Організаційний внесок за участь у заході «{$edition}» (слухач)"
+
+msgid "plugins.generic.conferenceManager.invoice.item.any"
+msgstr "Організаційний внесок за участь у заході «{$edition}»"
+
+msgid "plugins.generic.conferenceManager.invoice.purpose.default"
+msgstr "Оргвнесок за участь у заході «{editionTitle}», рахунок № {invoiceNumber}, {payerName}"
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.free"
+msgstr "Участь безкоштовна."
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.bank_transfer"
+msgstr "Сплатіть за реквізитами рахунку в банку чи інтернет-банкінгу. Призначення платежу вкажіть точно так, як у рахунку."
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.treasury_transfer"
+msgstr "Сплатіть на казначейський рахунок за реквізитами рахунку. Призначення платежу й код класифікації доходів вкажіть точно так, як у рахунку."
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.external_organizer"
+msgstr "Оргвнесок сплачує співорганізатор заходу. Організатори зв'яжуться з вами щодо оплати."
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.external_link"
+msgstr "Сплатіть на сторінці оплати за посиланням нижче. У коментарі вкажіть номер рахунку."
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.noCard"
+msgstr "Увага: переказ на номер картки не є оплатою на рахунок закладу. Сплачуйте лише за реквізитами IBAN із рахунку."
+
+msgid "plugins.generic.conferenceManager.invoice.document.no"
+msgstr "№"
+
+msgid "plugins.generic.conferenceManager.invoice.document.description"
+msgstr "Найменування"
+
+msgid "plugins.generic.conferenceManager.invoice.document.quantity"
+msgstr "Кількість"
+
+msgid "plugins.generic.conferenceManager.invoice.document.price"
+msgstr "Ціна"
+
+msgid "plugins.generic.conferenceManager.invoice.document.amount"
+msgstr "Сума"
+
+msgid "plugins.generic.conferenceManager.invoice.document.total"
+msgstr "Разом"
+
+msgid "plugins.generic.conferenceManager.invoice.mail.subject"
+msgstr "Рахунок № {$number}: {$edition}"
+
+msgid "plugins.generic.conferenceManager.invoice.mail.body"
+msgstr "<p>Шановна/шановний {$name}!</p><p>Для участі в заході «{$edition}» виставлено рахунок № {$number} на суму {$amount}.</p><p>Призначення платежу: {$purpose}<br>Код платежу: {$reference}</p><p>{$instructions}</p><p>Рахунок у PDF і стан оплати — у кабінеті «Мої участі в заходах»: <a href=\"{$url}\">{$url}</a></p><p>{$journal}</p>"
+
+msgid "plugins.generic.conferenceManager.invoice.result.free"
+msgstr "Для цієї участі оплата не потрібна: немає правила оплати, режим безкоштовний або тариф нульовий."
+
+msgid "plugins.generic.conferenceManager.invoice.result.noTariff"
+msgstr "Для категорії й матеріалу учасника немає тарифу. Додайте тариф в «Оргвнесках»."
+
+msgid "plugins.generic.conferenceManager.invoice.result.pagesRequired"
+msgstr "Тариф залежить від кількості сторінок. Вкажіть кількість сторінок."
+
+msgid "plugins.generic.conferenceManager.invoice.title"
+msgstr "Рахунки"
+
+msgid "plugins.generic.conferenceManager.invoice.search"
+msgstr "Номер, код платежу або пошта"
+
+msgid "plugins.generic.conferenceManager.invoice.empty"
+msgstr "Рахунків ще немає."
+
+msgid "plugins.generic.conferenceManager.invoice.number"
+msgstr "Номер"
+
+msgid "plugins.generic.conferenceManager.invoice.numberShort"
+msgstr "Рахунок № {$number}"
+
+msgid "plugins.generic.conferenceManager.invoice.payer"
+msgstr "Платник"
+
+msgid "plugins.generic.conferenceManager.invoice.total"
+msgstr "Сума"
+
+msgid "plugins.generic.conferenceManager.invoice.dueLeft"
+msgstr "лишилося сплатити {$amount} {$currency}"
+
+msgid "plugins.generic.conferenceManager.invoice.paidPart"
+msgstr "сплачено {$amount}"
+
+msgid "plugins.generic.conferenceManager.invoice.mode"
+msgstr "Спосіб оплати"
+
+msgid "plugins.generic.conferenceManager.invoice.issuedAt"
+msgstr "Виставлено"
+
+msgid "plugins.generic.conferenceManager.invoice.dueAt"
+msgstr "Сплатити до"
+
+msgid "plugins.generic.conferenceManager.invoice.reference"
+msgstr "Код платежу"
+
+msgid "plugins.generic.conferenceManager.invoice.purpose"
+msgstr "Призначення платежу"
+
+msgid "plugins.generic.conferenceManager.invoice.waiverReason"
+msgstr "Причина звільнення"
+
+msgid "plugins.generic.conferenceManager.invoice.download"
+msgstr "Завантажити рахунок (PDF)"
+
+msgid "plugins.generic.conferenceManager.invoice.payExternal"
+msgstr "Перейти до оплати"
+
+msgid "plugins.generic.conferenceManager.invoice.markPaid"
+msgstr "Оплачено"
+
+msgid "plugins.generic.conferenceManager.invoice.waive"
+msgstr "Звільнити"
+
+msgid "plugins.generic.conferenceManager.invoice.history"
+msgstr "Історія"
+
+msgid "plugins.generic.conferenceManager.invoice.paidPrompt"
+msgstr "Яку суму отримано? До сплати: {$amount} {$currency}. Менша сума запишеться як часткова оплата."
+
+msgid "plugins.generic.conferenceManager.invoice.paidDone"
+msgstr "Оплату записано."
+
+msgid "plugins.generic.conferenceManager.invoice.waivePrompt"
+msgstr "Причина звільнення від оплати (її побачить учасник):"
+
+msgid "plugins.generic.conferenceManager.invoice.waiveDone"
+msgstr "Учасника звільнено від оплати."
+
+msgid "plugins.generic.conferenceManager.invoice.cancelConfirm"
+msgstr "Скасувати рахунок № {$number}?"
+
+msgid "plugins.generic.conferenceManager.invoice.cancelDone"
+msgstr "Рахунок скасовано."
+
+msgid "plugins.generic.conferenceManager.invoice.issue"
+msgstr "Рахунок"
+
+msgid "plugins.generic.conferenceManager.invoice.issued"
+msgstr "Рахунок № {$number} виставлено."
+
+msgid "plugins.generic.conferenceManager.invoice.pagesPrompt"
+msgstr "Кількість сторінок статті (залиште порожнім для тез):"
+
+msgid "plugins.generic.conferenceManager.invoice.event.issued"
+msgstr "виставлено"
+
+msgid "plugins.generic.conferenceManager.invoice.event.part_paid"
+msgstr "часткова оплата"
+
+msgid "plugins.generic.conferenceManager.invoice.event.paid"
+msgstr "оплачено"
+
+msgid "plugins.generic.conferenceManager.invoice.event.waived"
+msgstr "звільнено від оплати"
+
+msgid "plugins.generic.conferenceManager.invoice.event.superseded"
+msgstr "замінено новим рахунком"
+
+msgid "plugins.generic.conferenceManager.invoice.event.cancelled"
+msgstr "скасовано"
+
+msgid "plugins.generic.conferenceManager.invoice.event.status_cancelled"
+msgstr "скасовано разом з участю"
+
+msgid "plugins.generic.conferenceManager.invoice.event.status_refund_requested"
+msgstr "потрібне повернення коштів"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.title"
+msgstr "Шаблони рахунків"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.description"
+msgstr "Рахунок у PDF будується з шаблону HTML. Є два вбудовані шаблони: банківський і казначейський. Їх можна змінити під свій заклад; кнопка «Повернути вбудований» скасовує зміни."
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.kind.bank"
+msgstr "Рахунок на оплату (банк)"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.kind.treasury"
+msgstr "Рахунок для оплати через казначейство"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.custom"
+msgstr "змінений"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.builtIn"
+msgstr "вбудований"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.variables"
+msgstr "Змінні:"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.reset"
+msgstr "Повернути вбудований"
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.error.tooLong"
+msgstr "Шаблон задовгий (не більше 100 000 символів)."
+
+msgid "plugins.generic.conferenceManager.invoiceTemplate.error.variables"
+msgstr "У шаблоні є невідомі змінні. Використовуйте лише змінні зі списку."
+
+msgid "plugins.generic.conferenceManager.my.invoices"
+msgstr "Мої рахунки"
+
+msgid "plugins.generic.conferenceManager.account.swift"
+msgstr "SWIFT (BIC)"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.incomeCode"
+msgstr "Код класифікації доходів бюджету"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.incomeCode.description"
+msgstr "Наприклад, 25010100 — плата за послуги бюджетних установ."
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.kpkv"
+msgstr "КПКВ"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.treasuryNote"
+msgstr "Примітка для платника"
+
+msgid "plugins.generic.conferenceManager.jurisdiction.ua.treasuryNote.description"
+msgstr "Додаткові вимоги казначейства до платежу, якщо є."

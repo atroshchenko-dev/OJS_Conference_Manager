@@ -37,6 +37,13 @@ abstract class AbstractJurisdictionProfile implements JurisdictionProfile
         return [];
     }
 
+    public function getPaymentAccountExtraFields(PaymentAccountKind $kind): array
+    {
+        return [
+            new FieldDefinition('swift', 'plugins.generic.conferenceManager.account.swift', maxLength: 11),
+        ];
+    }
+
     public function validateInstitutionExtra(array $extra): ValidationErrors
     {
         $errors = new ValidationErrors();

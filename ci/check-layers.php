@@ -42,7 +42,7 @@ foreach ($it as $file) {
     }
 
     // FEE-03: money is integer minor units; no floating point in financial code.
-    if (str_starts_with($rel, 'classes/Domain/Fee/') || str_contains($rel, 'Fee') || str_contains($rel, 'Invoice')) {
+    if (str_starts_with($rel, 'classes/Domain/Fee/') || str_starts_with($rel, 'classes/Domain/Payment/') || str_contains($rel, 'Fee') || str_contains($rel, 'Invoice') || str_contains($rel, 'Payment')) {
         $code = preg_replace(['#/\*.*?\*/#s', '#//[^\n]*#', "/'(?:[^'\\\\]|\\\\.)*'/"], '', $src) ?? '';
         if (preg_match('/\b(float|floatval|round|number_format|fdiv)\b|\b\d+\.\d+\b/i', $code, $fm)) {
             $problems[] = "$rel: floating point in financial code ({$fm[0]})";

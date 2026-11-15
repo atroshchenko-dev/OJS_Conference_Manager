@@ -16,6 +16,7 @@
  *   php lifecycle.php publication-schema <contextPath>      plan 8.3 properties
  *   php lifecycle.php enable-site                           site level ("Upcoming events", EDN-08)
  *   php lifecycle.php run-windows-task                      EDN-03 scheduled task, once
+ *   php lifecycle.php next-numbers <contextPath> <year> <n> FEE-05: n invoice numbers, one transaction each
  *
  * install / upgrade call the same PluginHelper methods as the upload form
  * of the plugin grid. upgrade loads the plugin first, exactly like the
@@ -53,6 +54,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'author-group' => $this->authorGroup($this->argv[1]),
                 'new-token' => $this->newToken($this->argv[1], $this->argv[2]),
                 'new-user' => $this->newUser($this->argv[1], $this->argv[2], $this->argv[3]),
+                'next-numbers' => $this->nextNumbers($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 'seed-participants' => $this->seedParticipants($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
@@ -259,6 +261,24 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
             DB::table('conf_participations')->insert(['participant_id' => $pid, 'role' => 'listener', 'participation_form' => 'online', 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
         }
         echo "OK seeded {$count}\n";
+    }
+
+    /**
+     * Takes n numbers of the invoice counter, each in its own transaction
+     * with a short pause under the lock, so parallel runs interleave.
+     */
+    private function nextNumbers(string $path, int $year, int $n): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $repo = new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPaymentRepository(DB::connection());
+        $repo->ensureCounter((int) $context->getId(), $year);
+        for ($i = 0; $i < $n; $i++) {
+            echo DB::transaction(static function () use ($repo, $context, $year): int {
+                $next = $repo->nextNumber((int) $context->getId(), $year);
+                usleep(random_int(0, 3000));
+                return $next;
+            }), "\n";
+        }
     }
 
     private function steps(): void

@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace APP\plugins\generic\conferenceManager;
 
 use APP\core\Application;
+use APP\decision\Decision;
 use APP\plugins\generic\conferenceManager\classes\Api\ConferenceApiController;
 use APP\plugins\generic\conferenceManager\classes\Api\ConferenceSiteApiController;
 use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
@@ -37,6 +38,7 @@ use PKP\core\APIRouter;
 use PKP\core\JSONMessage;
 use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
+use PKP\observers\events\DecisionAdded;
 use PKP\observers\events\SubmissionSubmitted;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
@@ -75,6 +77,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         Hook::add('TemplateManager::display', $this->addWizardStep(...));
         Hook::add('Submission::validateSubmit', $this->validateSubmit(...));
         Event::listen(SubmissionSubmitted::class, $this->onSubmissionSubmitted(...));
+        Event::listen(DecisionAdded::class, $this->onDecisionAdded(...));
 
         return true;
     }
@@ -208,7 +211,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
                 $handler = new ConferencePageHandler($this);
                 return true;
             }
-            if ($contextId !== null && in_array($op, ['confirm', 'my'], true) && $this->isEnabledFor((int) $contextId)) {
+            if ($contextId !== null && in_array($op, ['confirm', 'my', 'invoice'], true) && $this->isEnabledFor((int) $contextId)) {
                 $handler = new ConferencePageHandler($this);
                 return true;
             }
@@ -376,6 +379,28 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
             );
         } catch (\Throwable $e) {
             error_log('conferenceManager: after submit: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * FEE-04: the presenter's invoice after the acceptance decision.
+     */
+    public function onDecisionAdded(DecisionAdded $event): void
+    {
+        $decision = $event->decisionType->getDecision();
+        if (!in_array($decision, [Decision::ACCEPT, Decision::SKIP_EXTERNAL_REVIEW], true)
+            || !$this->isEnabledFor((int) $event->context->getId())) {
+            return;
+        }
+        try {
+            ServiceFactory::invoices()->onAccepted(
+                ContextGateway::fromContext($event->context),
+                (int) $event->submission->getId(),
+                $event->editor->getId(),
+                new DateTimeImmutable('now', new DateTimeZone('UTC')),
+            );
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: invoice after decision: ' . $e->getMessage());
         }
     }
 

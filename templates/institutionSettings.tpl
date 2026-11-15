@@ -108,7 +108,7 @@
 				<input type="hidden" name="paymentAccounts[{$i}][id]" value="{$row.id|escape}" />
 				<div class="section">
 					<label>{translate key="plugins.generic.conferenceManager.field.kind"}
-						<select name="paymentAccounts[{$i}][kind]" class="field select">
+						<select name="paymentAccounts[{$i}][kind]" class="field select" onchange="var f=this.closest('fieldset');f.querySelectorAll('.confManager_accountExtra').forEach(function(d){ldelim}d.hidden=d.getAttribute('data-kind')!==this.value;{rdelim},this);">
 							{foreach from=$accountKindOptions key=value item=label}
 								<option value="{$value|escape}"{if $row.kind == $value} selected{/if}>{$label|escape}</option>
 							{/foreach}
@@ -139,6 +139,16 @@
 						<input type="text" class="field text" maxlength="420" name="paymentAccounts[{$i}][purposeTemplate]" value="{$row.purposeTemplate|default:''|escape}" />
 					</label>
 				</div>
+				{foreach from=$accountExtraFields key=kind item=fields}
+					{foreach from=$fields item=field}
+						<div class="section confManager_accountExtra" data-kind="{$kind|escape}"{if ($row.kind|default:'bank') !== $kind} hidden{/if}>
+							<label>{translate key=$field->labelKey}
+								<input type="text" class="field text" maxlength="{$field->maxLength}" name="paymentAccounts[{$i}][extra][{$field->name|escape}]" value="{$row.extra[$field->name]|default:''|escape}" />
+							</label>
+							{if $field->descriptionKey}<p class="description">{translate key=$field->descriptionKey}</p>{/if}
+						</div>
+					{/foreach}
+				{/foreach}
 				<label class="confManager_inline"><input type="checkbox" name="paymentAccounts[{$i}][isActive]" value="1"{if $row.isActive} checked{/if} /> {translate key="plugins.generic.conferenceManager.field.isActive"}</label>
 				{if $row.id}
 					<label class="confManager_inline"><input type="checkbox" name="paymentAccounts[{$i}][remove]" value="1" /> {translate key="plugins.generic.conferenceManager.remove"}</label>

@@ -1,0 +1,32 @@
+<style>
+body { font-family: dejavusans; font-size: 10pt; color: #000; }
+h1 { font-size: 14pt; margin: 0 0 4mm 0; }
+table { border-collapse: collapse; width: 100%; }
+.req td { padding: 1mm 2mm; vertical-align: top; }
+.req td.l { width: 35%; color: #333; }
+.items th, .items td { border: 0.3mm solid #000; padding: 1.5mm; }
+.items th { background: #eee; }
+.r { text-align: right; }
+.total { font-weight: bold; }
+.note { margin-top: 4mm; font-size: 9pt; }
+.sign { margin-top: 12mm; }
+</style>
+<h1>Рахунок на оплату № {invoiceNumber} від {issueDate}</h1>
+<table class="req">
+<tr><td class="l">Одержувач</td><td><b>{recipientName}</b><br>{institutionAddress}</td></tr>
+<tr><td class="l">Код ЄДРПОУ</td><td>{recipientLegalId}</td></tr>
+<tr><td class="l">Рахунок (IBAN)</td><td><b>{iban}</b></td></tr>
+<tr><td class="l">Банк</td><td>{bankName}</td></tr>
+{accountFieldsRows}
+<tr><td class="l">Платник</td><td>{payerName}<br>{payerAffiliation}</td></tr>
+<tr><td class="l">Захід</td><td>{editionTitle}</td></tr>
+<tr><td class="l">Сплатити до</td><td>{dueDate}</td></tr>
+</table>
+<br>
+{itemsTable}
+<p class="total">Усього до сплати: {total} {currency}</p>
+<p>Сума прописом: {totalInWords}</p>
+<p><b>Призначення платежу:</b> {purpose}</p>
+<p>Код платежу: <b>{paymentReference}</b></p>
+<div class="note">{instructions}</div>
+<table class="sign"><tr><td>{signerPosition}</td><td class="r">_______________ {signerName}</td></tr></table>

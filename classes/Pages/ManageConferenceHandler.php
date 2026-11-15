@@ -46,6 +46,16 @@ class ManageConferenceHandler extends Handler
         'participants.confirmation', 'participants.status', 'participants.all', 'participants.find', 'participants.export',
         'participants.empty', 'participants.count', 'participants.name', 'participants.cancel', 'participants.cancelConfirm',
         'participants.cancelled', 'participants.page',
+        'payment.title', 'payment.rules', 'payment.rules.description', 'payment.rules.empty', 'payment.rule.add', 'payment.rule.default',
+        'payment.rule.deleteConfirm', 'payment.mode', 'payment.account', 'payment.account.none', 'payment.externalUrl',
+        'payment.instructions', 'payment.instructions.description',
+        'invoiceTemplate.title', 'invoiceTemplate.description', 'invoiceTemplate.kind.bank', 'invoiceTemplate.kind.treasury',
+        'invoiceTemplate.custom', 'invoiceTemplate.builtIn', 'invoiceTemplate.variables', 'invoiceTemplate.reset',
+        'invoice.title', 'invoice.search', 'invoice.empty', 'invoice.number', 'invoice.payer', 'invoice.total', 'invoice.paidPart',
+        'invoice.markPaid', 'invoice.waive', 'invoice.history', 'invoice.paidPrompt', 'invoice.paidDone', 'invoice.waivePrompt',
+        'invoice.waiveDone', 'invoice.cancelConfirm', 'invoice.cancelDone', 'invoice.issue', 'invoice.issued', 'invoice.pagesPrompt',
+        'invoice.event.issued', 'invoice.event.part_paid', 'invoice.event.paid', 'invoice.event.waived', 'invoice.event.superseded',
+        'invoice.event.cancelled', 'invoice.event.status_cancelled', 'invoice.event.status_refund_requested',
     ];
 
     /** @var bool */
@@ -92,6 +102,7 @@ class ManageConferenceHandler extends Handler
         $base = $request->getBaseUrl() . '/' . $this->plugin->getPluginPath();
         $templateMgr->addJavaScript('conferenceEditionsManager', $base . '/js/editionsManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferenceParticipantsManager', $base . '/js/participantsManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
+        $templateMgr->addJavaScript('conferenceInvoicesManager', $base . '/js/invoicesManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addStyleSheet('conferenceEditionsManager', $base . '/css/editionsManager.css', ['contexts' => 'backend']);
 
         $names = $context->getSupportedFormLocaleNames();
@@ -117,6 +128,7 @@ class ManageConferenceHandler extends Handler
             'apiUrl' => $dispatcher->url($request, Application::ROUTE_API, $context->getPath(), 'conference/editions'),
             'publicUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), ConferencePageHandler::PAGE, '__path__'),
             'issueUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), 'manageIssues'),
+            'invoicePdfUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), ConferencePageHandler::PAGE, 'invoice', ['__id__']),
             'csrfToken' => $request->getSession()->token(),
             'locales' => $locales,
             'primaryLocale' => $info->primaryLocale,
@@ -178,7 +190,7 @@ class ManageConferenceHandler extends Handler
             'field.startsAt', 'field.endsAt', 'field.cfpOpensAt', 'field.abstractDeadline', 'field.paperDeadline',
             'field.registrationClosesAt', 'field.paymentDeadline', 'field.dates.description',
             'field.isbn', 'field.udc', 'field.vectorProgramId', 'field.hours', 'field.ects',
-            'column.dates', 'column.status', 'column.type', 'submissionsOpen', 'submissionsClosed', 'fees', 'participants', 'back',
+            'column.dates', 'column.status', 'column.type', 'submissionsOpen', 'submissionsClosed', 'fees', 'participants', 'payments', 'invoices', 'back',
         ] as $key) {
             $out[$key] = __('plugins.generic.conferenceManager.editions.' . $key);
         }

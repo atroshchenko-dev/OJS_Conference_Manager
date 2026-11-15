@@ -246,6 +246,98 @@ form "$api/submissions/$sid/registration" --data "conferenceFeeCategory=$stud&co
 rm -f "$rj"
 ok "participant category in the questionnaire"
 
+# Payment rules, invoices, PDF, waiver (PAY-01…08, FEE-04…07).
+acc="$(curl -s -b "$jar" "$api/institution" | j '[a["id"] for a in d["paymentAccounts"] if a["kind"] == "treasury"][0]')"
+pe="$(post "$api/editions" '{"path":"pay-2027","status":"cfp_open","eventType":"conference","submissionMode":"abstracts","publicationMode":"none","format":"online","name":{"uk":"Конференція з оргвнеском","en":"Conference with a fee"},"startsAt":"2027-06-20 09:00","endsAt":"2027-06-21 18:00","cfpOpensAt":"2026-01-01","abstractDeadline":"2027-03-01","registrationClosesAt":"2027-06-10","paymentDeadline":"2027-06-01"}')"
+[ "$(tail -1 <<<"$pe")" = 200 ] || fail "edition with a fee: $pe"
+pid="$(head -1 <<<"$pe" | j 'd["id"]')"
+pc="$(post "$api/editions/$pid/fees/presets" '{"institutionType":"university"}')"
+other="$(head -1 <<<"$pc" | j '[c["id"] for c in d["categories"] if c["code"] == "other_faculty"][0]')"
+pstud="$(head -1 <<<"$pc" | j '[c["id"] for c in d["categories"] if c["code"] == "students"][0]')"
+post "$api/editions/$pid/fees/tariffs" "{\"categoryId\":$other,\"material\":\"listener\",\"pricing\":\"flat\",\"amount\":\"150\",\"currency\":\"UAH\"}" >/dev/null
+[ "$(post "$api/editions/$pid/payment-rules" '{"mode":"bank_transfer","paymentAccountId":'"$acc"'}' | tail -1)" = 400 ] || fail "PAY-02: a bank transfer needs a bank account"
+[ "$(post "$api/editions/$pid/payment-rules" '{"mode":"external_link","externalUrl":"javascript:alert(1)"}' | tail -1)" = 400 ] || fail "external link must be https"
+[ "$(post "$api/editions/$pid/payment-rules" '{"mode":"treasury_transfer","paymentAccountId":'"$acc"'}' | tail -1)" = 200 ] || fail "default rule"
+[ "$(post "$api/editions/$pid/payment-rules" '{"mode":"free","categoryId":'"$pstud"'}' | tail -1)" = 200 ] || fail "free rule for students"
+[ "$(curl -s -b "$jar" "$api/editions/$pid/payment-rules" | j 'len(d["rules"]), len(d["options"]["modes"])')" = "(2, 5)" ] || fail "rules list"
+[ "$(curl -s -b "$jar" "$B/confb/api/v1/conference/editions/$pid/payment-rules" -o /dev/null -w '%{http_code}')" = 404 ] || fail "rules context isolation"
+ok "payment rules"
+
+lc new-user confa payer1 payer1@example.org >/dev/null
+lc new-user confa payer2 payer2@example.org >/dev/null
+login() {
+  local jarf="$1" tok
+  tok="$(curl -s -L -c "$jarf" -b "$jarf" "$B/index/en/login" | sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' | head -1)"
+  curl -s -c "$jarf" -b "$jarf" -o /dev/null "$B/index/en/login/signIn" --data "csrfToken=$tok&username=$2&password=reader12345"
+}
+pj1="$(mktemp)"; pj2="$(mktemp)"
+login "$pj1" payer1; login "$pj2" payer2
+regp="$B/confa/uk/conference/pay-2027/register"
+ptok="$(curl -s -L -c "$pj1" -b "$pj1" "$regp" | sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' | head -1)"
+cab="$(curl -s -L -c "$pj1" -b "$pj1" "$regp" --data "csrfToken=$ptok&categoryId=$other&participationForm=online&consent=1&affiliation=Ліцей")"
+grep -q 'cmInvoice' <<<"$cab" && grep -q '150.00 UAH' <<<"$cab" || fail "FEE-04: invoice in the cabinet after registration"
+mi="$(curl -s -b "$pj1" "$api/me/invoices")"
+[ "$(j 'd["itemsMax"], d["items"][0]["total"]["minor"], d["items"][0]["status"], d["items"][0]["hasDocument"]' <<<"$mi")" = "(1, 15000, 'issued', True)" ] || fail "me/invoices: $mi"
+[ "$(j 'd["items"][0]["totalInWords"]' <<<"$mi")" = "Сто п'ятдесят гривень 00 копійок" ] || fail "amount in words: $mi"
+inv="$(j 'd["items"][0]["id"]' <<<"$mi")"
+num="$(j 'd["items"][0]["number"]' <<<"$mi")"
+[[ "$num" =~ ^20[0-9]{2}-00001$ ]] || fail "FEE-05 number format: $num"
+j 'd["items"][0]["instructions"]' <<<"$mi" | grep -q 'номер картки' || fail "FEE-14: UA card warning"
+if [ "$maillog" = 1 ]; then
+  docker logs "${OJS_CONTAINER:-ojs}" 2>&1 | grep -q "$num" || fail "FEE-04: letter with the invoice number"
+fi
+pdf="$(mktemp)"
+curl -s -L -b "$pj1" "$B/confa/uk/conference/invoice/$inv" -D /tmp/cm-ph.txt -o "$pdf"
+grep -qi 'content-type: application/pdf' /tmp/cm-ph.txt && [ "$(head -c 4 "$pdf")" = "%PDF" ] || fail "FEE-06: PDF for the payer"
+if command -v pdftotext >/dev/null; then
+  txt="$(pdftotext -layout "$pdf" -)"
+  grep -q "$num" <<<"$txt" && grep -q "Сто п.ятдесят гривень 00 копійок" <<<"$txt" && grep -q 'UA11 8201 7200' <<<"$txt" || fail "PDF text: $(head -c 600 <<<"$txt")"
+fi
+[ "$(curl -s -L -b "$pj2" "$B/confa/uk/conference/invoice/$inv" -o /dev/null -w '%{http_code}')" = 404 ] || fail "another person's PDF"
+[ "$(curl -s -b "$pj2" "$api/me/invoices/$inv/pdf" -o /dev/null -w '%{http_code}')" = 403 ] || fail "another person's PDF via API"
+[ "$(curl -s -b "$jar" "$api/invoices/$inv/pdf" -o /dev/null -w '%{content_type}')" = application/pdf ] || fail "manager PDF"
+ok "listener invoice $num: cabinet, letter, PDF, own only"
+
+[ "$(put "$api/invoice-templates/treasury" '{"html":"<p>{secret}</p>"}' | tail -1)" = 400 ] || fail "PAY-07: unknown variables"
+[ "$(put "$api/invoice-templates/treasury" '{"html":"<h1>Власний рахунок {invoiceNumber}</h1>{itemsTable}"}' | tail -1)" = 200 ] || fail "own template"
+if command -v pdftotext >/dev/null; then
+  curl -s -b "$jar" "$api/invoices/$inv/pdf" | pdftotext - - | grep -q "Власний рахунок $num" || fail "PDF from the own template"
+fi
+[ "$(put "$api/invoice-templates/treasury" '{"html":""}' | tail -1)" = 200 ] || fail "back to built-in"
+[ "$(curl -s -b "$jar" "$api/invoice-templates" | j '[t["custom"] for t in d["templates"]]')" = "[None, None]" ] || fail "templates reset"
+ok "invoice templates of the context"
+
+paid="$(post "$api/invoices/$inv/paid" '{"amount":"100","note":"виписка 1"}')"
+[ "$(head -1 <<<"$paid" | j 'd["status"], d["paid"]["minor"], d["due"]["minor"]')" = "('issued', 10000, 5000)" ] || fail "part payment: $paid"
+[ "$(post "$api/invoices/$inv/paid" '{}' | head -1 | j 'd["status"]')" = paid ] || fail "paid in full"
+[ "$(post "$api/invoices/$inv/waive" '{"reason":"x"}' | tail -1)" = 409 ] || fail "no waiver for a paid invoice"
+[ "$(curl -s -b "$jar" "$api/invoices/$inv" | j '[e["type"] for e in d["events"]]')" = "['issued', 'part_paid', 'paid']" ] || fail "payment journal"
+ptok2="$(curl -s -L -c "$pj2" -b "$pj2" "$regp" | sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' | head -1)"
+curl -s -L -c "$pj2" -b "$pj2" -o /dev/null "$regp" --data "csrfToken=$ptok2&categoryId=$other&participationForm=online&consent=1"
+inv2="$(curl -s -b "$pj2" "$api/me/invoices" | j 'd["items"][0]["id"]')"
+w="$(post "$api/invoices/$inv2/waive" '{"reason":"Член оргкомітету"}')"
+[ "$(head -1 <<<"$w" | j 'd["status"], d["total"]["minor"], d["method"], d["supersedesId"]')" = "('waived', 0, 'waiver', $inv2)" ] || fail "FEE-07 waiver: $w"
+[ "$(curl -s -b "$pj2" "$api/me/invoices" | j '[i["status"] for i in d["items"]]')" = "['waived', 'superseded']" ] || fail "waiver in the cabinet"
+[ "$(curl -s -b "$jar" "$api/editions/$pid/invoices?searchPhrase=payer2" | j 'd["itemsMax"]')" = 2 ] || fail "invoice search"
+[ "$(curl -s -b "$pj1" "$api/editions/$pid/invoices" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no invoice list"
+rm -f "$pj1" "$pj2" "$pdf"
+ok "part payment, payment, waiver, journal"
+
+# FEE-04 after acceptance: the presenter of the last submission (edition listen-2027).
+post "$api/editions/$lid/payment-rules" '{"mode":"treasury_transfer","paymentAccountId":'"$acc"'}' >/dev/null
+post "$api/editions/$lid/fees/tariffs" "{\"categoryId\":$stud,\"material\":\"abstract\",\"pricing\":\"flat\",\"amount\":\"200\",\"currency\":\"UAH\"}" >/dev/null
+dec="$(post "$B/confa/api/v1/submissions/$sid/decisions" '{"decision":17,"stageId":1}')"
+[ "$(tail -1 <<<"$dec")" = 200 ] || fail "accept decision: $dec"
+[ "$(curl -s -b "$jar" "$api/editions/$lid/invoices" | j '[(i["total"]["minor"], i["payer"]["email"]) for i in d["items"]]')" = "[(20000, 'admin@example.org')]" ] || fail "FEE-04: presenter invoice after acceptance"
+ok "presenter invoice after the acceptance decision"
+
+# FEE-05: parallel numbering gives 1…100 with no gaps or repeats.
+for k in $(seq 1 10); do lc next-numbers confa 2099 10 > "/tmp/cm-num-$k.txt" & done
+wait
+[ "$(cat /tmp/cm-num-*.txt | grep -E '^[0-9]+$' | sort -n | tr '\n' ' ')" = "$(seq 1 100 | tr '\n' ' ')" ] || fail "parallel numbers: $(cat /tmp/cm-num-*.txt | sort -n | tr '\n' ' ')"
+rm -f /tmp/cm-num-*.txt
+ok "100 invoice numbers from 10 parallel processes: 1…100"
+
 modal="$B/confa/\$\$\$call\$\$\$/grid/settings/plugins/settings-plugin-grid/manage?verb=institution&plugin=conferencemanagerplugin&category=generic"
 curl -s -b "$jar" "$modal" | j 'd["status"] and "paymentAccounts[0][iban]" in d["content"]' | grep -q True || fail "settings modal"
 ok "settings modal"

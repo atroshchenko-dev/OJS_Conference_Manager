@@ -436,6 +436,26 @@
 					r.ok ? (notify(self.t('fee.saved')), self.load()) : notify(firstError(r.data), 'warning');
 				});
 			},
+			issueInvoice: function (p) {
+				var self = this;
+				var body = {};
+				if (p.role !== 'listener') {
+					var pages = window.prompt(self.t('invoice.pagesPrompt'), '');
+					if (pages === null) {
+						return;
+					}
+					body.pages = pages;
+				}
+				self.api('POST', self.cancelUrl + '/' + p.participationId + '/invoice', body).then(function (r) {
+					if (!r.ok) {
+						notify(firstError(r.data), 'warning');
+					} else if (r.data.invoice) {
+						notify(self.t('invoice.issued', { number: r.data.invoice.number || '' }));
+					} else {
+						notify(r.data.message || '', 'warning');
+					}
+				});
+			},
 			cancelParticipation: function (p) {
 				var self = this;
 				if (!window.confirm(self.t('participants.cancelConfirm', { name: p.name || p.email }))) {
@@ -479,7 +499,7 @@
 			<td><select class="pkpFormField__input" :value="p.categoryId === null ? \'\' : p.categoryId" @change="setCategory(p, $event.target.value)" :aria-label="t(\'participants.category\')"><option value="">—</option><option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option></select></td>\
 			<td>{{ p.confirmationLabel }}</td>\
 			<td>{{ p.statusLabel }}</td>\
-			<td class="cmEditions__actions"><pkp-button v-if="p.status === \'active\'" :is-warnable="true" @click="cancelParticipation(p)">{{ t(\'participants.cancel\') }}</pkp-button></td>\
+			<td class="cmEditions__actions"><pkp-button v-if="p.status === \'active\'" @click="issueInvoice(p)">{{ t(\'invoice.issue\') }}</pkp-button><pkp-button v-if="p.status === \'active\'" :is-warnable="true" @click="cancelParticipation(p)">{{ t(\'participants.cancel\') }}</pkp-button></td>\
 		</tr></tbody>\
 	</table>\
 	<div class="cmEditions__buttons" v-if="pages > 1">\

@@ -327,17 +327,64 @@ class ConferencePageHandler extends Handler
             ];
         }
 
+        $invoices = [];
+        foreach (ServiceFactory::invoices()->mine($info, (int) $user->getId(), $email, $locale) as $i) {
+            $invoices[] = $i + [
+                'pdfUrl' => $i['hasDocument'] ? $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'invoice', [(string) $i['id']]) : null,
+                'issuedAtText' => $this->formatDate($i['issuedAt'] === null ? null : new DateTimeImmutable((string) $i['issuedAt']), (string) $i['timezone'], $locale),
+                'dueAtText' => $this->formatDate($i['dueAt'] === null ? null : new DateTimeImmutable((string) $i['dueAt']), (string) $i['timezone'], $locale),
+                'instructionsHtml' => nl2br(htmlspecialchars((string) $i['instructions'])),
+            ];
+        }
+
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
         $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
         $templateMgr->addHeader('conferenceMyNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
         $templateMgr->assign([
             'myItems' => $items,
+            'myInvoices' => $invoices,
             'myMessage' => $message,
             'myUrl' => $myUrl,
             'pageTitle' => 'plugins.generic.conferenceManager.my.title',
         ]);
         return $templateMgr->display($this->plugin->getTemplateResource('frontend/my.tpl'));
+    }
+
+    /**
+     * The invoice PDF (FEE-06) for the payer or a registration manager.
+     */
+    public function invoice($args, $request)
+    {
+        $context = $request->getContext();
+        $user = $request->getUser();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        if ($user === null) {
+            $dispatcher = $request->getDispatcher();
+            $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), 'login', null, null, [
+                'source' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'invoice', [(string) ($args[0] ?? '')]),
+            ]));
+        }
+        $info = ContextGateway::fromContext($context);
+        $service = ServiceFactory::invoices();
+        $invoice = $service->find($info, (int) ($args[0] ?? 0));
+        $allowed = $invoice !== null && (
+            $service->isPayer($invoice, (int) $user->getId(), (string) $user->getEmail())
+            || (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId())
+        );
+        $pdf = $allowed ? ServiceFactory::invoiceDocuments()->pdf($info, $invoice) : null;
+        if ($pdf === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $pdf['name'] . '"');
+        header('Content-Length: ' . strlen($pdf['content']));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, no-store');
+        echo $pdf['content'];
+        exit;
     }
 
     private function canManage(PKPRequest $request): bool

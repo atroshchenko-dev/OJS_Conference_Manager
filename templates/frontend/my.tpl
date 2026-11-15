@@ -1,5 +1,6 @@
 {**
- * The participant's cabinet: own participations and cancellation (REG-06, REG-08).
+ * The participant's cabinet: own participations and cancellation (REG-06, REG-08),
+ * own invoices with payment instructions (FEE-04, FEE-06).
  *}
 {include file="frontend/components/header.tpl" pageTitle="plugins.generic.conferenceManager.my.title"}
 
@@ -33,6 +34,37 @@
 							<button type="submit" class="cmConfirm__decline">{translate key="plugins.generic.conferenceManager.my.cancel"}</button>
 							{if $p.cancelDeadlineText}<span class="cmMy__deadline">{translate key="plugins.generic.conferenceManager.my.cancelUntil" date=$p.cancelDeadlineText|escape}</span>{/if}
 						</form>
+					{/if}
+				</li>
+			{/foreach}
+		</ul>
+	{/if}
+
+	{if $myInvoices}
+		<h2 class="cmMy__section">{translate key="plugins.generic.conferenceManager.my.invoices"}</h2>
+		<ul class="cmMy">
+			{foreach from=$myInvoices item=i}
+				<li class="cmMy__item cmInvoice {if !$i.isOpen}cmMy__item--cancelled{/if}">
+					<h3 class="cmMy__title">
+						{if $i.number}{translate key="plugins.generic.conferenceManager.invoice.numberShort" number=$i.number|escape}{/if}
+						· {$i.editionName|escape}
+					</h3>
+					<dl class="cmEdition__dates">
+						<dt>{translate key="plugins.generic.conferenceManager.invoice.total"}</dt><dd><strong>{$i.total.decimal|escape} {$i.total.currency|escape}</strong>{if $i.paid.minor > 0 && $i.isOpen} ({translate key="plugins.generic.conferenceManager.invoice.dueLeft" amount=$i.due.decimal|escape currency=$i.due.currency|escape}){/if}</dd>
+						<dt>{translate key="plugins.generic.conferenceManager.participants.status"}</dt><dd>{$i.statusLabel|escape}</dd>
+						<dt>{translate key="plugins.generic.conferenceManager.invoice.mode"}</dt><dd>{$i.modeLabel|escape}</dd>
+						{if $i.issuedAtText}<dt>{translate key="plugins.generic.conferenceManager.invoice.issuedAt"}</dt><dd>{$i.issuedAtText|escape}</dd>{/if}
+						{if $i.dueAtText && $i.isOpen}<dt>{translate key="plugins.generic.conferenceManager.invoice.dueAt"}</dt><dd>{$i.dueAtText|escape}</dd>{/if}
+						{if $i.paymentReference && $i.isOpen}<dt>{translate key="plugins.generic.conferenceManager.invoice.reference"}</dt><dd><code>{$i.paymentReference|escape}</code></dd>{/if}
+						{if $i.purpose && $i.hasDocument && $i.isOpen}<dt>{translate key="plugins.generic.conferenceManager.invoice.purpose"}</dt><dd>{$i.purpose|escape}</dd>{/if}
+						{if $i.waiverReason}<dt>{translate key="plugins.generic.conferenceManager.invoice.waiverReason"}</dt><dd>{$i.waiverReason|escape}</dd>{/if}
+					</dl>
+					{if $i.isOpen}
+						<div class="cmInvoice__instructions">{$i.instructionsHtml}</div>
+						<p class="cmInvoice__actions">
+							{if $i.pdfUrl}<a class="cmEdition__button" href="{$i.pdfUrl|escape}" target="_blank" rel="noopener">{translate key="plugins.generic.conferenceManager.invoice.download"}</a>{/if}
+							{if $i.externalUrl}<a class="cmEdition__button" href="{$i.externalUrl|escape}" target="_blank" rel="noopener noreferrer">{translate key="plugins.generic.conferenceManager.invoice.payExternal"}</a>{/if}
+						</p>
 					{/if}
 				</li>
 			{/foreach}

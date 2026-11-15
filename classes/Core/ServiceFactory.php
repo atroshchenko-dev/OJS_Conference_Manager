@@ -8,6 +8,8 @@ use APP\plugins\generic\conferenceManager\classes\Application\ContextInfo;
 use APP\plugins\generic\conferenceManager\classes\Application\EditionService;
 use APP\plugins\generic\conferenceManager\classes\Application\FeeService;
 use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfileService;
+use APP\plugins\generic\conferenceManager\classes\Application\InvoiceDocumentService;
+use APP\plugins\generic\conferenceManager\classes\Application\InvoiceService;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
 use APP\plugins\generic\conferenceManager\classes\Application\SubmissionRegistrationService;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConsentText;
@@ -17,6 +19,7 @@ use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\Db
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbFeeRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbParticipantRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPaymentRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +94,37 @@ final class ServiceFactory
             $plugin instanceof \PKP\plugins\Plugin ? new UserGroupGateway($plugin) : null,
             new AuditLogger($db),
             static fn (string $key): string => __($key),
+            self::invoices(),
+        );
+    }
+
+    public static function invoices(): InvoiceService
+    {
+        $db = DB::connection();
+        return new InvoiceService(
+            new DbPaymentRepository($db),
+            new DbFeeRepository($db),
+            new DbEditionRepository($db),
+            new DbParticipantRepository($db),
+            new DbRegistrationRepository($db),
+            static fn (ContextInfo $context) => self::institutionProfiles()->getOrDraft($context),
+            new MailGateway(),
+            new AuditLogger($db),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
+            self::jurisdictions(),
+        );
+    }
+
+    public static function invoiceDocuments(): InvoiceDocumentService
+    {
+        $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'conferencemanagerplugin');
+        return new InvoiceDocumentService(
+            self::invoices(),
+            new PluginInvoiceTemplateStore($plugin instanceof \PKP\plugins\Plugin ? $plugin : null),
+            new MpdfRenderer(),
+            dirname(__DIR__, 2) . '/templates/invoice',
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
+            new AuditLogger(DB::connection()),
         );
     }
 

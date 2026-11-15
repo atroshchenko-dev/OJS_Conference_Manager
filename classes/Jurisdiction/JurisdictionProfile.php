@@ -17,6 +17,8 @@ interface JurisdictionProfile extends JurisdictionRules
     public const FEATURE_TREASURY = 'treasury';
     public const FEATURE_VECTOR = 'vector';
     public const FEATURE_PK_CERTIFICATE = 'pkCertificate';
+    /** Payer instructions warn that paying "to a card number" is not a transfer to the account (FEE-14). */
+    public const FEATURE_CARD_WARNING = 'cardPaymentWarning';
 
     public function getNameKey(): string;
 
@@ -33,4 +35,12 @@ interface JurisdictionProfile extends JurisdictionRules
 
     /** @return list<FieldDefinition> */
     public function getInstitutionExtraFields(): array;
+
+    /**
+     * Extra fields of a payment account of this kind, shown on invoices
+     * (PAY-03: e.g. the budget income code of a treasury account).
+     *
+     * @return list<FieldDefinition>
+     */
+    public function getPaymentAccountExtraFields(\APP\plugins\generic\conferenceManager\classes\Domain\Institution\PaymentAccountKind $kind): array;
 }

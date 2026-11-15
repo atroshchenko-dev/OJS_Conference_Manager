@@ -21,6 +21,8 @@ use PKP\security\Role;
  * POST editions/{id}/listeners {categoryId, participationForm, consent, position, affiliation}
  * GET  me/participations
  * POST me/participations/{pid}/cancel   before the registration deadline
+ * GET  me/invoices                      own invoices with instructions
+ * GET  me/invoices/{iid}/pdf            the document of an own invoice
  *
  * Only participations found by the user's own id or email are shown or
  * cancelled; any other id gives 403.
@@ -43,6 +45,8 @@ final class MyParticipationRoutes implements RouteModule
     {
         Route::post('editions/{editionId}/listeners', $this->addListener(...))->name('conference.listeners.add')->whereNumber('editionId');
         Route::get('me/participations', $this->getMyParticipations(...))->name('conference.me.participations');
+        Route::get('me/invoices', $this->getMyInvoices(...))->name('conference.me.invoices');
+        Route::get('me/invoices/{invoiceId}/pdf', $this->getMyInvoicePdf(...))->name('conference.me.invoices.pdf')->whereNumber('invoiceId');
         Route::post('me/participations/{participationId}/cancel', $this->cancelMyParticipation(...))->name('conference.me.participations.cancel')->whereNumber('participationId');
     }
 
@@ -102,6 +106,22 @@ final class MyParticipationRoutes implements RouteModule
             $this->api->remoteAddr(),
         );
         return ParticipantRoutes::cancelResponse($out);
+    }
+
+    public function getMyInvoices(Request $r): JsonResponse
+    {
+        $userId = (int) $this->api->actorId();
+        $locale = \PKP\facades\Locale::getLocale();
+        $person = (new PersonGateway())->of($userId, $locale);
+        $items = ServiceFactory::invoices()->mine($this->api->contextInfo(), $userId, $person['email'] ?? '', $locale);
+        return response()->json(['items' => $items, 'itemsMax' => count($items)], Response::HTTP_OK);
+    }
+
+    public function getMyInvoicePdf(Request $r): Response|JsonResponse
+    {
+        $userId = (int) $this->api->actorId();
+        $person = (new PersonGateway())->of($userId, \PKP\facades\Locale::getLocale());
+        return InvoiceRoutes::pdfResponse((int) $r->route('invoiceId'), $this->api, [$userId, $person['email'] ?? '']);
     }
 
     private static function text(mixed $value): ?string

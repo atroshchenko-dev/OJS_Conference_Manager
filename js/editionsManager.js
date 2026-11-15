@@ -23,6 +23,8 @@
 			apiUrl: { type: String, required: true },
 			publicUrl: { type: String, required: true },
 			issueUrl: { type: String, default: '' },
+			/** page link of an invoice PDF with "__id__" */
+			invoicePdfUrl: { type: String, default: '' },
 			csrfToken: { type: String, required: true },
 			locales: { type: Array, required: true },
 			primaryLocale: { type: String, required: true },
@@ -123,6 +125,14 @@
 			openParticipants: function (edition) {
 				this.selected = edition;
 				this.view = 'participants';
+			},
+			openPayments: function (edition) {
+				this.selected = edition;
+				this.view = 'payments';
+			},
+			openInvoices: function (edition) {
+				this.selected = edition;
+				this.view = 'invoices';
 			},
 			backToList: function () {
 				this.selected = null;
@@ -370,6 +380,8 @@
 						<pkp-button v-if="canEditEditions" @click="edit(e)">{{ t(\'edit\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions" @click="openFees(e)">{{ t(\'fees\') }}</pkp-button>\
 						<pkp-button @click="openParticipants(e)">{{ t(\'participants\') }}</pkp-button>\
+						<pkp-button v-if="canEditEditions" @click="openPayments(e)">{{ t(\'payments\') }}</pkp-button>\
+						<pkp-button @click="openInvoices(e)">{{ t(\'invoices\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions" @click="copy(e)">{{ t(\'copy\') }}</pkp-button>\
 						<a class="pkpButton" :href="publicLink(e)" target="_blank" rel="noopener">{{ t(\'publicPage\') }}</a>\
 						<pkp-button v-if="canEditEditions" :is-warnable="true" @click="remove(e)">{{ t(\'delete\') }}</pkp-button>\
@@ -380,6 +392,8 @@
 	</div>\
 	<conference-fees-editor v-else-if="view === \'fees\'" :api-url="apiUrl + \'/\' + selected.id + \'/fees\'" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :ui-locale="uiLocale" :i18n="i18n" @back="backToList"></conference-fees-editor>\
 	<conference-participants-register v-else-if="view === \'participants\'" :api-url="apiUrl + \'/\' + selected.id + \'/participants\'" :cancel-url="apiUrl.replace(/editions$/, \'participations\')" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :primary-locale="primaryLocale" :ui-locale="uiLocale" :options="participantOptions" :i18n="i18n" @back="backToList"></conference-participants-register>\
+	<conference-payment-settings v-else-if="view === \'payments\'" :api-url="apiUrl + \'/\' + selected.id + \'/payment-rules\'" :templates-url="apiUrl.replace(/editions$/, \'invoice-templates\')" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :i18n="i18n" @back="backToList"></conference-payment-settings>\
+	<conference-invoices-list v-else-if="view === \'invoices\'" :api-url="apiUrl + \'/\' + selected.id + \'/invoices\'" :invoice-api-url="apiUrl.replace(/editions$/, \'invoices\')" :pdf-url="invoicePdfUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-invoices-list>\
 	<form v-else class="cmEditions__form" @submit.prevent="save" novalidate>\
 		<div v-if="errorCount" class="cmEditions__errors" role="alert">\
 			<strong>{{ t(\'errors\') }}</strong>\

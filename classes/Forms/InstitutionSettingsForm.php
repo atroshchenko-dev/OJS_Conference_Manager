@@ -132,6 +132,10 @@ class InstitutionSettingsForm extends Form
             )),
             'legalIdLabel' => $profile->getLegalIdLabelKey(),
             'extraFields' => $profile->getInstitutionExtraFields(),
+            'accountExtraFields' => array_combine(
+                array_map(static fn (PaymentAccountKind $k): string => $k->value, PaymentAccountKind::cases()),
+                array_map(static fn (PaymentAccountKind $k): array => $profile->getPaymentAccountExtraFields($k), PaymentAccountKind::cases()),
+            ),
             'signerRows' => $signers,
             'accountRows' => $accounts,
             'purposeVariables' => '{' . implode('}, {', PaymentAccount::PURPOSE_VARIABLES) . '}',
