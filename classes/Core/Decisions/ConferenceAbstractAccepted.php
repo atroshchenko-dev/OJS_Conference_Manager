@@ -65,10 +65,9 @@ class ConferenceAbstractAccepted extends RequestRevisions
     {
         parent::validate($props, $submission, $context, $validator, $reviewRoundId);
         $edition = ServiceFactory::reviewCommittee()->editionOf(\APP\plugins\generic\conferenceManager\classes\Core\ContextGateway::fromContext($context), (int) $submission->getId());
+        // OJS calls this inside its own after() callback, so the error is added directly.
         if ($edition === null || $edition->reviewMode !== ReviewMode::TwoPhase) {
-            $validator->after(static function (Validator $validator): void {
-                $validator->errors()->add('decision', __(self::K . 'error.notTwoPhase'));
-            });
+            $validator->errors()->add('decision', __(self::K . 'error.notTwoPhase'));
         }
     }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# DEC-07 – DEC-09 in a real OJS, after api-smoke.sh (two submissions of
-# open-call in the submission stage, the first one complete): committee votes and their totals,
+# DEC-07 – DEC-09 in a real OJS, after api-smoke.sh (a complete submission
+# of open-call in the submission stage): committee votes and their totals,
 # a conflict of interest by affiliation, the decision "abstract accepted,
 # send the full text" refused outside the two-phase mode, and in that mode
 # the review forms of the abstract and paper rounds.
@@ -23,7 +23,7 @@ send() { curl -s -b "$jar" -X "$1" -H "X-Csrf-Token: $csrf" -H 'Content-Type: ap
 py() { python3 -c "import json,sys; d=json.load(sys.stdin); $1"; }
 
 eid="$(curl -s -b "$jar" "$api/editions?count=50" | py "print([e['id'] for e in d['items'] if e['path'] == 'open-call'][0])")"
-read -r s1 s2 <<<"$(curl -s -b "$jar" "$api/editions/$eid/decision-candidates" | py "ids=sorted(i['submissionId'] for i in d['items']); print(ids[0], ids[1])")" || fail "two submissions of open-call"
+s1="$(curl -s -b "$jar" "$api/editions/$eid/decision-candidates" | py "print(sorted(i['submissionId'] for i in d['items'])[0])")" || fail "a submission of open-call"
 [ "$(curl -s -b "$jar" "$api/editions/$eid" | py "print(d['reviewMode'])")" = light ] || fail "open-call is not in the light mode"
 
 # DEC-09: votes of the committee.
@@ -36,9 +36,9 @@ curl -s -b "$jar" "$api/editions/$eid/decision-candidates" | py "v=[i['votes'] f
 echo "OK DEC-09 a vote with a comment, replaced, a bad one refused, totals for the chair"
 
 # DEC-08: the same affiliation as the author.
+curl -s -b "$jar" "$api/submissions/$s1/conference" | py "assert d['review']['conflicts'] == [], d['review']['conflicts']" || fail "DEC-08 no conflict before the affiliations match"
 run set-affiliation "$s1" 1 'Університет «Приклад»' >/dev/null
 curl -s -b "$jar" "$api/submissions/$s1/conference" | py "c=d['review']['conflicts']; assert len(c) == 1 and c[0]['isViewer'] and 'Приклад' in c[0]['affiliation'], c" || fail "DEC-08 conflict of interest"
-curl -s -b "$jar" "$api/submissions/$s2/conference" | py "assert d['review']['conflicts'] == [], d['review']['conflicts']" || fail "DEC-08 no conflict for another author"
 echo "OK DEC-08 a warning for an editor with the affiliation of an author"
 
 # DEC-07: the decision is refused outside the two-phase mode.

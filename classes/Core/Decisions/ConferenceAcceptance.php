@@ -95,10 +95,9 @@ class ConferenceAcceptance extends DecisionType
     public function validate(array $props, Submission $submission, Context $context, Validator $validator, ?int $reviewRoundId = null)
     {
         parent::validate($props, $submission, $context, $validator, $reviewRoundId);
+        // OJS calls this inside its own after() callback, so the error is added directly.
         if (!$submission->getCurrentPublication()?->getData('conferenceEditionId')) {
-            $validator->after(static function (Validator $validator): void {
-                $validator->errors()->add('decision', __(self::K . 'error.noEdition'));
-            });
+            $validator->errors()->add('decision', __(self::K . 'error.noEdition'));
         }
         foreach ((array) ($props['actions'] ?? []) as $index => $action) {
             if (($action['id'] ?? null) === $this->ACTION_NOTIFY_AUTHORS) {
