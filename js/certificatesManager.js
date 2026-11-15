@@ -296,7 +296,7 @@
 				</div>\
 			</div>\
 			<div v-if="preview" class="cmCertificateTemplates__preview">\
-				<iframe sandbox="" :srcdoc="\'<!doctype html><meta charset=utf-8><style>body{margin:8mm;font-family:DejaVu Sans,Arial,sans-serif}</style>\' + preview" :title="t(\'certificate.template.preview\')"></iframe>\
+				<iframe sandbox="" :srcdoc="\'<!doctype html><meta charset=utf-8><style>html{zoom:.6}body{margin:6mm}</style>\' + preview" :title="t(\'certificate.template.preview\')"></iframe>\
 			</div>\
 		</div>\
 	</template>\
