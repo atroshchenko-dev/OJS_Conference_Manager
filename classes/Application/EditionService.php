@@ -52,6 +52,11 @@ final class EditionService
         return $this->editions->find($context->id, $id);
     }
 
+    public function getByPath(ContextInfo $context, string $path): ?Edition
+    {
+        return $this->editions->findByPath($context->id, $path);
+    }
+
     /**
      * @param list<EditionStatus> $statuses
      * @return array{items: list<Edition>, itemsMax: int}
@@ -141,6 +146,24 @@ final class EditionService
         $this->editions->delete($context->id, $id);
         $this->audit?->log($context->id, $actorUserId, 'edition', $id, 'delete', $current->toArray(), null, $ip);
         return $errors;
+    }
+
+    /**
+     * EDN-03: an open call is closed when its abstract deadline passes.
+     * Opening is not automatic: the manager sets "call open" in advance and
+     * submissions are accepted only inside the window (EditionWindows).
+     *
+     * @return int number of closed calls
+     */
+    public function closeExpiredCalls(\DateTimeImmutable $now): int
+    {
+        $closed = 0;
+        foreach ($this->editions->findOpenCallsPastDeadline($now) as $edition) {
+            $saved = $this->editions->save($edition->withStatus(EditionStatus::CfpClosed));
+            $this->audit?->log($edition->contextId, null, 'edition', $saved->id, 'auto_close', ['status' => $edition->status->value], ['status' => $saved->status->value]);
+            $closed++;
+        }
+        return $closed;
     }
 
     /**

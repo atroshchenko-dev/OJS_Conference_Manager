@@ -27,6 +27,14 @@ interface EditionRepository
 
     public function save(Edition $edition): Edition;
 
+    /**
+     * Editions of ALL contexts with an open call whose abstract deadline
+     * has passed (used by the scheduled task, EDN-03).
+     *
+     * @return list<Edition>
+     */
+    public function findOpenCallsPastDeadline(\DateTimeImmutable $now, int $limit = 500): array;
+
     /** True when participants, invoices or submissions point to the edition. */
     public function isInUse(int $contextId, int $id): bool;
 

@@ -68,6 +68,42 @@ web="$(post "$B/confb/api/v1/conference/editions" '{"path":"webinar-1","eventTyp
 [ "$(head -1 <<<"$web" | j 'd["submissionMode"], d["publicationMode"], d["issueId"]')" = "('none', 'none', None)" ] || fail "EVT-01 webinar defaults: $web"
 ok "edition copy, delete, webinar defaults"
 
+# Pages (EDN-07, EDN-08) and the scheduled task (EDN-03).
+# OJS 3.5.0-5 answers the first page request of a session with a redirect to itself.
+code() { curl -s -L -o /dev/null -w '%{http_code}' "$@"; }
+[ "$(code -c "$jar" -b "$jar" "$B/confa/uk/manageConference")" = 200 ] || fail "manager page"
+mgr="$(curl -s -L -c "$jar" -b "$jar" "$B/confa/uk/manageConference")"
+grep -q 'conference-editions-manager' <<<"$mgr" || fail "manager page component"
+grep -q 'conferenceManager/js/editionsManager.js' <<<"$mgr" || fail "manager page script"
+curl -s -L -o /dev/null -w '%{url_effective}' "$B/confa/uk/manageConference" | grep -q '/login' || fail "manager page must send anonymous users to login"
+pub="$(curl -s -L "$B/confa/uk/conference/conf-2027")"
+grep -q '"@type":"Event"' <<<"$pub" || fail "edition page JSON-LD"
+grep -q '"startDate":"2027-05-20T09:00:00+03:00"' <<<"$pub" || fail "edition page startDate in the edition zone"
+grep -q 'Конференція 2027' <<<"$pub" || fail "edition page title"
+[ "$(code "$B/confa/uk/conference/no-such-edition")" = 404 ] || fail "unknown edition must be 404"
+draft="$(post "$api/editions" '{"path":"draft-1","eventType":"webinar","name":{"uk":"Чернетка"},"startsAt":"2027-02-01 15:00","endsAt":"2027-02-01 16:30"}')"
+[ "$(tail -1 <<<"$draft")" = 200 ] || fail "create draft: $draft"
+[ "$(code "$B/confa/uk/conference/draft-1")" = 404 ] || fail "draft must be hidden from the public"
+[ "$(code -c "$jar" -b "$jar" "$B/confa/uk/conference/draft-1")" = 200 ] || fail "draft preview for managers"
+ok "manager page, edition page, drafts"
+
+[ "$(code "$B/index/uk/conference/upcoming")" = 404 ] || fail "upcoming must be off until the site admin enables it"
+docker exec -w /var/www/html "${OJS_CONTAINER:-ojs}" php cm-lifecycle.php enable-site 2>&1 | grep -q 'OK enabled at site' || fail "enable at site level"
+up="$(curl -s -L "$B/index/uk/conference/upcoming")"
+grep -q 'conference/conf-2027' <<<"$up" || fail "upcoming lists the open call"
+! grep -q 'draft-1' <<<"$up" || fail "upcoming must not list drafts"
+[ "$(curl -s "$B/index/api/v1/conference-site/upcoming?type=conference" | j 'd["itemsMax"], d["items"][0]["path"]')" = "(1, 'conf-2027')" ] || fail "upcoming API"
+[ "$(curl -s "$B/index/api/v1/conference-site/upcoming?type=webinar" | j 'd["itemsMax"]')" = 0 ] || fail "upcoming API filter"
+[ "$(curl -s -G "$B/index/api/v1/conference-site/upcoming" --data-urlencode 'q=КОНФЕРЕНЦІЯ' | j 'd["itemsMax"]')" = 1 ] || fail "upcoming search is case-insensitive for Cyrillic"
+ok "upcoming events (page, API, filters)"
+
+past="$(post "$api/editions" '{"path":"past-call","status":"cfp_open","name":{"uk":"Минулий прийом"},"startsAt":"2027-06-01 09:00","endsAt":"2027-06-01 18:00","cfpOpensAt":"2026-01-01","abstractDeadline":"2026-02-01"}')"
+pid="$(head -1 <<<"$past" | j 'd["id"]')"
+docker exec -w /var/www/html "${OJS_CONTAINER:-ojs}" php cm-lifecycle.php run-windows-task 2>&1 | grep -q 'OK edition windows task' || fail "windows task"
+[ "$(curl -s -b "$jar" "$api/editions/$pid" | j 'd["status"]')" = cfp_closed ] || fail "EDN-03: expired call must be closed"
+[ "$(curl -s -b "$jar" "$api/editions/$eid" | j 'd["status"]')" = cfp_open ] || fail "EDN-03: open call must stay open"
+ok "scheduled closing of calls"
+
 modal="$B/confa/\$\$\$call\$\$\$/grid/settings/plugins/settings-plugin-grid/manage?verb=institution&plugin=conferencemanagerplugin&category=generic"
 curl -s -b "$jar" "$modal" | j 'd["status"] and "paymentAccounts[0][iban]" in d["content"]' | grep -q True || fail "settings modal"
 ok "settings modal"

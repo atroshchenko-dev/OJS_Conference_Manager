@@ -103,6 +103,16 @@ final class DbEditionRepository implements EditionRepository
         });
     }
 
+    public function findOpenCallsPastDeadline(\DateTimeImmutable $now, int $limit = 500): array
+    {
+        $rows = $this->db->table(self::TABLE)
+            ->where('status', EditionStatus::CfpOpen->value)
+            ->whereNotNull('abstract_deadline')
+            ->where('abstract_deadline', '<=', DateInput::toStorage($now))
+            ->orderBy('id')->limit($limit)->get()->all();
+        return $this->hydrate($rows);
+    }
+
     public function isInUse(int $contextId, int $id): bool
     {
         if (!$this->query($contextId)->where('id', $id)->exists()) {
@@ -146,10 +156,12 @@ final class DbEditionRepository implements EditionRepository
     }
 
     /**
+     * Rows of conf_editions as entities (also used by cross-context queries).
+     *
      * @param list<object> $rows
      * @return list<Edition>
      */
-    private function hydrate(array $rows): array
+    public function hydrate(array $rows): array
     {
         if ($rows === []) {
             return [];

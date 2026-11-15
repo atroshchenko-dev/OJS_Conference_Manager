@@ -14,6 +14,8 @@
  *   php lifecycle.php steps
  *   php lifecycle.php user-groups <contextPath>             REG-01, idempotent
  *   php lifecycle.php publication-schema <contextPath>      plan 8.3 properties
+ *   php lifecycle.php enable-site                           site level ("Upcoming events", EDN-08)
+ *   php lifecycle.php run-windows-task                      EDN-03 scheduled task, once
  *
  * install / upgrade call the same PluginHelper methods as the upload form
  * of the plugin grid. upgrade loads the plugin first, exactly like the
@@ -46,6 +48,8 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'steps' => $this->steps(),
                 'user-groups' => $this->userGroups($this->argv[1]),
                 'publication-schema' => $this->publicationSchema($this->argv[1]),
+                'enable-site' => $this->enableSite(),
+                'run-windows-task' => $this->runWindowsTask(),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
         } catch (Throwable $e) {
@@ -172,6 +176,22 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
         in_array('in:oral,poster,online,absentee', (array) $schema->properties->presentationType->validation, true)
             || throw new RuntimeException('presentationType must be validated');
         echo 'OK publication schema: conferenceEditionId, presentationType (', $publication->getData('presentationType'), "), pageCount\n";
+    }
+
+    private function enableSite(): void
+    {
+        $plugin = PluginRegistry::loadPlugin('generic', 'conferenceManager')
+            ?? throw new RuntimeException('plugin not found');
+        $plugin->updateSetting(Application::SITE_CONTEXT_ID, 'enabled', true, 'bool');
+        echo "OK enabled at site level\n";
+    }
+
+    private function runWindowsTask(): void
+    {
+        PluginRegistry::loadCategory('generic', true);
+        $task = new \APP\plugins\generic\conferenceManager\classes\Tasks\EditionWindowsTask();
+        $task->execute() || throw new RuntimeException('task failed');
+        echo "OK edition windows task\n";
     }
 
     private function steps(): void

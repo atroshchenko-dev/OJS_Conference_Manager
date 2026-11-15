@@ -7,6 +7,7 @@ namespace APP\plugins\generic\conferenceManager\classes\Core;
 use APP\plugins\generic\conferenceManager\classes\Application\EditionService;
 use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfileService;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Queries\UpcomingEditionsQuery;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
@@ -57,5 +58,10 @@ final class ServiceFactory
             new IssueGateway(),
             new AuditLogger($db),
         );
+    }
+
+    public static function upcoming(): UpcomingEditionsQuery
+    {
+        return new UpcomingEditionsQuery(DB::connection(), 'conferencemanagerplugin');
     }
 }

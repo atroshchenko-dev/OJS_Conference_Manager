@@ -1,0 +1,30 @@
+/* Editions page of the Conference Manager plugin. */
+.cmEditions__toolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.cmEditions__filter { display: flex; flex-direction: column; gap: .25rem; font-weight: 600; font-size: .875rem; }
+.cmEditions__filter select { min-width: 14rem; }
+.cmEditions__table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 0 0 1px #ddd; }
+.cmEditions__table th, .cmEditions__table td { text-align: start; padding: .75rem; border-bottom: 1px solid #eee; vertical-align: top; font-size: .875rem; }
+.cmEditions__table th { background: #f7f7f7; font-weight: 600; }
+.cmEditions__path, .cmEditions__tz { color: #666; font-size: .75rem; margin-top: .25rem; }
+.cmEditions__window { font-size: .75rem; margin-top: .25rem; color: #b00; }
+.cmEditions__window--open { color: #006c35; }
+.cmEditions__actions { white-space: nowrap; }
+.cmEditions__actions > * { margin: 0 .25rem .25rem 0; }
+.cmEditions__empty, .cmEditions__loading { padding: 2rem; background: #fff; box-shadow: 0 0 0 1px #ddd; text-align: center; }
+.cmEditions__form { background: #fff; box-shadow: 0 0 0 1px #ddd; padding: 1.5rem; max-width: 64rem; }
+.cmEditions__section { border: 0; border-top: 1px solid #ddd; margin: 1.5rem 0 0; padding: 1rem 0 0; }
+.cmEditions__section legend { font-weight: 700; font-size: 1rem; padding-inline-end: .5rem; }
+.cmEditions__field { display: flex; flex-direction: column; gap: .25rem; margin-bottom: 1rem; flex: 1 1 14rem; }
+.cmEditions__field > span { font-weight: 600; font-size: .875rem; }
+.cmEditions__field small, .cmEditions__note { color: #666; font-size: .75rem; }
+.cmEditions__field em { color: #b00; font-style: normal; font-size: .8125rem; }
+.cmEditions__field--error .pkpFormField__input { border-color: #b00; }
+.cmEditions__field .pkpFormField__input { width: 100%; box-sizing: border-box; }
+.cmEditions__row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.cmEditions__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0 1rem; }
+.cmEditions__locales { display: flex; gap: .25rem; flex-wrap: wrap; }
+.cmEditions__locale { border: 1px solid #ddd; background: #f7f7f7; padding: .375rem .75rem; border-radius: 3px; cursor: pointer; font-size: .875rem; }
+.cmEditions__locale--active { background: #006798; border-color: #006798; color: #fff; }
+.cmEditions__errors { border-inline-start: 4px solid #b00; background: #fdf2f2; padding: .75rem 1rem; margin-bottom: 1rem; }
+.cmEditions__errors ul { margin: .5rem 0 0; padding-inline-start: 1.25rem; }
+.cmEditions__buttons { display: flex; gap: .5rem; align-items: center; margin-top: 1.5rem; }

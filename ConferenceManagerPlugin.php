@@ -18,11 +18,15 @@ namespace APP\plugins\generic\conferenceManager;
 
 use APP\core\Application;
 use APP\plugins\generic\conferenceManager\classes\Api\ConferenceApiController;
+use APP\plugins\generic\conferenceManager\classes\Api\ConferenceSiteApiController;
 use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
 use APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory;
 use APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway;
 use APP\plugins\generic\conferenceManager\classes\Forms\InstitutionSettingsForm;
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
+use APP\plugins\generic\conferenceManager\classes\Pages\ConferencePageHandler;
+use APP\plugins\generic\conferenceManager\classes\Pages\ManageConferenceHandler;
+use APP\plugins\generic\conferenceManager\classes\Tasks\EditionWindowsTask;
 use APP\template\TemplateManager;
 use PKP\core\APIRouter;
 use PKP\core\JSONMessage;
@@ -30,8 +34,11 @@ use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
+use PKP\plugins\interfaces\HasTaskScheduler;
+use PKP\scheduledTask\PKPScheduler;
+use PKP\security\Role;
 
-class ConferenceManagerPlugin extends GenericPlugin
+class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
 {
     public const VERB_INSTITUTION = 'institution';
 
@@ -55,6 +62,8 @@ class ConferenceManagerPlugin extends GenericPlugin
 
         Hook::add('APIHandler::endpoints::plugin', $this->registerApiControllers(...));
         Hook::add('Schema::get::publication', $this->addPublicationProperties(...));
+        Hook::add('LoadHandler', $this->loadPageHandler(...));
+        Hook::add('TemplateManager::setupBackendPage', $this->addBackendMenu(...));
 
         return true;
     }
@@ -149,8 +158,92 @@ class ConferenceManagerPlugin extends GenericPlugin
         if ($this->isEnabledFor($contextId === null ? null : (int) $contextId)) {
             $this->ensureUserGroups((int) $contextId);
             $router->registerPluginApiControllers([new ConferenceApiController()]);
+        } elseif ($contextId === null && $this->isSiteListingEnabled()) {
+            $router->registerPluginApiControllers([new ConferenceSiteApiController()]);
         }
         return Hook::CONTINUE;
+    }
+
+    /**
+     * "Upcoming events" of the whole site (EDN-08) are on when the site
+     * administrator enables the plugin at the site level
+     * (Administration → Site settings → Plugins).
+     */
+    public function isSiteListingEnabled(): bool
+    {
+        return (bool) $this->getSetting(Application::SITE_CONTEXT_ID, 'enabled');
+    }
+
+    /**
+     * Pages of the plugin. LoadHandler is run with Hook::call():
+     * one array of references [&$page, &$op, &$sourceFile, &$handler].
+     *
+     * @param array{0: string, 1: string, 2: string, 3: mixed} $args
+     */
+    public function loadPageHandler(string $hookName, array $args): bool
+    {
+        $page = &$args[0];
+        $op = &$args[1];
+        $handler = &$args[3];
+        $request = Application::get()->getRequest();
+        $contextId = $request->getContext()?->getId();
+
+        if ($page === ManageConferenceHandler::PAGE && $this->isEnabledFor($contextId === null ? null : (int) $contextId)) {
+            $handler = new ManageConferenceHandler($this);
+            return true;
+        }
+        if ($page === ConferencePageHandler::PAGE) {
+            if ($contextId === null && $op === 'upcoming' && $this->isSiteListingEnabled()) {
+                $handler = new ConferencePageHandler($this);
+                return true;
+            }
+            if ($contextId !== null && $op !== 'index' && $this->isEnabledFor((int) $contextId)) {
+                $handler = new ConferencePageHandler($this, (string) $op);
+                $op = 'view';
+                return true;
+            }
+        }
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * "Conferences" in the backend menu for managers, after "Issues".
+     */
+    public function addBackendMenu(string $hookName): bool
+    {
+        $request = Application::get()->getRequest();
+        $context = $request->getContext();
+        $user = $request->getUser();
+        if ($context === null || $user === null || !$this->isEnabledFor((int) $context->getId())) {
+            return Hook::CONTINUE;
+        }
+        if (!$user->hasRole([Role::ROLE_ID_MANAGER], (int) $context->getId()) && !$user->hasRole([Role::ROLE_ID_SITE_ADMIN], Application::SITE_CONTEXT_ID)) {
+            return Hook::CONTINUE;
+        }
+        $templateMgr = TemplateManager::getManager($request);
+        $menu = (array) $templateMgr->getState('menu');
+        $item = [
+            'name' => __('plugins.generic.conferenceManager.editions.title'),
+            'url' => $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), ManageConferenceHandler::PAGE),
+            'isCurrent' => $request->getRequestedPage() === ManageConferenceHandler::PAGE,
+            'icon' => 'Calendar',
+        ];
+        $index = array_search('settings', array_keys($menu), true);
+        $menu = $index === false
+            ? $menu + ['conferenceManager' => $item]
+            : array_slice($menu, 0, $index, true) + ['conferenceManager' => $item] + array_slice($menu, $index, null, true);
+        $templateMgr->setState(['menu' => $menu]);
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * EDN-03: close calls whose deadline has passed, every 15 minutes.
+     */
+    public function registerSchedules(PKPScheduler $scheduler): void
+    {
+        $scheduler->addSchedule(new EditionWindowsTask())
+            ->everyFifteenMinutes()
+            ->withoutOverlapping();
     }
 
     /**

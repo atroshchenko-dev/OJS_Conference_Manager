@@ -29,6 +29,15 @@ final class OjsStandIns
         $schema->create('journals', function (Blueprint $t) {
             $t->bigInteger('journal_id')->autoIncrement();
             $t->string('path', 32);
+            $t->smallInteger('enabled')->default(1);
+        });
+        $schema->create('plugin_settings', function (Blueprint $t) {
+            $t->bigIncrements('plugin_setting_id');
+            $t->string('plugin_name', 80);
+            $t->bigInteger('context_id')->nullable();
+            $t->string('setting_name', 80);
+            $t->mediumText('setting_value')->nullable();
+            $t->string('setting_type', 6)->default('string');
         });
         foreach (['submissions' => 'submission_id', 'users' => 'user_id', 'authors' => 'author_id', 'issues' => 'issue_id', 'publication_galleys' => 'galley_id'] as $table => $key) {
             $schema->create($table, function (Blueprint $t) use ($key) {

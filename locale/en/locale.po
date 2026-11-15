@@ -377,3 +377,228 @@ msgstr "This status change is not allowed."
 
 msgid "plugins.generic.conferenceManager.validation.editionInUse"
 msgstr "The edition has participants, invoices or submissions. It can only be archived."
+
+msgid "plugins.generic.conferenceManager.editions.title"
+msgstr "Conferences"
+
+msgid "plugins.generic.conferenceManager.editions.new"
+msgstr "New edition"
+
+msgid "plugins.generic.conferenceManager.editions.empty"
+msgstr "No editions yet. Create the first one: a conference, seminar, webinar or school."
+
+msgid "plugins.generic.conferenceManager.editions.edit"
+msgstr "Edit"
+
+msgid "plugins.generic.conferenceManager.editions.copy"
+msgstr "Copy"
+
+msgid "plugins.generic.conferenceManager.editions.delete"
+msgstr "Delete"
+
+msgid "plugins.generic.conferenceManager.editions.deleteConfirm"
+msgstr "Delete this edition? This cannot be undone."
+
+msgid "plugins.generic.conferenceManager.editions.deleted"
+msgstr "Edition deleted."
+
+msgid "plugins.generic.conferenceManager.editions.saved"
+msgstr "Edition saved."
+
+msgid "plugins.generic.conferenceManager.editions.save"
+msgstr "Save"
+
+msgid "plugins.generic.conferenceManager.editions.cancel"
+msgstr "Cancel"
+
+msgid "plugins.generic.conferenceManager.editions.publicPage"
+msgstr "Public page"
+
+msgid "plugins.generic.conferenceManager.editions.issue"
+msgstr "OJS issue"
+
+msgid "plugins.generic.conferenceManager.editions.filterStatus"
+msgstr "Status"
+
+msgid "plugins.generic.conferenceManager.editions.allStatuses"
+msgstr "All statuses"
+
+msgid "plugins.generic.conferenceManager.editions.loading"
+msgstr "Loading…"
+
+msgid "plugins.generic.conferenceManager.editions.errors"
+msgstr "Please correct the errors in the form:"
+
+msgid "plugins.generic.conferenceManager.editions.copyOf"
+msgstr "copy"
+
+msgid "plugins.generic.conferenceManager.editions.section.main"
+msgstr "General"
+
+msgid "plugins.generic.conferenceManager.editions.section.modes"
+msgstr "Submissions and publication"
+
+msgid "plugins.generic.conferenceManager.editions.section.dates"
+msgstr "Dates and windows"
+
+msgid "plugins.generic.conferenceManager.editions.section.texts"
+msgstr "Texts for participants"
+
+msgid "plugins.generic.conferenceManager.editions.section.details"
+msgstr "Proceedings and certificates"
+
+msgid "plugins.generic.conferenceManager.editions.field.name"
+msgstr "Title"
+
+msgid "plugins.generic.conferenceManager.editions.field.path"
+msgstr "Page path"
+
+msgid "plugins.generic.conferenceManager.editions.field.path.description"
+msgstr "Part of the URL, e.g. conf-2027. Lowercase Latin letters, digits, hyphens."
+
+msgid "plugins.generic.conferenceManager.editions.field.eventType"
+msgstr "Event type"
+
+msgid "plugins.generic.conferenceManager.editions.field.format"
+msgstr "Format"
+
+msgid "plugins.generic.conferenceManager.editions.field.timezone"
+msgstr "Time zone"
+
+msgid "plugins.generic.conferenceManager.editions.field.venue"
+msgstr "Venue"
+
+msgid "plugins.generic.conferenceManager.editions.field.description"
+msgstr "Description"
+
+msgid "plugins.generic.conferenceManager.editions.field.learningOutcomes"
+msgstr "Learning outcomes"
+
+msgid "plugins.generic.conferenceManager.editions.field.cfpText"
+msgstr "Call for papers"
+
+msgid "plugins.generic.conferenceManager.editions.field.status"
+msgstr "Status"
+
+msgid "plugins.generic.conferenceManager.editions.field.submissionMode"
+msgstr "Submissions"
+
+msgid "plugins.generic.conferenceManager.editions.field.publicationMode"
+msgstr "Proceedings"
+
+msgid "plugins.generic.conferenceManager.editions.field.externalProceedingsUrl"
+msgstr "Proceedings link"
+
+msgid "plugins.generic.conferenceManager.editions.field.reviewMode"
+msgstr "Review"
+
+msgid "plugins.generic.conferenceManager.editions.field.startsAt"
+msgstr "Starts"
+
+msgid "plugins.generic.conferenceManager.editions.field.endsAt"
+msgstr "Ends"
+
+msgid "plugins.generic.conferenceManager.editions.field.cfpOpensAt"
+msgstr "Call opens"
+
+msgid "plugins.generic.conferenceManager.editions.field.abstractDeadline"
+msgstr "Abstract deadline"
+
+msgid "plugins.generic.conferenceManager.editions.field.paperDeadline"
+msgstr "Full paper deadline"
+
+msgid "plugins.generic.conferenceManager.editions.field.registrationClosesAt"
+msgstr "Registration closes"
+
+msgid "plugins.generic.conferenceManager.editions.field.paymentDeadline"
+msgstr "Payment deadline"
+
+msgid "plugins.generic.conferenceManager.editions.field.dates.description"
+msgstr "Dates are in the local time of the event (time zone below). At the deadline the window is already closed."
+
+msgid "plugins.generic.conferenceManager.editions.field.isbn"
+msgstr "Proceedings ISBN"
+
+msgid "plugins.generic.conferenceManager.editions.field.udc"
+msgstr "UDC / classification"
+
+msgid "plugins.generic.conferenceManager.editions.field.vectorProgramId"
+msgstr "Vector programme ID"
+
+msgid "plugins.generic.conferenceManager.editions.field.hours"
+msgstr "Hours"
+
+msgid "plugins.generic.conferenceManager.editions.field.ects"
+msgstr "ECTS credits"
+
+msgid "plugins.generic.conferenceManager.editions.column.dates"
+msgstr "Dates"
+
+msgid "plugins.generic.conferenceManager.editions.column.status"
+msgstr "Status"
+
+msgid "plugins.generic.conferenceManager.editions.column.type"
+msgstr "Type"
+
+msgid "plugins.generic.conferenceManager.editions.submissionsOpen"
+msgstr "Submissions open"
+
+msgid "plugins.generic.conferenceManager.editions.submissionsClosed"
+msgstr "Submissions closed"
+
+msgid "plugins.generic.conferenceManager.public.draftNotice"
+msgstr "Draft: only journal managers can see this page."
+
+msgid "plugins.generic.conferenceManager.public.when"
+msgstr "When"
+
+msgid "plugins.generic.conferenceManager.public.where"
+msgstr "Where"
+
+msgid "plugins.generic.conferenceManager.public.workload"
+msgstr "Workload"
+
+msgid "plugins.generic.conferenceManager.public.hours"
+msgstr "hours: {$hours}"
+
+msgid "plugins.generic.conferenceManager.public.ects"
+msgstr "ECTS credits: {$ects}"
+
+msgid "plugins.generic.conferenceManager.public.submissionsOpen"
+msgstr "The call for papers is open."
+
+msgid "plugins.generic.conferenceManager.public.submissionsClosed"
+msgstr "Submissions are closed at the moment."
+
+msgid "plugins.generic.conferenceManager.public.submit"
+msgstr "Submit"
+
+msgid "plugins.generic.conferenceManager.public.proceedings"
+msgstr "Proceedings"
+
+msgid "plugins.generic.conferenceManager.public.proceedingsLink"
+msgstr "View the proceedings"
+
+msgid "plugins.generic.conferenceManager.upcoming.title"
+msgstr "Upcoming events"
+
+msgid "plugins.generic.conferenceManager.upcoming.journal"
+msgstr "Journal / institution"
+
+msgid "plugins.generic.conferenceManager.upcoming.all"
+msgstr "All"
+
+msgid "plugins.generic.conferenceManager.upcoming.search"
+msgstr "Title or city"
+
+msgid "plugins.generic.conferenceManager.upcoming.apply"
+msgstr "Show"
+
+msgid "plugins.generic.conferenceManager.upcoming.empty"
+msgstr "No events match these filters."
+
+msgid "plugins.generic.conferenceManager.task.editionWindows"
+msgstr "Conference plugin: submission windows"
+
+msgid "plugins.generic.conferenceManager.task.editionWindows.closed"
+msgstr "Calls closed: {$count}."

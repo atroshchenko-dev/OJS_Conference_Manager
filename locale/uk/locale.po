@@ -377,3 +377,228 @@ msgstr "Такий перехід статусу неможливий."
 
 msgid "plugins.generic.conferenceManager.validation.editionInUse"
 msgstr "Видання має учасників, рахунки або подання. Його можна лише архівувати."
+
+msgid "plugins.generic.conferenceManager.editions.title"
+msgstr "Конференції"
+
+msgid "plugins.generic.conferenceManager.editions.new"
+msgstr "Нове видання"
+
+msgid "plugins.generic.conferenceManager.editions.empty"
+msgstr "Ще немає жодного видання. Створіть перше: конференцію, семінар, вебінар чи школу."
+
+msgid "plugins.generic.conferenceManager.editions.edit"
+msgstr "Редагувати"
+
+msgid "plugins.generic.conferenceManager.editions.copy"
+msgstr "Копіювати"
+
+msgid "plugins.generic.conferenceManager.editions.delete"
+msgstr "Видалити"
+
+msgid "plugins.generic.conferenceManager.editions.deleteConfirm"
+msgstr "Видалити це видання? Дію не можна скасувати."
+
+msgid "plugins.generic.conferenceManager.editions.deleted"
+msgstr "Видання видалено."
+
+msgid "plugins.generic.conferenceManager.editions.saved"
+msgstr "Видання збережено."
+
+msgid "plugins.generic.conferenceManager.editions.save"
+msgstr "Зберегти"
+
+msgid "plugins.generic.conferenceManager.editions.cancel"
+msgstr "Скасувати"
+
+msgid "plugins.generic.conferenceManager.editions.publicPage"
+msgstr "Сторінка"
+
+msgid "plugins.generic.conferenceManager.editions.issue"
+msgstr "Випуск OJS"
+
+msgid "plugins.generic.conferenceManager.editions.filterStatus"
+msgstr "Статус"
+
+msgid "plugins.generic.conferenceManager.editions.allStatuses"
+msgstr "Усі статуси"
+
+msgid "plugins.generic.conferenceManager.editions.loading"
+msgstr "Завантаження…"
+
+msgid "plugins.generic.conferenceManager.editions.errors"
+msgstr "Виправте помилки у формі:"
+
+msgid "plugins.generic.conferenceManager.editions.copyOf"
+msgstr "копія"
+
+msgid "plugins.generic.conferenceManager.editions.section.main"
+msgstr "Основне"
+
+msgid "plugins.generic.conferenceManager.editions.section.modes"
+msgstr "Подання й публікація"
+
+msgid "plugins.generic.conferenceManager.editions.section.dates"
+msgstr "Дати й вікна прийому"
+
+msgid "plugins.generic.conferenceManager.editions.section.texts"
+msgstr "Тексти для учасників"
+
+msgid "plugins.generic.conferenceManager.editions.section.details"
+msgstr "Збірник і сертифікати"
+
+msgid "plugins.generic.conferenceManager.editions.field.name"
+msgstr "Назва"
+
+msgid "plugins.generic.conferenceManager.editions.field.path"
+msgstr "Адреса сторінки"
+
+msgid "plugins.generic.conferenceManager.editions.field.path.description"
+msgstr "Частина URL, наприклад conf-2027. Малі латинські літери, цифри, дефіс."
+
+msgid "plugins.generic.conferenceManager.editions.field.eventType"
+msgstr "Тип заходу"
+
+msgid "plugins.generic.conferenceManager.editions.field.format"
+msgstr "Формат"
+
+msgid "plugins.generic.conferenceManager.editions.field.timezone"
+msgstr "Часовий пояс"
+
+msgid "plugins.generic.conferenceManager.editions.field.venue"
+msgstr "Місце проведення"
+
+msgid "plugins.generic.conferenceManager.editions.field.description"
+msgstr "Опис"
+
+msgid "plugins.generic.conferenceManager.editions.field.learningOutcomes"
+msgstr "Результати навчання"
+
+msgid "plugins.generic.conferenceManager.editions.field.cfpText"
+msgstr "Інформаційний лист (умови участі)"
+
+msgid "plugins.generic.conferenceManager.editions.field.status"
+msgstr "Статус"
+
+msgid "plugins.generic.conferenceManager.editions.field.submissionMode"
+msgstr "Подання"
+
+msgid "plugins.generic.conferenceManager.editions.field.publicationMode"
+msgstr "Збірник"
+
+msgid "plugins.generic.conferenceManager.editions.field.externalProceedingsUrl"
+msgstr "Посилання на збірник"
+
+msgid "plugins.generic.conferenceManager.editions.field.reviewMode"
+msgstr "Рецензування"
+
+msgid "plugins.generic.conferenceManager.editions.field.startsAt"
+msgstr "Початок"
+
+msgid "plugins.generic.conferenceManager.editions.field.endsAt"
+msgstr "Завершення"
+
+msgid "plugins.generic.conferenceManager.editions.field.cfpOpensAt"
+msgstr "Початок прийому заявок"
+
+msgid "plugins.generic.conferenceManager.editions.field.abstractDeadline"
+msgstr "Кінцевий термін подання тез"
+
+msgid "plugins.generic.conferenceManager.editions.field.paperDeadline"
+msgstr "Кінцевий термін повних текстів"
+
+msgid "plugins.generic.conferenceManager.editions.field.registrationClosesAt"
+msgstr "Завершення реєстрації"
+
+msgid "plugins.generic.conferenceManager.editions.field.paymentDeadline"
+msgstr "Кінцевий термін оплати"
+
+msgid "plugins.generic.conferenceManager.editions.field.dates.description"
+msgstr "Дати вводяться за місцевим часом заходу (часовий пояс нижче). О кінцевому терміні прийом уже закрито."
+
+msgid "plugins.generic.conferenceManager.editions.field.isbn"
+msgstr "ISBN збірника"
+
+msgid "plugins.generic.conferenceManager.editions.field.udc"
+msgstr "УДК / класифікатор"
+
+msgid "plugins.generic.conferenceManager.editions.field.vectorProgramId"
+msgstr "ID програми на «Векторі»"
+
+msgid "plugins.generic.conferenceManager.editions.field.hours"
+msgstr "Обсяг, годин"
+
+msgid "plugins.generic.conferenceManager.editions.field.ects"
+msgstr "Кредити ЄКТС"
+
+msgid "plugins.generic.conferenceManager.editions.column.dates"
+msgstr "Дати"
+
+msgid "plugins.generic.conferenceManager.editions.column.status"
+msgstr "Статус"
+
+msgid "plugins.generic.conferenceManager.editions.column.type"
+msgstr "Тип"
+
+msgid "plugins.generic.conferenceManager.editions.submissionsOpen"
+msgstr "Прийом відкрито"
+
+msgid "plugins.generic.conferenceManager.editions.submissionsClosed"
+msgstr "Прийом закрито"
+
+msgid "plugins.generic.conferenceManager.public.draftNotice"
+msgstr "Чернетка: цю сторінку бачать лише менеджери журналу."
+
+msgid "plugins.generic.conferenceManager.public.when"
+msgstr "Коли"
+
+msgid "plugins.generic.conferenceManager.public.where"
+msgstr "Де"
+
+msgid "plugins.generic.conferenceManager.public.workload"
+msgstr "Обсяг"
+
+msgid "plugins.generic.conferenceManager.public.hours"
+msgstr "годин: {$hours}"
+
+msgid "plugins.generic.conferenceManager.public.ects"
+msgstr "кредитів ЄКТС: {$ects}"
+
+msgid "plugins.generic.conferenceManager.public.submissionsOpen"
+msgstr "Прийом заявок відкрито."
+
+msgid "plugins.generic.conferenceManager.public.submissionsClosed"
+msgstr "Прийом заявок зараз закрито."
+
+msgid "plugins.generic.conferenceManager.public.submit"
+msgstr "Подати тези"
+
+msgid "plugins.generic.conferenceManager.public.proceedings"
+msgstr "Збірник матеріалів"
+
+msgid "plugins.generic.conferenceManager.public.proceedingsLink"
+msgstr "Переглянути збірник"
+
+msgid "plugins.generic.conferenceManager.upcoming.title"
+msgstr "Майбутні заходи"
+
+msgid "plugins.generic.conferenceManager.upcoming.journal"
+msgstr "Журнал / заклад"
+
+msgid "plugins.generic.conferenceManager.upcoming.all"
+msgstr "Усі"
+
+msgid "plugins.generic.conferenceManager.upcoming.search"
+msgstr "Назва або місто"
+
+msgid "plugins.generic.conferenceManager.upcoming.apply"
+msgstr "Показати"
+
+msgid "plugins.generic.conferenceManager.upcoming.empty"
+msgstr "Заходів за цими умовами немає."
+
+msgid "plugins.generic.conferenceManager.task.editionWindows"
+msgstr "Плагін конференцій: вікна прийому"
+
+msgid "plugins.generic.conferenceManager.task.editionWindows.closed"
+msgstr "Закрито прийом заявок у виданнях: {$count}."

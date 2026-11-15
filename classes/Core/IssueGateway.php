@@ -40,4 +40,11 @@ final class IssueGateway implements IssueProvisioner
     {
         return Repo::issue()->exists($issueId, $contextId);
     }
+
+    /** Public id (URL path or id) of the issue when it is published, else null. */
+    public function publishedPublicId(int $contextId, int $issueId): ?string
+    {
+        $issue = Repo::issue()->get($issueId, $contextId);
+        return $issue !== null && $issue->getPublished() ? (string) $issue->getBestIssueId() : null;
+    }
 }
