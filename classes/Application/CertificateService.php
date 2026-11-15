@@ -553,12 +553,12 @@ final class CertificateService
     /**
      * CRT-06: issues to everyone eligible who has no certificate yet, or to
      * the chosen participations. Up to one portion is issued at once; more
-     * go to the queue in portions of BATCH_SIZE.
+     * go to the queue in portions of the batch size of the load profile.
      *
      * @param list<mixed>|null $participationIds null: everyone eligible
      * @return array{eligible: int, issued: int, queued: int}|null
      */
-    public function issueBatch(ContextInfo $context, int $editionId, ?array $participationIds, CertificateQueue $queue, ?int $actorId, DateTimeImmutable $now, string $locale): ?array
+    public function issueBatch(ContextInfo $context, int $editionId, ?array $participationIds, CertificateQueue $queue, ?int $actorId, DateTimeImmutable $now, string $locale, int $batchSize = self::BATCH_SIZE): ?array
     {
         $candidates = $this->candidates($context, $editionId, $locale);
         if ($candidates === null) {
@@ -572,14 +572,15 @@ final class CertificateService
             }
         }
         $ids = array_values(array_unique($ids));
-        if (count($ids) <= self::BATCH_SIZE) {
+        $batchSize = max(1, $batchSize);
+        if (count($ids) <= $batchSize) {
             $done = $ids === [] ? [] : ($this->issue($context, $editionId, $ids, $actorId, $now, $locale) ?? []);
             $issued = count(array_filter($done, static fn (array $r): bool => $r['status'] === 'issued'));
             return ['eligible' => count($ids), 'issued' => $issued, 'queued' => 0];
         }
-        foreach (array_chunk($ids, self::BATCH_SIZE) as $chunk) {
-            $queue->push($context->id, $editionId, $chunk, $actorId, $locale);
-        }
+        // One portion at a time: the job queues the next one after itself,
+        // so batches of several journals take turns (plan, 15.2).
+        $queue->push($context->id, $editionId, array_slice($ids, 0, $batchSize), $actorId, $locale, array_slice($ids, $batchSize));
         $this->audit?->log($context->id, $actorId, 'edition', $editionId, 'certificates_queued', null, ['count' => count($ids)]);
         return ['eligible' => count($ids), 'issued' => 0, 'queued' => count($ids)];
     }

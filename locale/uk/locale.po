@@ -3095,3 +3095,123 @@ msgstr "Скопіюйте текст у поле вище й адаптуйте
 
 msgid "plugins.generic.conferenceManager.privacy.email"
 msgstr "Адреса електронної пошти особи"
+
+msgid "plugins.generic.conferenceManager.site.title"
+msgstr "Конференції: огляд сайту"
+
+msgid "plugins.generic.conferenceManager.site.version"
+msgstr "Версія плагіна"
+
+msgid "plugins.generic.conferenceManager.site.schema"
+msgstr "Кроків схеми"
+
+msgid "plugins.generic.conferenceManager.site.queue"
+msgstr "Завдань плагіна в черзі"
+
+msgid "plugins.generic.conferenceManager.site.failed"
+msgstr "Невдалих завдань"
+
+msgid "plugins.generic.conferenceManager.site.journal"
+msgstr "Журнал"
+
+msgid "plugins.generic.conferenceManager.site.enabled"
+msgstr "Плагін увімкнено"
+
+msgid "plugins.generic.conferenceManager.site.editions"
+msgstr "Активні / усі заходи"
+
+msgid "plugins.generic.conferenceManager.site.participants"
+msgstr "Учасників"
+
+msgid "plugins.generic.conferenceManager.site.letters"
+msgstr "Листів у черзі розсилок"
+
+msgid "plugins.generic.conferenceManager.site.jobs"
+msgstr "Завдань у черзі"
+
+msgid "plugins.generic.conferenceManager.site.editionsHint"
+msgstr "Активні заходи: прийом матеріалів відкрито або закрито, або матеріали опубліковано."
+
+msgid "plugins.generic.conferenceManager.site.tasks"
+msgstr "Завдання планувальника"
+
+msgid "plugins.generic.conferenceManager.site.taskNever"
+msgstr "ще не запускалось"
+
+msgid "plugins.generic.conferenceManager.site.taskFailed"
+msgstr "з помилкою, див. журнал завдань OJS"
+
+msgid "plugins.generic.conferenceManager.site.task.EditionWindowsTask"
+msgstr "Відкриття й закриття прийому матеріалів"
+
+msgid "plugins.generic.conferenceManager.site.task.ReminderTask"
+msgstr "Нагадування"
+
+msgid "plugins.generic.conferenceManager.site.task.RetentionTask"
+msgstr "Строки зберігання персональних даних"
+
+msgid "plugins.generic.conferenceManager.site.load"
+msgstr "Профіль навантаження"
+
+msgid "plugins.generic.conferenceManager.site.loadHelp"
+msgstr "Профіль визначає, скільки фонової роботи плагін виконує за раз і коли. Масові задачі (розсилки, пакетна видача сертифікатів, масові рішення) за 48 годин до кінцевого строку прийому матеріалів журналу стають на паузу. Розсилки журналів по черзі ділять ліміт листів на годину. Нагадування ніколи не затримуються."
+
+msgid "plugins.generic.conferenceManager.site.profile"
+msgstr "Профіль"
+
+msgid "plugins.generic.conferenceManager.site.profile.shared_hosting"
+msgstr "Віртуальний хостинг без cron: пакети по 10, масові задачі лише 22:00–07:00, 100 листів на годину"
+
+msgid "plugins.generic.conferenceManager.site.profile.standard"
+msgstr "Окремий сервер закладу (за замовчуванням): пакети по 30, 500 листів на годину"
+
+msgid "plugins.generic.conferenceManager.site.profile.provider"
+msgstr "Багатозакладна інсталяція з cron: пакети по 30, листи за лімітом поштового сервера, черга по черзі між журналами"
+
+msgid "plugins.generic.conferenceManager.site.mailsPerHour"
+msgstr "Листів розсилок на годину"
+
+msgid "plugins.generic.conferenceManager.site.mailsPerHourHelp"
+msgstr "Порожньо: як у профілі. Вкажіть ліміт свого поштового сервера, якщо він менший."
+
+msgid "plugins.generic.conferenceManager.site.current"
+msgstr "Зараз: пакет {$batch}, листів на годину {$mails}."
+
+msgid "plugins.generic.conferenceManager.site.nightOnly"
+msgstr "Масові задачі виконуються лише вночі за часом сервера."
+
+msgid "plugins.generic.conferenceManager.site.runner"
+msgstr "Черга OJS на вебзапитах"
+
+msgid "plugins.generic.conferenceManager.site.runnerOn"
+msgstr "увімкнена, до {$n} завдань за запит"
+
+msgid "plugins.generic.conferenceManager.site.runnerOffNow"
+msgstr "вимкнена (завдання виконує cron)"
+
+msgid "plugins.generic.conferenceManager.site.timezone"
+msgstr "Часовий пояс сервера"
+
+msgid "plugins.generic.conferenceManager.site.advice.cron"
+msgstr "Для профілю «Багатозакладна інсталяція» вимкніть у config.inc.php job_runner = Off і запускайте php lib/pkp/tools/jobs.php run та планувальник через cron."
+
+msgid "plugins.generic.conferenceManager.site.advice.runnerOff"
+msgstr "Черга на вебзапитах вимкнена: переконайтеся, що cron запускає php lib/pkp/tools/jobs.php run, інакше розсилки й пакетна видача не виконуються."
+
+msgid "plugins.generic.conferenceManager.site.advice.maxJobs"
+msgstr "Для цього профілю рекомендовано job_runner_max_jobs = {$n} у config.inc.php (зараз {$current})."
+
+msgid "plugins.generic.conferenceManager.site.advice.failed"
+msgstr "{$n} завдань плагіна завершилися з помилкою: перегляньте «Адміністрування → Завдання → Невдалі»."
+
+msgid "plugins.generic.conferenceManager.site.error.profile"
+msgstr "Оберіть профіль навантаження."
+
+msgid "plugins.generic.conferenceManager.site.error.mails"
+msgstr "Кількість листів на годину має бути цілим числом від 0 до 100000."
+
+msgid "plugins.generic.conferenceManager.audit.entity.load_profile"
+msgstr "Профіль навантаження"
+
+msgid "plugins.generic.conferenceManager.site.saved"
+msgstr "Збережено."

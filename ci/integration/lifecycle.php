@@ -58,7 +58,8 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'run-reminders-task' => $this->runRemindersTask(),
                 'author-group' => $this->authorGroup($this->argv[1]),
                 'new-token' => $this->newToken($this->argv[1], $this->argv[2]),
-                'new-user' => $this->newUser($this->argv[1], $this->argv[2], $this->argv[3]),
+                'new-user' => $this->newUser($this->argv[1], $this->argv[2], $this->argv[3], $this->argv[4] ?? 'reader'),
+                'ids' => $this->ids($this->argv[1]),
                 'next-numbers' => $this->nextNumbers($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 'assign-author' => $this->assignAuthor($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 'email-log' => $this->emailLog((int) $this->argv[1], $this->argv[2]),
@@ -242,7 +243,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
     }
 
     /** A reader of the context with the password "reader12345" (REG-05, REG-06 checks). */
-    private function newUser(string $path, string $username, string $email): void
+    private function newUser(string $path, string $username, string $email, string $role = 'reader'): void
     {
         $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
         $user = \APP\facades\Repo::user()->newDataObject();
@@ -255,9 +256,33 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
         $user->setDateRegistered(\PKP\core\Core::getCurrentDate());
         $id = \APP\facades\Repo::user()->add($user);
         $group = DB::table('user_groups')->where('context_id', $context->getId())
-            ->where('role_id', \PKP\security\Role::ROLE_ID_READER)->orderBy('user_group_id')->value('user_group_id');
+            ->where('role_id', $role === 'manager' ? \PKP\security\Role::ROLE_ID_MANAGER : \PKP\security\Role::ROLE_ID_READER)
+            ->orderBy('user_group_id')->value('user_group_id');
         \APP\facades\Repo::userGroup()->assignUserToGroup($id, (int) $group);
         echo $id, "\n";
+    }
+
+    /**
+     * DST-02: ids of the plugin's records of a context, as JSON, for the
+     * isolation check from another context.
+     */
+    private function ids(string $path): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $c = (int) $context->getId();
+        $pluck = static fn ($q): array => array_map('intval', $q->limit(5)->pluck('id')->all());
+        $editions = $pluck(DB::table('conf_editions')->where('context_id', $c)->select('id as id'));
+        $participants = DB::table('conf_participants')->where('context_id', $c)->pluck('id')->all();
+        echo json_encode([
+            'editions' => $editions,
+            'participations' => $pluck(DB::table('conf_participations')->whereIn('participant_id', $participants)->select('id')),
+            'invoices' => $pluck(DB::table('conf_invoices')->where('context_id', $c)->select('id')),
+            'proofs' => $pluck(DB::table('conf_payment_proofs as p')->join('conf_invoices as i', 'i.id', '=', 'p.invoice_id')->where('i.context_id', $c)->select('p.id as id')),
+            'certificates' => $pluck(DB::table('conf_certificates')->where('context_id', $c)->select('id')),
+            'campaigns' => $pluck(DB::table('conf_campaigns')->where('context_id', $c)->select('id')),
+            'batches' => $pluck(DB::table('conf_decision_batches')->where('context_id', $c)->select('id')),
+            'submissions' => array_map('intval', DB::table('submissions')->where('context_id', $c)->limit(5)->pluck('submission_id')->all()),
+        ]), "\n";
     }
 
     /**

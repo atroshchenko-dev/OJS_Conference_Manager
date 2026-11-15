@@ -204,6 +204,18 @@ final class ServiceFactory
         );
     }
 
+    /** Plan, section 15.2: the load profile of the installation. */
+    public static function loadPolicy(): \APP\plugins\generic\conferenceManager\classes\Application\LoadPolicy
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\LoadPolicy(
+            self::settings(),
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbLoadStatistics($db),
+            new \DateTimeZone(date_default_timezone_get()),
+            new AuditLogger($db),
+        );
+    }
+
     public static function settings(): PluginSettingsStore
     {
         $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'conferencemanagerplugin');

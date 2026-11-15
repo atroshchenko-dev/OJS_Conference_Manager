@@ -28,6 +28,8 @@ final class IssueCertificates extends BaseJob
         public readonly array $participationIds,
         public readonly ?int $actorId,
         public readonly string $locale,
+        /** @var list<int> the next portions */
+        public readonly array $rest = [],
     ) {
         parent::__construct();
     }
@@ -38,6 +40,15 @@ final class IssueCertificates extends BaseJob
         if ($context === null) {
             return;
         }
+        $wait = MassWork::wait($this->contextId);
+        if ($wait > 0) {
+            MassWork::queue(new self($this->contextId, $this->editionId, $this->participationIds, $this->actorId, $this->locale, $this->rest), $wait);
+            return;
+        }
         ServiceFactory::certificates()->issue($context, $this->editionId, $this->participationIds, $this->actorId, new DateTimeImmutable('now', new DateTimeZone('UTC')), $this->locale);
+        if ($this->rest !== []) {
+            $size = ServiceFactory::loadPolicy()->batchSize();
+            MassWork::queue(new self($this->contextId, $this->editionId, array_slice($this->rest, 0, $size), $this->actorId, $this->locale, array_slice($this->rest, $size)));
+        }
     }
 }

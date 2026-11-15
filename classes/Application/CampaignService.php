@@ -222,9 +222,9 @@ final class CampaignService
         $id = $this->campaigns->create($context->id, $editionId, $actorId, $locale, trim((string) $input['subject']), trim((string) $input['body']), $filter, $list, $now);
         $this->audit?->log($context->id, $actorId, 'campaign', $id, 'started', null, ['editionId' => $editionId, 'recipients' => count($list), 'filter' => $filter]);
         $url = $this->mailer->cabinetUrl($context);
-        for ($n = 0; $n < count($list); $n += self::BATCH) {
-            $this->queue->push($context->id, $id, $url);
-        }
+        // One job: it sends a portion and queues itself again while letters
+        // are left, so mailings of several journals take turns (plan, 15.2).
+        $this->queue->push($context->id, $id, $url);
         return [$id, $errors];
     }
 
@@ -233,7 +233,7 @@ final class CampaignService
      * again while something is left (a worker that died leaves its portion
      * in "sending": it is not sent twice).
      */
-    public function runBatch(ContextInfo $context, int $campaignId, string $cabinetUrl, DateTimeImmutable $now): int
+    public function runBatch(ContextInfo $context, int $campaignId, string $cabinetUrl, DateTimeImmutable $now, int $limit = self::BATCH): int
     {
         $c = $this->campaigns->find($context->id, $campaignId);
         if ($c === null) {
@@ -243,7 +243,7 @@ final class CampaignService
         $locale = (string) $c['locale'];
         $conference = $edition === null ? '' : (string) $edition->text('name')->resolve($locale, $context->primaryLocale);
         $contextName = (string) (new LocalizedText($context->name))->resolve($locale, $context->primaryLocale);
-        $batch = $this->campaigns->claim($campaignId, self::BATCH);
+        $batch = $this->campaigns->claim($campaignId, max(1, min($limit, self::BATCH)));
         foreach ($batch as $r) {
             try {
                 $this->mailer->sendText($context, (string) $c['subject'], (string) $c['body'], $r['email'], $r['name'] !== '' ? $r['name'] : null, [
@@ -258,6 +258,12 @@ final class CampaignService
             }
         }
         return count($batch);
+    }
+
+    /** Letters of the mailing still waiting. */
+    public function pending(ContextInfo $context, int $campaignId): int
+    {
+        return $this->campaigns->find($context->id, $campaignId) === null ? 0 : $this->campaigns->counts($campaignId)['pending'];
     }
 
     /** @return array<string, mixed>|null */

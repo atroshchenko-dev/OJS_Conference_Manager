@@ -244,6 +244,7 @@ final class CertificateRoutes implements RouteModule
             $this->api->actorId(),
             self::now(),
             Locale::getLocale(),
+            ServiceFactory::loadPolicy()->batchSize(),
         );
         return $out === null ? ConferenceApiController::notFound() : response()->json($out, Response::HTTP_OK);
     }

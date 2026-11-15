@@ -3095,3 +3095,123 @@ msgstr "Copy the text into the field above and adapt it to your institution. The
 
 msgid "plugins.generic.conferenceManager.privacy.email"
 msgstr "Email address of the person"
+
+msgid "plugins.generic.conferenceManager.site.title"
+msgstr "Conferences: site overview"
+
+msgid "plugins.generic.conferenceManager.site.version"
+msgstr "Plugin version"
+
+msgid "plugins.generic.conferenceManager.site.schema"
+msgstr "Schema steps"
+
+msgid "plugins.generic.conferenceManager.site.queue"
+msgstr "Plugin jobs in the queue"
+
+msgid "plugins.generic.conferenceManager.site.failed"
+msgstr "Failed jobs"
+
+msgid "plugins.generic.conferenceManager.site.journal"
+msgstr "Journal"
+
+msgid "plugins.generic.conferenceManager.site.enabled"
+msgstr "Plugin on"
+
+msgid "plugins.generic.conferenceManager.site.editions"
+msgstr "Active / all events"
+
+msgid "plugins.generic.conferenceManager.site.participants"
+msgstr "Participants"
+
+msgid "plugins.generic.conferenceManager.site.letters"
+msgstr "Mailing letters waiting"
+
+msgid "plugins.generic.conferenceManager.site.jobs"
+msgstr "Jobs queued"
+
+msgid "plugins.generic.conferenceManager.site.editionsHint"
+msgstr "Active events: the call is open or closed, or the papers are published."
+
+msgid "plugins.generic.conferenceManager.site.tasks"
+msgstr "Scheduled tasks"
+
+msgid "plugins.generic.conferenceManager.site.taskNever"
+msgstr "has not run yet"
+
+msgid "plugins.generic.conferenceManager.site.taskFailed"
+msgstr "with an error, see the OJS task log"
+
+msgid "plugins.generic.conferenceManager.site.task.EditionWindowsTask"
+msgstr "Opening and closing calls"
+
+msgid "plugins.generic.conferenceManager.site.task.ReminderTask"
+msgstr "Reminders"
+
+msgid "plugins.generic.conferenceManager.site.task.RetentionTask"
+msgstr "Retention of personal data"
+
+msgid "plugins.generic.conferenceManager.site.load"
+msgstr "Load profile"
+
+msgid "plugins.generic.conferenceManager.site.loadHelp"
+msgstr "The profile sets how much background work the plugin does at a time and when. Mass work (mailings, batch certificates, bulk decisions) pauses 48 hours before a submission deadline of the journal. Mailings of the journals take turns within the letters per hour. Reminders are never held."
+
+msgid "plugins.generic.conferenceManager.site.profile"
+msgstr "Profile"
+
+msgid "plugins.generic.conferenceManager.site.profile.shared_hosting"
+msgstr "Shared hosting without cron: portions of 10, mass work only 22:00–07:00, 100 letters an hour"
+
+msgid "plugins.generic.conferenceManager.site.profile.standard"
+msgstr "A server of the institution (default): portions of 30, 500 letters an hour"
+
+msgid "plugins.generic.conferenceManager.site.profile.provider"
+msgstr "A multi-institution installation with cron: portions of 30, letters as the mail server allows, journals take turns"
+
+msgid "plugins.generic.conferenceManager.site.mailsPerHour"
+msgstr "Mailing letters per hour"
+
+msgid "plugins.generic.conferenceManager.site.mailsPerHourHelp"
+msgstr "Empty: as in the profile. Enter the limit of your mail server if it is lower."
+
+msgid "plugins.generic.conferenceManager.site.current"
+msgstr "Now: portions of {$batch}, {$mails} letters an hour."
+
+msgid "plugins.generic.conferenceManager.site.nightOnly"
+msgstr "Mass work runs only at night, server time."
+
+msgid "plugins.generic.conferenceManager.site.runner"
+msgstr "OJS queue on web requests"
+
+msgid "plugins.generic.conferenceManager.site.runnerOn"
+msgstr "on, up to {$n} jobs a request"
+
+msgid "plugins.generic.conferenceManager.site.runnerOffNow"
+msgstr "off (jobs run by cron)"
+
+msgid "plugins.generic.conferenceManager.site.timezone"
+msgstr "Server time zone"
+
+msgid "plugins.generic.conferenceManager.site.advice.cron"
+msgstr "For the multi-institution profile set job_runner = Off in config.inc.php and run php lib/pkp/tools/jobs.php run and the scheduler from cron."
+
+msgid "plugins.generic.conferenceManager.site.advice.runnerOff"
+msgstr "The queue on web requests is off: make sure cron runs php lib/pkp/tools/jobs.php run, or mailings and batch issue do not run."
+
+msgid "plugins.generic.conferenceManager.site.advice.maxJobs"
+msgstr "For this profile job_runner_max_jobs = {$n} is recommended in config.inc.php (now {$current})."
+
+msgid "plugins.generic.conferenceManager.site.advice.failed"
+msgstr "{$n} jobs of the plugin failed: see Administration → Jobs → Failed."
+
+msgid "plugins.generic.conferenceManager.site.error.profile"
+msgstr "Choose a load profile."
+
+msgid "plugins.generic.conferenceManager.site.error.mails"
+msgstr "Letters per hour must be a whole number from 0 to 100000."
+
+msgid "plugins.generic.conferenceManager.audit.entity.load_profile"
+msgstr "Load profile"
+
+msgid "plugins.generic.conferenceManager.site.saved"
+msgstr "Saved."

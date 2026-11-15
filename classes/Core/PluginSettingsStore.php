@@ -16,7 +16,7 @@ final class PluginSettingsStore implements SettingsStore
 
     public function get(int $contextId, string $name): mixed
     {
-        return $this->plugin?->getSetting($contextId, $name);
+        return $this->plugin?->getSetting(self::ojsContext($contextId), $name);
     }
 
     public function set(int $contextId, string $name, mixed $value): void
@@ -27,6 +27,12 @@ final class PluginSettingsStore implements SettingsStore
             is_int($value) => 'int',
             default => 'string',
         };
-        $this->plugin?->updateSetting($contextId, $name, $value, $type);
+        $this->plugin?->updateSetting(self::ojsContext($contextId), $name, $value, $type);
+    }
+
+    /** Context id 0 of the plugin means the site; OJS 3.5 keeps site settings under null. */
+    private static function ojsContext(int $contextId): ?int
+    {
+        return $contextId === 0 ? \APP\core\Application::SITE_CONTEXT_ID : $contextId;
     }
 }

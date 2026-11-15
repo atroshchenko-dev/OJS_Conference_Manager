@@ -34,6 +34,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Edition\ScholarTags;
 use APP\plugins\generic\conferenceManager\classes\Forms\InstitutionSettingsForm;
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
 use APP\plugins\generic\conferenceManager\classes\Pages\ConferencePageHandler;
+use APP\plugins\generic\conferenceManager\classes\Pages\SiteOverviewHandler;
 use APP\plugins\generic\conferenceManager\classes\Pages\ManageConferenceHandler;
 use APP\plugins\generic\conferenceManager\classes\Tasks\EditionWindowsTask;
 use APP\plugins\generic\conferenceManager\classes\Tasks\ReminderTask;
@@ -57,6 +58,7 @@ use PKP\scheduledTask\PKPScheduler;
 class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
 {
     public const VERB_INSTITUTION = 'institution';
+    public const VERB_SITE = 'siteOverview';
 
     /** Strings of js/workflow.js (keys after "plugins.generic.conferenceManager."). */
     private const WORKFLOW_STRINGS = [
@@ -226,6 +228,10 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         $request = Application::get()->getRequest();
         $contextId = $request->getContext()?->getId();
 
+        if ($page === SiteOverviewHandler::PAGE && $contextId === null) {
+            $handler = new SiteOverviewHandler($this);
+            return true;
+        }
         if ($page === ManageConferenceHandler::PAGE && $this->isEnabledFor($contextId === null ? null : (int) $contextId)) {
             $handler = new ManageConferenceHandler($this);
             return true;
@@ -256,6 +262,19 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         $request = Application::get()->getRequest();
         $context = $request->getContext();
         $user = $request->getUser();
+        if ($context === null && $user !== null && \PKP\security\Validation::isSiteAdmin()) {
+            // DST-04: the site administrator's overview, in the site menu.
+            $templateMgr = TemplateManager::getManager($request);
+            $menu = (array) $templateMgr->getState('menu');
+            $menu['conferenceSite'] = [
+                'name' => __('plugins.generic.conferenceManager.site.title'),
+                'url' => $request->getDispatcher()->url($request, Application::ROUTE_PAGE, 'index', SiteOverviewHandler::PAGE),
+                'isCurrent' => $request->getRequestedPage() === SiteOverviewHandler::PAGE,
+                'icon' => 'Calendar',
+            ];
+            $templateMgr->setState(['menu' => $menu]);
+            return Hook::CONTINUE;
+        }
         if ($context === null || $user === null || !$this->isEnabledFor((int) $context->getId())) {
             return Hook::CONTINUE;
         }
@@ -629,7 +648,19 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
     {
         $router = $request->getRouter();
         $actions = parent::getActions($request, $verb);
-        if (!$this->getEnabled() || !$request->getContext()) {
+        if (!$request->getContext()) {
+            // DST-04: the site administrator's overview of all journals.
+            if (\PKP\security\Validation::isSiteAdmin()) {
+                array_unshift($actions, new LinkAction(
+                    self::VERB_SITE,
+                    new \PKP\linkAction\request\RedirectAction($request->getDispatcher()->url($request, \PKP\core\PKPApplication::ROUTE_PAGE, 'index', SiteOverviewHandler::PAGE)),
+                    __('plugins.generic.conferenceManager.site.title'),
+                    null,
+                ));
+            }
+            return $actions;
+        }
+        if (!$this->getEnabled()) {
             return $actions;
         }
         array_unshift($actions, new LinkAction(

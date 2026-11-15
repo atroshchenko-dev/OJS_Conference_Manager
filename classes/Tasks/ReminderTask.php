@@ -19,6 +19,8 @@ use PKP\scheduledTask\ScheduledTaskHelper;
  */
 class ReminderTask extends ScheduledTask
 {
+    use RecordsRun;
+
     public function getName(): string
     {
         return __('plugins.generic.conferenceManager.task.reminders');

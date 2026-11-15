@@ -343,8 +343,10 @@ final class AttendanceCertificateFlowTest extends TestCase
         // Everyone else goes to the queue in portions of 25.
         $all = $this->certificates->issueBatch($this->ctx, $this->edition, null, $queue, 1, $this->now, 'uk');
         self::assertSame(['eligible' => 28, 'issued' => 0, 'queued' => 28], $all);
-        self::assertSame([25, 3], array_map('count', $queue->portions));
-        foreach ($queue->portions as $portion) {
+        // One portion is queued; the job queues the rest after itself.
+        self::assertSame([25], array_map('count', $queue->portions));
+        self::assertCount(3, $queue->rests[0]);
+        foreach ([$queue->portions[0], $queue->rests[0]] as $portion) {
             $this->certificates->issue($this->ctx, $this->edition, $portion, 1, $this->now, 'uk');
         }
         self::assertSame(30, $this->db->table('conf_certificates')->count());
@@ -413,8 +415,12 @@ final class RecordingCertificateQueue implements \APP\plugins\generic\conference
     /** @var list<list<int>> */
     public array $portions = [];
 
-    public function push(int $contextId, int $editionId, array $participationIds, ?int $actorId, string $locale): void
+    /** @var list<list<int>> */
+    public array $rests = [];
+
+    public function push(int $contextId, int $editionId, array $participationIds, ?int $actorId, string $locale, array $rest = []): void
     {
         $this->portions[] = $participationIds;
+        $this->rests[] = $rest;
     }
 }

@@ -72,6 +72,8 @@ jobs:
       - run: ci/integration/start-ojs.sh ${{ matrix.db }} ${{ matrix.ojs }}
       - run: ci/integration/run.sh
       - run: ci/integration/api-smoke.sh
+      - run: ci/integration/isolation.sh
+      - run: ci/integration/load.sh
       - if: failure()
         run: docker logs ojs 2>&1 | tail -200
 

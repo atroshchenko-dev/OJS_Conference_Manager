@@ -17,6 +17,8 @@ use PKP\scheduledTask\ScheduledTaskHelper;
  */
 class EditionWindowsTask extends ScheduledTask
 {
+    use RecordsRun;
+
     public function getName(): string
     {
         return __('plugins.generic.conferenceManager.task.editionWindows');

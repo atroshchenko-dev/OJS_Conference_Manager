@@ -47,6 +47,11 @@ final class RunBulkDecision extends BaseJob
     {
         // A worker started from the command line has not loaded the
         // generic plugins yet: our decision types come from their hooks.
+        $wait = MassWork::wait($this->contextId);
+        if ($wait > 0) {
+            MassWork::queue(new self($this->contextId, $this->batchId, $this->submissionId), $wait);
+            return;
+        }
         PluginRegistry::loadCategory('generic', true, $this->contextId);
         self::useContext($this->contextId);
         ServiceFactory::bulkDecisions()->runItem(

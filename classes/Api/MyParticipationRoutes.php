@@ -81,6 +81,9 @@ final class MyParticipationRoutes implements RouteModule
             $this->api->remoteAddr(),
         );
         if ($result === null) {
+            if (in_array('plugins.generic.conferenceManager.listener.error.edition', $errors->toArray()['editionId'] ?? [], true)) {
+                return ConferenceApiController::notFound();
+            }
             return ConferenceApiController::errorResponse($errors, $errors->has('editionId') ? Response::HTTP_CONFLICT : Response::HTTP_BAD_REQUEST);
         }
         return response()->json($result, Response::HTTP_OK);
