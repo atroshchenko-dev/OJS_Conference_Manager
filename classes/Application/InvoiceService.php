@@ -260,7 +260,7 @@ final class InvoiceService
             $errors->add('status', self::K . 'notReissuable');
             return [null, $errors];
         }
-        if ($pages === null && $item !== null && $item->quantity > 1) {
+        if ($pages === null && $item->quantity > 1) {
             $pages = $item->quantity;
         }
         [$result, $draft] = $this->draft($context, $p, $pages, $now);
@@ -274,7 +274,7 @@ final class InvoiceService
             return [null, $errors];
         }
         if ($draft->total->minor === $invoice->total->minor && $draft->total->currency === $invoice->total->currency
-            && $draft->items[0]->quantity === ($item?->quantity ?? 1)) {
+            && $draft->items[0]->quantity === $item->quantity) {
             $errors->add('pages', self::K . 'reissue.unchanged');
             return [null, $errors];
         }

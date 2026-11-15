@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace APP\plugins\generic\conferenceManager\classes\Core;
 
+use APP\plugins\generic\conferenceManager\classes\Application\AccountingExportService;
 use APP\plugins\generic\conferenceManager\classes\Application\BulkDecisionService;
+use APP\plugins\generic\conferenceManager\classes\Application\CampaignService;
 use APP\plugins\generic\conferenceManager\classes\Application\ContextInfo;
+use APP\plugins\generic\conferenceManager\classes\Application\DashboardService;
 use APP\plugins\generic\conferenceManager\classes\Application\DecisionService;
 use APP\plugins\generic\conferenceManager\classes\Application\EditionService;
 use APP\plugins\generic\conferenceManager\classes\Application\FeeService;
@@ -14,18 +17,22 @@ use APP\plugins\generic\conferenceManager\classes\Application\InvoiceDocumentSer
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceService;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
 use APP\plugins\generic\conferenceManager\classes\Application\ProofService;
+use APP\plugins\generic\conferenceManager\classes\Application\ReminderService;
 use APP\plugins\generic\conferenceManager\classes\Application\SubmissionRegistrationService;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConsentText;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Files\LocalProofStore;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Queries\UpcomingEditionsQuery;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbCampaignRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbDecisionBatchRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionStatistics;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbFeeRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbParticipantRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbPaymentRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbReminderRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
 use Illuminate\Support\Facades\DB;
 use PKP\config\Config;
@@ -177,6 +184,79 @@ final class ServiceFactory
         );
     }
 
+    public static function settings(): PluginSettingsStore
+    {
+        $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'conferencemanagerplugin');
+        return new PluginSettingsStore($plugin instanceof \PKP\plugins\Plugin ? $plugin : null);
+    }
+
+    public static function accountingExport(): AccountingExportService
+    {
+        $db = DB::connection();
+        return new AccountingExportService(
+            new DbPaymentRepository($db),
+            new DbFeeRepository($db),
+            new DbEditionRepository($db),
+            self::invoices(),
+            self::settings(),
+            new AuditLogger($db),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
+        );
+    }
+
+    public static function reminders(): ReminderService
+    {
+        $db = DB::connection();
+        return new ReminderService(
+            new DbEditionRepository($db),
+            new DbReminderRepository($db),
+            new EditorialGateway(),
+            new MailGateway(),
+            self::settings(),
+            new AuditLogger($db),
+        );
+    }
+
+    public static function campaigns(): CampaignService
+    {
+        $db = DB::connection();
+        return new CampaignService(
+            new DbCampaignRepository($db),
+            new DbParticipantRepository($db),
+            new DbEditionRepository($db),
+            new EditorialGateway(),
+            new MailGateway(),
+            new OjsCampaignQueue(),
+            new AuditLogger($db),
+        );
+    }
+
+    public static function dashboard(): DashboardService
+    {
+        $db = DB::connection();
+        return new DashboardService(
+            new DbEditionRepository($db),
+            new DbRegistrationRepository($db),
+            new EditorialGateway(),
+            new DbEditionStatistics($db),
+            new DbReminderRepository($db),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
+        );
+    }
+
+    /**
+     * DAT-01: versions of the privacy notice, newest first.
+     *
+     * @return list<array{version: string, createdAt: ?string, texts: array<string, string>, agreements: int}>
+     */
+    public static function consentVersions(ContextInfo $context): array
+    {
+        return array_map(
+            static fn (array $v): array => ['texts' => (array) (json_decode($v['texts'], true) ?: [])] + $v,
+            (new DbEditionStatistics(DB::connection()))->consentVersions($context->id),
+        );
+    }
+
     public static function registrations(): SubmissionRegistrationService
     {
         $db = DB::connection();
@@ -199,8 +279,27 @@ final class ServiceFactory
         $notice = self::institutionProfiles()->getOrDraft($context)->text('privacyNotice');
         if ($notice->isEmpty()) {
             $key = 'plugins.generic.conferenceManager.registration.consent.default';
-            return new ConsentText(__($key, [], $locale), __($key, [], $context->primaryLocale));
+            $consent = new ConsentText(__($key, [], $locale), __($key, [], $context->primaryLocale));
+            self::rememberConsent($context, $consent->version, ConsentText::sourceOf([$context->primaryLocale => __($key, [], $context->primaryLocale)]));
+            return $consent;
         }
-        return new ConsentText((string) $notice->resolve($locale, $context->primaryLocale), ConsentText::sourceOf($notice->toArray()));
+        $consent = new ConsentText((string) $notice->resolve($locale, $context->primaryLocale), ConsentText::sourceOf($notice->toArray()));
+        self::rememberConsent($context, $consent->version, ConsentText::sourceOf($notice->toArray()));
+        return $consent;
+    }
+
+    /** DAT-01: the text of every consent version is kept, once. */
+    private static function rememberConsent(ContextInfo $context, string $version, string $texts): void
+    {
+        static $done = [];
+        if (isset($done[$context->id . '/' . $version])) {
+            return;
+        }
+        $done[$context->id . '/' . $version] = true;
+        try {
+            (new DbEditionStatistics(DB::connection()))->rememberConsent($context->id, $version, $texts, new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: consent version: ' . $e->getMessage());
+        }
     }
 }

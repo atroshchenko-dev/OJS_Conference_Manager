@@ -386,6 +386,44 @@ final class DbPaymentRepository implements PaymentRepository
         ]);
     }
 
+    public function forExport(int $contextId, ?int $editionId, ?DateTimeImmutable $from, ?DateTimeImmutable $to, string $dateField, bool $withReplaced, callable $each): void
+    {
+        $column = $dateField === 'paid' ? 'i.paid_at' : 'i.issued_at';
+        $q = $this->db->table('conf_invoices as i')
+            ->leftJoin('conf_participants as p', 'p.id', '=', 'i.payer_participant_id')
+            ->where('i.context_id', $contextId);
+        if ($editionId !== null) {
+            $q->where('i.edition_id', $editionId);
+        }
+        if ($from !== null) {
+            $q->where($column, '>=', DateInput::toStorage($from));
+        }
+        if ($to !== null) {
+            $q->where($column, '<', DateInput::toStorage($to));
+        }
+        if ($dateField === 'paid') {
+            $q->whereNotNull('i.paid_at');
+        }
+        if (!$withReplaced) {
+            $q->whereNotIn('i.status', [InvoiceStatus::Cancelled->value, InvoiceStatus::Superseded->value]);
+        }
+        $q->select('i.*', 'p.category_id as export_category_id')->orderBy('i.id')->chunk(500, function ($rows) use ($each): void {
+            $rows = $rows->all();
+            $roles = [];
+            $ids = array_map(static fn (object $r): int => (int) $r->id, $rows);
+            foreach ($this->db->table('conf_invoice_items as it')->join('conf_participations as pn', 'pn.id', '=', 'it.participation_id')
+                ->whereIn('it.invoice_id', $ids)->orderBy('it.id')->get(['it.invoice_id', 'pn.role']) as $r) {
+                $roles[(int) $r->invoice_id] ??= (string) $r->role;
+            }
+            $out = [];
+            foreach ($this->hydrate($rows) as $n => $invoice) {
+                $cat = $rows[$n]->export_category_id ?? null;
+                $out[] = ['invoice' => $invoice, 'categoryId' => $cat === null ? null : (int) $cat, 'role' => $roles[(int) $invoice->id] ?? null];
+            }
+            $each($out);
+        });
+    }
+
     /**
      * @param list<object> $rows
      * @return list<Invoice>

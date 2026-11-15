@@ -6,6 +6,7 @@
  *   ConferenceInvoicesList     invoices with payment, waiver and cancellation
  *   ConferenceProofQueue       receipts to review: view, accept, reject (FEE-10)
  *   ConferencePaymentJournal   the payment journal of the edition (FEE-13)
+ *   ConferenceAccountingExport export for accounting, CSV or XLSX (FEE-12)
  *
  * Amounts go to the server as decimal strings; nothing here computes money.
  *
@@ -278,6 +279,7 @@
 				perPage: 50,
 				opened: null,
 				showJournal: false,
+				showExport: false,
 			};
 		},
 		computed: {
@@ -380,8 +382,9 @@
 <div class="cmEditions cmInvoices">\
 	<div class="cmEditions__toolbar">\
 		<h2 class="cmFees__title">{{ t(\'invoice.title\') }}: {{ editionName }}</h2>\
-		<span><pkp-button :is-active="showJournal" @click="showJournal = !showJournal">{{ t(\'journal.title\') }}</pkp-button> <pkp-button @click="$emit(\'back\')">{{ t(\'back\') }}</pkp-button></span>\
+		<span><pkp-button :is-active="showExport" @click="showExport = !showExport">{{ t(\'export.title\') }}</pkp-button> <pkp-button :is-active="showJournal" @click="showJournal = !showJournal">{{ t(\'journal.title\') }}</pkp-button> <pkp-button @click="$emit(\'back\')">{{ t(\'back\') }}</pkp-button></span>\
 	</div>\
+	<conference-accounting-export v-if="showExport" :api-url="apiUrl" :csrf-token="csrfToken" :i18n="i18n"></conference-accounting-export>\
 	<conference-payment-journal v-if="showJournal" :api-url="journalUrl" :csrf-token="csrfToken" :i18n="i18n"></conference-payment-journal>\
 	<form class="cmEditions__toolbar cmParticipants__filters" @submit.prevent="search">\
 		<label class="cmEditions__filter">{{ t(\'invoice.search\') }}<input class="pkpFormField__input" type="search" v-model="filter.searchPhrase" maxlength="100"></label>\
@@ -596,6 +599,128 @@
 		<pkp-button :disabled="page >= pages" @click="go(page + 1)">›</pkp-button>\
 	</div>\
 	</template>\
+</div>',
+	});
+
+	/** FEE-12: export for accounting; the file is a plain GET download. */
+	pkp.registry.registerComponent('ConferenceAccountingExport', {
+		name: 'ConferenceAccountingExport',
+		mixins: [common],
+		props: {
+			/** .../editions/{id}/invoices */
+			apiUrl: { type: String, required: true },
+			csrfToken: { type: String, required: true },
+			i18n: { type: Object, required: true },
+		},
+		data: function () {
+			return { available: [], selected: [], xlsx: false, scope: 'edition', from: '', to: '', dateField: 'issued', withReplaced: false, isSaving: false, error: '' };
+		},
+		computed: {
+			base: function () {
+				return this.apiUrl.replace(/editions\/\d+\/invoices$/, 'exports/accounting');
+			},
+			editionId: function () {
+				var m = this.apiUrl.match(/editions\/(\d+)\/invoices$/);
+				return m ? m[1] : '';
+			},
+			unselected: function () {
+				var self = this;
+				return this.available.filter(function (c) { return self.selected.indexOf(c.value) === -1; });
+			},
+		},
+		mounted: function () {
+			var self = this;
+			self.api('GET', self.base + '/columns').then(function (r) {
+				if (r.ok) {
+					self.available = r.data.available;
+					self.selected = r.data.selected;
+					self.xlsx = !!r.data.xlsx;
+				}
+			});
+		},
+		methods: {
+			label: function (value) {
+				var c = this.available.find(function (x) { return x.value === value; });
+				return c ? c.label : value;
+			},
+			move: function (n, step) {
+				var list = this.selected.slice();
+				var to = n + step;
+				if (to < 0 || to >= list.length) {
+					return;
+				}
+				var v = list[n];
+				list[n] = list[to];
+				list[to] = v;
+				this.selected = list;
+			},
+			remove: function (n) {
+				if (this.selected.length > 1) {
+					this.selected = this.selected.filter(function (x, i) { return i !== n; });
+				}
+			},
+			add: function (value) {
+				this.selected = this.selected.concat([value]);
+			},
+			saveColumns: function () {
+				var self = this;
+				self.isSaving = true;
+				return self.api('PUT', self.base + '/columns', { columns: self.selected }).then(function (r) {
+					self.isSaving = false;
+					r.ok ? notify(self.t('export.columnsSaved')) : notify(firstError(r.data), 'warning');
+					return r.ok;
+				});
+			},
+			url: function (format) {
+				var q = new URLSearchParams({ format: format, from: this.from, to: this.to, dateField: this.dateField });
+				if (this.scope === 'edition') {
+					q.set('editionId', this.editionId);
+				}
+				if (this.withReplaced) {
+					q.set('withReplaced', '1');
+				}
+				return this.base + '?' + q.toString();
+			},
+			download: function (format) {
+				var self = this;
+				self.saveColumns().then(function (ok) {
+					if (ok) {
+						window.location.href = self.url(format);
+					}
+				});
+			},
+		},
+		template: '\
+<div class="cmExport">\
+	<h3 class="cmFees__title">{{ t(\'export.title\') }}</h3>\
+	<p class="cmEditions__note">{{ t(\'export.description\') }}</p>\
+	<div class="cmExport__grid">\
+		<fieldset class="cmExport__period">\
+			<legend>{{ t(\'export.period\') }}</legend>\
+			<label><input type="radio" value="edition" v-model="scope"> {{ t(\'export.scope.edition\') }}</label>\
+			<label><input type="radio" value="all" v-model="scope"> {{ t(\'export.scope.all\') }}</label>\
+			<label>{{ t(\'export.from\') }} <input type="date" v-model="from"></label>\
+			<label>{{ t(\'export.to\') }} <input type="date" v-model="to"></label>\
+			<label>{{ t(\'export.dateField\') }} <select v-model="dateField"><option value="issued">{{ t(\'export.dateField.issued\') }}</option><option value="paid">{{ t(\'export.dateField.paid\') }}</option></select></label>\
+			<label><input type="checkbox" v-model="withReplaced"> {{ t(\'export.withReplaced\') }}</label>\
+		</fieldset>\
+		<fieldset class="cmExport__columns">\
+			<legend>{{ t(\'export.columns\') }}</legend>\
+			<ol class="cmExport__list">\
+				<li v-for="(c, n) in selected" :key="c"><span>{{ label(c) }}</span>\
+					<button type="button" class="cmExport__icon" :aria-label="t(\'export.up\')" :disabled="n === 0" @click="move(n, -1)">↑</button>\
+					<button type="button" class="cmExport__icon" :aria-label="t(\'export.down\')" :disabled="n === selected.length - 1" @click="move(n, 1)">↓</button>\
+					<button type="button" class="cmExport__icon" :aria-label="t(\'export.remove\')" :disabled="selected.length < 2" @click="remove(n)">×</button>\
+				</li>\
+			</ol>\
+			<label v-if="unselected.length">{{ t(\'export.addColumn\') }} <select @change="add($event.target.value); $event.target.value = \'\'"><option value=""></option><option v-for="c in unselected" :key="c.value" :value="c.value">{{ c.label }}</option></select></label>\
+		</fieldset>\
+	</div>\
+	<div class="cmEditions__buttons">\
+		<pkp-button :is-primary="true" :disabled="isSaving" @click="download(\'csv\')">{{ t(\'export.csv\') }}</pkp-button>\
+		<pkp-button v-if="xlsx" :disabled="isSaving" @click="download(\'xlsx\')">{{ t(\'export.xlsx\') }}</pkp-button>\
+		<pkp-button :disabled="isSaving" @click="saveColumns">{{ t(\'export.saveColumns\') }}</pkp-button>\
+	</div>\
 </div>',
 	});
 })();

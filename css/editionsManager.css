@@ -74,3 +74,42 @@
 .cmDecisions__runs { margin-top: 1.5rem; }
 .cmDecisions .cmParticipants__filters { display: flex; flex-wrap: wrap; gap: .75rem; }
 .cmDecisions .cmParticipants__filters label { display: flex; flex-direction: column; gap: .25rem; }
+
+/* FEE-12: export for accounting */
+.cmExport { margin: 1rem 0; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; background: #fff; }
+.cmExport__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.cmExport fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+.cmExport legend { font-weight: 600; margin-bottom: .5rem; }
+.cmExport__list { margin: 0; padding-left: 1.5rem; }
+.cmExport__list li { display: flex; align-items: center; gap: .25rem; padding: .125rem 0; }
+.cmExport__list li span { flex: 1; }
+.cmExport__icon { min-width: 2rem; min-height: 2rem; border: 1px solid #ccc; background: #f7f7f7; border-radius: 3px; cursor: pointer; }
+.cmExport__icon:disabled { opacity: .4; cursor: default; }
+.cmInvoices__chain { margin: 0 0 .5rem; padding-left: 1.25rem; font-weight: 600; }
+
+/* Summary, mailings, reminders, audit log (sprint 9) */
+.cmDashboard__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.cmDashboard__card { border: 1px solid #ddd; border-radius: 4px; padding: 1rem; background: #fff; }
+.cmDashboard__card h3 { margin-top: 0; }
+.cmDashboard__big { font-size: 2rem; font-weight: 700; margin: 0 0 .5rem; }
+.cmDashboard__list { display: grid; grid-template-columns: 1fr auto; gap: .25rem 1rem; margin: 0 0 .75rem; }
+.cmDashboard__list dt { color: #555; }
+.cmDashboard__list dd { margin: 0; text-align: right; font-weight: 600; }
+.cmDashboard__table { width: 100%; border-collapse: collapse; }
+.cmDashboard__table th, .cmDashboard__table td { padding: .25rem .5rem; text-align: right; border-bottom: 1px solid #eee; }
+.cmDashboard__table tbody th { text-align: left; font-weight: 400; }
+.cmCampaigns__filter, .cmReminders__kind { border: 1px solid #ddd; border-radius: 4px; padding: .75rem 1rem; margin: 0 0 1rem; display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: flex-end; }
+.cmCampaigns__filter label, .cmReminders__kind label, .cmCampaigns__letter label { display: flex; flex-direction: column; gap: .25rem; }
+.cmCampaigns__filter p, .cmReminders__kind p { flex-basis: 100%; margin: 0; }
+.cmCampaigns__check { flex-direction: row !important; align-items: center; }
+.cmCampaigns__letter { display: flex; flex-direction: column; gap: .75rem; max-width: 48rem; }
+.cmCampaigns__letter input, .cmCampaigns__letter textarea { width: 100%; box-sizing: border-box; font: inherit; padding: .4rem; }
+.cmCampaigns__var { margin: 0 .25rem .25rem 0; padding: .1rem .4rem; border: 1px solid #bbb; border-radius: 3px; background: #f7f7f7; font: inherit; font-size: .85em; cursor: pointer; }
+.cmCampaigns__actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.cmAudit__details pre { white-space: pre-wrap; word-break: break-word; background: #f7f7f7; padding: .5rem; margin: .25rem 0; font-size: .85em; }
+.cmAudit__pages { display: flex; gap: .5rem; align-items: center; margin-top: .75rem; }
+.cmAudit__version { border-bottom: 1px solid #eee; padding: .5rem 0; }
+.cmAudit__text { white-space: pre-wrap; }
+@media (max-width: 600px) {
+	.cmCampaigns__filter, .cmReminders__kind { flex-direction: column; align-items: stretch; }
+}

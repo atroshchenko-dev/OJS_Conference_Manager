@@ -109,4 +109,13 @@ interface PaymentRepository
      * @return array{items: list<array<string, mixed>>, itemsMax: int}
      */
     public function editionEvents(int $contextId, int $editionId, int $count, int $offset): array;
+
+    /**
+     * FEE-12: invoices of the context for the export in portions, oldest
+     * first, with the payer's category and the role of the participation.
+     * $dateField is "issued" or "paid" (fully paid on that day).
+     *
+     * @param callable(list<array{invoice: Invoice, categoryId: ?int, role: ?string}>): void $each
+     */
+    public function forExport(int $contextId, ?int $editionId, ?DateTimeImmutable $from, ?DateTimeImmutable $to, string $dateField, bool $withReplaced, callable $each): void;
 }

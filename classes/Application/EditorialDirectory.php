@@ -13,6 +13,7 @@ interface EditorialDirectory
     public const STAGE_EDITING = 4;
     public const STAGE_PRODUCTION = 5;
     public const STATUS_QUEUED = 1;
+    public const STATUS_DECLINED = 4;
 
     /**
      * @param list<int> $submissionIds
@@ -34,4 +35,14 @@ interface EditorialDirectory
 
     /** Writes presentationType to the current publication. */
     public function setPresentationType(int $submissionId, string $presentationType): void;
+
+    /**
+     * COM-02, COM-03: whether the authors sent a file after the acceptance
+     * (the full text): any submission file created after the last
+     * acceptance decision, except notes and discussion files.
+     *
+     * @param list<int> $submissionIds
+     * @return array<int, bool>
+     */
+    public function hasFullText(array $submissionIds): array;
 }

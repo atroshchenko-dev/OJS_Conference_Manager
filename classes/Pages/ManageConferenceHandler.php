@@ -54,7 +54,7 @@ class ManageConferenceHandler extends Handler
         'invoiceTemplate.title', 'invoiceTemplate.description', 'invoiceTemplate.kind.bank', 'invoiceTemplate.kind.treasury',
         'invoiceTemplate.custom', 'invoiceTemplate.builtIn', 'invoiceTemplate.variables', 'invoiceTemplate.reset',
         'invoice.title', 'invoice.search', 'invoice.empty', 'invoice.number', 'invoice.payer', 'invoice.total', 'invoice.paidPart',
-        'invoice.markPaid', 'invoice.reissue', 'invoice.reissuePrompt', 'invoice.reissueDone', 'invoice.waive', 'invoice.history', 'invoice.paidPrompt', 'invoice.paidDone', 'invoice.waivePrompt',
+        'invoice.markPaid', 'export.title', 'export.description', 'export.period', 'export.scope.edition', 'export.scope.all', 'export.from', 'export.to', 'export.dateField', 'export.dateField.issued', 'export.dateField.paid', 'export.withReplaced', 'export.columns', 'export.addColumn', 'export.up', 'export.down', 'export.remove', 'export.csv', 'export.xlsx', 'export.saveColumns', 'export.columnsSaved', 'invoice.reissue', 'invoice.reissuePrompt', 'invoice.reissueDone', 'invoice.waive', 'invoice.history', 'invoice.paidPrompt', 'invoice.paidDone', 'invoice.waivePrompt',
         'invoice.waiveDone', 'invoice.cancelConfirm', 'invoice.cancelDone', 'invoice.issue', 'invoice.issued', 'invoice.pagesPrompt',
         'invoice.event.issued', 'invoice.event.part_paid', 'invoice.event.paid', 'invoice.event.waived', 'invoice.event.superseded',
         'invoice.event.cancelled', 'invoice.event.status_cancelled', 'invoice.event.status_refund_requested',
@@ -68,6 +68,21 @@ class ManageConferenceHandler extends Handler
         'decision.bulk.find', 'decision.bulk.selected', 'decision.bulk.decision', 'decision.bulk.choose', 'decision.bulk.run',
         'decision.bulk.confirm', 'decision.bulk.tooMany', 'decision.bulk.empty', 'decision.bulk.selectAll', 'decision.bulk.column.title',
         'decision.bulk.column.section', 'decision.bulk.column.type', 'decision.bulk.runs',
+        'dashboard.title', 'dashboard.refresh', 'dashboard.submissions', 'dashboard.waiting', 'dashboard.review', 'dashboard.accepted',
+        'dashboard.declined', 'dashboard.published', 'dashboard.fullText', 'dashboard.byType', 'dashboard.participants', 'dashboard.active',
+        'dashboard.cancelled', 'dashboard.payments', 'dashboard.noInvoices', 'dashboard.paid', 'dashboard.open', 'dashboard.due',
+        'dashboard.partPaid', 'dashboard.waived', 'dashboard.replaced', 'dashboard.pendingProofs', 'dashboard.reminders',
+        'campaign.title', 'campaign.description', 'campaign.progress', 'campaign.failedCount', 'campaign.finished', 'campaign.recipients',
+        'campaign.section', 'campaign.accepted', 'campaign.fullText', 'campaign.fullText.yes', 'campaign.fullText.no', 'campaign.preview',
+        'campaign.count', 'campaign.tooMany', 'campaign.subject', 'campaign.body', 'campaign.variables', 'campaign.test', 'campaign.send',
+        'campaign.testSent', 'campaign.confirm', 'campaign.history',
+        'reminders.title', 'reminders.description', 'reminders.payment', 'reminders.paper', 'reminders.event', 'reminders.payment.description',
+        'reminders.paper.description', 'reminders.event.description', 'reminders.enabled', 'reminders.days', 'reminders.saved',
+        'audit.title', 'audit.log', 'audit.consent', 'audit.description', 'audit.entity', 'audit.empty', 'audit.actor', 'audit.action',
+        'audit.system', 'audit.details', 'audit.before', 'audit.after', 'audit.consent.description', 'audit.consent.empty',
+        'audit.consent.agreements', 'audit.entity.edition', 'audit.entity.invoice', 'audit.entity.participant', 'audit.entity.participation',
+        'audit.entity.submission', 'audit.entity.submission_registration', 'audit.entity.campaign', 'audit.entity.reminders',
+        'audit.entity.export', 'audit.entity.export_columns', 'audit.entity.fee_category', 'audit.entity.tariff', 'audit.entity.payment_rule',
     ];
 
     /** @var bool */
@@ -116,6 +131,7 @@ class ManageConferenceHandler extends Handler
         $templateMgr->addJavaScript('conferenceParticipantsManager', $base . '/js/participantsManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferenceInvoicesManager', $base . '/js/invoicesManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferenceDecisionsManager', $base . '/js/decisionsManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
+        $templateMgr->addJavaScript('conferenceCommunicationManager', $base . '/js/communicationManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addStyleSheet('conferenceEditionsManager', $base . '/css/editionsManager.css', ['contexts' => 'backend']);
 
         $names = $context->getSupportedFormLocaleNames();
@@ -207,6 +223,7 @@ class ManageConferenceHandler extends Handler
             'field.registrationClosesAt', 'field.paymentDeadline', 'field.dates.description',
             'field.isbn', 'field.udc', 'field.vectorProgramId', 'field.hours', 'field.ects',
             'column.dates', 'column.status', 'column.type', 'submissionsOpen', 'submissionsClosed', 'fees', 'participants', 'payments', 'invoices', 'proofs', 'decisions', 'back',
+            'dashboard', 'campaigns', 'reminders', 'audit',
         ] as $key) {
             $out[$key] = __('plugins.generic.conferenceManager.editions.' . $key);
         }

@@ -7,8 +7,10 @@ namespace APP\plugins\generic\conferenceManager\classes\Core;
 use APP\facades\Repo;
 use APP\plugins\generic\conferenceManager\classes\Application\EditorialDirectory;
 use Illuminate\Support\Facades\DB;
+use PKP\decision\Decision;
 use PKP\security\Role;
 use PKP\stageAssignment\StageAssignment;
+use PKP\submissionFile\SubmissionFile;
 
 /**
  * Editorial state of OJS submissions for conference decisions. The lists
@@ -44,6 +46,37 @@ final class EditorialGateway implements EditorialDirectory
                     'section' => self::pick($sections[(int) $r->section_id] ?? [], $locale, $sub),
                     'authors' => $authors[$pub] ?? '',
                 ];
+            }
+        }
+        return $out;
+    }
+
+    public function hasFullText(array $submissionIds): array
+    {
+        $out = array_fill_keys($submissionIds, false);
+        foreach (array_chunk($submissionIds, 500) as $chunk) {
+            $accepted = DB::table('edit_decisions')->whereIn('submission_id', $chunk)
+                ->whereIn('decision', [Decision::ACCEPT, Decision::SKIP_EXTERNAL_REVIEW, 901, 902, 903, 904])
+                ->groupBy('submission_id')->selectRaw('submission_id, MAX(date_decided) as decided')->pluck('decided', 'submission_id')->all();
+            if ($accepted === []) {
+                continue;
+            }
+            $authors = [];
+            foreach (StageAssignment::withSubmissionIds(array_map('intval', array_keys($accepted)))->withRoleIds([Role::ROLE_ID_AUTHOR])->get() as $a) {
+                $authors[(int) $a->submission_id][] = (int) $a->user_id;
+            }
+            // Files the authors uploaded after the acceptance, in any stage
+            // (also as discussion attachments); files the editor copies to
+            // the next stage do not count.
+            $files = DB::table('submission_files')->whereIn('submission_id', array_keys($accepted))
+                ->where('file_stage', '!=', SubmissionFile::SUBMISSION_FILE_NOTE)
+                ->whereNotNull('uploader_user_id')
+                ->get(['submission_id', 'uploader_user_id', 'created_at']);
+            foreach ($files as $f) {
+                $id = (int) $f->submission_id;
+                if (in_array((int) $f->uploader_user_id, $authors[$id] ?? [], true) && (string) $f->created_at > (string) $accepted[$f->submission_id]) {
+                    $out[$id] = true;
+                }
             }
         }
         return $out;

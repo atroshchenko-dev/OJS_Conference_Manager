@@ -1895,3 +1895,582 @@ msgstr "Due"
 
 msgid "plugins.generic.conferenceManager.panel.error"
 msgstr "Could not save. Please try again."
+
+msgid "plugins.generic.conferenceManager.publish.unpaid"
+msgstr "Publishing is blocked: invoice No. {$number} for the conference fee is not paid ({$due} due). Publish after payment, or waive the fee in the list of invoices."
+
+msgid "plugins.generic.conferenceManager.payment.error.notReissuable"
+msgstr "This invoice cannot be reissued: it is cancelled, superseded, a waiver, or the participation is cancelled."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.unchanged"
+msgstr "The amount under the current tariff is the same. Change the number of pages, the participant's category or the presentation type."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.overpaid"
+msgstr "The amount already paid covers the new total. No new invoice is needed; a refund of the overpayment is arranged separately."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.currency"
+msgstr "The new amount is in another currency and part of it is already paid. Reissue the invoice by hand."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.free"
+msgstr "Under the current rules the participation is free. If the invoice is no longer needed, cancel or waive it."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.noTariff"
+msgstr "There is no tariff for this category and material."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.pagesRequired"
+msgstr "The tariff is per page: enter the number of pages."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.notFound"
+msgstr "The participant or the event was not found."
+
+msgid "plugins.generic.conferenceManager.invoice.reissue"
+msgstr "Reissue"
+
+msgid "plugins.generic.conferenceManager.invoice.reissuePrompt"
+msgstr "A new invoice under the current tariff, category and presentation type. What was paid is carried over. Number of pages (empty = unchanged):"
+
+msgid "plugins.generic.conferenceManager.invoice.reissueDone"
+msgstr "The invoice was reissued; the old one is marked as superseded."
+
+msgid "plugins.generic.conferenceManager.export.column.number"
+msgstr "Invoice number"
+
+msgid "plugins.generic.conferenceManager.export.column.issuedAt"
+msgstr "Issue date"
+
+msgid "plugins.generic.conferenceManager.export.column.dueAt"
+msgstr "Due date"
+
+msgid "plugins.generic.conferenceManager.export.column.paidAt"
+msgstr "Payment date"
+
+msgid "plugins.generic.conferenceManager.export.column.status"
+msgstr "Status"
+
+msgid "plugins.generic.conferenceManager.export.column.payerName"
+msgstr "Payer"
+
+msgid "plugins.generic.conferenceManager.export.column.payerEmail"
+msgstr "Payer email"
+
+msgid "plugins.generic.conferenceManager.export.column.payerAffiliation"
+msgstr "Payer affiliation"
+
+msgid "plugins.generic.conferenceManager.export.column.edition"
+msgstr "Event"
+
+msgid "plugins.generic.conferenceManager.export.column.category"
+msgstr "Participant category"
+
+msgid "plugins.generic.conferenceManager.export.column.role"
+msgstr "Role"
+
+msgid "plugins.generic.conferenceManager.export.column.submissionId"
+msgstr "Submission ID"
+
+msgid "plugins.generic.conferenceManager.export.column.description"
+msgstr "Service"
+
+msgid "plugins.generic.conferenceManager.export.column.total"
+msgstr "Total"
+
+msgid "plugins.generic.conferenceManager.export.column.paid"
+msgstr "Paid"
+
+msgid "plugins.generic.conferenceManager.export.column.due"
+msgstr "Due"
+
+msgid "plugins.generic.conferenceManager.export.column.currency"
+msgstr "Currency"
+
+msgid "plugins.generic.conferenceManager.export.column.mode"
+msgstr "Payment mode"
+
+msgid "plugins.generic.conferenceManager.export.column.paymentReference"
+msgstr "Payment reference"
+
+msgid "plugins.generic.conferenceManager.export.column.purpose"
+msgstr "Payment purpose"
+
+msgid "plugins.generic.conferenceManager.export.column.account"
+msgstr "Recipient account (IBAN)"
+
+msgid "plugins.generic.conferenceManager.export.column.waiverReason"
+msgstr "Waiver reason"
+
+msgid "plugins.generic.conferenceManager.export.column.supersedes"
+msgstr "Supersedes invoice"
+
+msgid "plugins.generic.conferenceManager.export.title"
+msgstr "Export for accounting"
+
+msgid "plugins.generic.conferenceManager.export.description"
+msgstr "Invoices for a period as CSV or XLSX. You choose the columns and their order; the choice is kept for the journal."
+
+msgid "plugins.generic.conferenceManager.export.period"
+msgstr "What to export"
+
+msgid "plugins.generic.conferenceManager.export.scope.edition"
+msgstr "This event only"
+
+msgid "plugins.generic.conferenceManager.export.scope.all"
+msgstr "All events of the journal"
+
+msgid "plugins.generic.conferenceManager.export.from"
+msgstr "From"
+
+msgid "plugins.generic.conferenceManager.export.to"
+msgstr "To"
+
+msgid "plugins.generic.conferenceManager.export.dateField"
+msgstr "Date"
+
+msgid "plugins.generic.conferenceManager.export.dateField.issued"
+msgstr "of issue"
+
+msgid "plugins.generic.conferenceManager.export.dateField.paid"
+msgstr "of full payment"
+
+msgid "plugins.generic.conferenceManager.export.withReplaced"
+msgstr "Include cancelled and superseded invoices"
+
+msgid "plugins.generic.conferenceManager.export.columns"
+msgstr "Columns"
+
+msgid "plugins.generic.conferenceManager.export.addColumn"
+msgstr "Add a column"
+
+msgid "plugins.generic.conferenceManager.export.up"
+msgstr "Up"
+
+msgid "plugins.generic.conferenceManager.export.down"
+msgstr "Down"
+
+msgid "plugins.generic.conferenceManager.export.remove"
+msgstr "Remove"
+
+msgid "plugins.generic.conferenceManager.export.csv"
+msgstr "Download CSV"
+
+msgid "plugins.generic.conferenceManager.export.xlsx"
+msgstr "Download XLSX"
+
+msgid "plugins.generic.conferenceManager.export.saveColumns"
+msgstr "Save columns"
+
+msgid "plugins.generic.conferenceManager.export.columnsSaved"
+msgstr "Columns saved."
+
+msgid "plugins.generic.conferenceManager.export.error.columns"
+msgstr "Choose at least one column."
+
+msgid "plugins.generic.conferenceManager.export.error.edition"
+msgstr "Event not found."
+
+msgid "plugins.generic.conferenceManager.export.error.date"
+msgstr "A date as YYYY-MM-DD."
+
+msgid "plugins.generic.conferenceManager.export.error.period"
+msgstr "The period starts after it ends."
+
+msgid "plugins.generic.conferenceManager.export.error.xlsx"
+msgstr "The server has no PHP zip extension, so only CSV is available."
+
+msgid "plugins.generic.conferenceManager.mailable.confirm.name"
+msgstr "Participants: co-authorship confirmation"
+
+msgid "plugins.generic.conferenceManager.mailable.confirm.description"
+msgstr "Sent to a co-author to confirm their participation in the submission."
+
+msgid "plugins.generic.conferenceManager.mailable.invoice.name"
+msgstr "Participants: invoice issued"
+
+msgid "plugins.generic.conferenceManager.mailable.invoice.description"
+msgstr "Sent to a participant when an invoice is issued to them."
+
+msgid "plugins.generic.conferenceManager.mailable.proofAccepted.name"
+msgstr "Participants: receipt accepted"
+
+msgid "plugins.generic.conferenceManager.mailable.proofAccepted.description"
+msgstr "Sent to a participant when a manager accepts their payment receipt."
+
+msgid "plugins.generic.conferenceManager.mailable.proofRejected.name"
+msgstr "Participants: receipt rejected"
+
+msgid "plugins.generic.conferenceManager.mailable.proofRejected.description"
+msgstr "Sent to a participant when a manager rejects their receipt, with the reason."
+
+msgid "plugins.generic.conferenceManager.mailable.remindPayment.name"
+msgstr "Reminder: payment"
+
+msgid "plugins.generic.conferenceManager.mailable.remindPayment.description"
+msgstr "Automatic reminder a few days before the payment deadline when the invoice is unpaid and no receipt is waiting for review."
+
+msgid "plugins.generic.conferenceManager.mailable.remindPaper.name"
+msgstr "Reminder: full text"
+
+msgid "plugins.generic.conferenceManager.mailable.remindPaper.description"
+msgstr "Automatic reminder to authors of accepted abstracts who have not uploaded the full text yet."
+
+msgid "plugins.generic.conferenceManager.mailable.remindEvent.name"
+msgstr "Reminder: event start"
+
+msgid "plugins.generic.conferenceManager.mailable.remindEvent.description"
+msgstr "Automatic reminder to listeners and presenters a few days before the event starts."
+
+msgid "plugins.generic.conferenceManager.mailable.variable.recipientName"
+msgstr "Name of the recipient"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.contextName"
+msgstr "Name of the journal"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.submitterName"
+msgstr "Name of the author who submitted"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.submissionTitle"
+msgstr "Title of the submission"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.participantRole"
+msgstr "Role of the participant"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.confirmUrl"
+msgstr "Confirmation link"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.expiresAt"
+msgstr "Valid until"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.invoiceNumber"
+msgstr "Invoice number"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.amount"
+msgstr "Invoice amount"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.amountDue"
+msgstr "Amount due"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.paymentPurpose"
+msgstr "Payment purpose"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.paymentReference"
+msgstr "Payment reference"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.paymentInstructions"
+msgstr "Payment instructions"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.dueDate"
+msgstr "Payment deadline"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.invoiceStatus"
+msgstr "Invoice status"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.reviewNote"
+msgstr "Note of the manager"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.paperDeadline"
+msgstr "Full text deadline"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.startsAt"
+msgstr "Event start"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.venue"
+msgstr "Venue"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.eventUrl"
+msgstr "Event page"
+
+msgid "plugins.generic.conferenceManager.campaign.error.subject"
+msgstr "Enter the subject (up to 255 characters)."
+
+msgid "plugins.generic.conferenceManager.campaign.error.body"
+msgstr "Write the text of the letter (up to 20,000 characters)."
+
+msgid "plugins.generic.conferenceManager.campaign.error.variable"
+msgstr "The letter has an unknown variable. Available: {$recipientName}, {$conferenceName}, {$cabinetUrl}, {$contextName}."
+
+msgid "plugins.generic.conferenceManager.campaign.error.noEmail"
+msgstr "Your account has no email address."
+
+msgid "plugins.generic.conferenceManager.campaign.error.send"
+msgstr "The test letter could not be sent. Check the mail settings of OJS."
+
+msgid "plugins.generic.conferenceManager.campaign.error.none"
+msgstr "No recipients match these conditions."
+
+msgid "plugins.generic.conferenceManager.campaign.error.tooMany"
+msgstr "Too many recipients for one mailing. Narrow the conditions."
+
+msgid "plugins.generic.conferenceManager.reminder.error.days"
+msgstr "The number of days must be from 1 to 60."
+
+msgid "plugins.generic.conferenceManager.task.reminders"
+msgstr "Reminders to conference participants"
+
+msgid "plugins.generic.conferenceManager.task.reminders.sent"
+msgstr "Reminders sent: {$count}."
+
+msgid "plugins.generic.conferenceManager.task.reminders.failed"
+msgstr "Reminders that failed: {$count}."
+
+msgid "plugins.generic.conferenceManager.editions.dashboard"
+msgstr "Summary"
+
+msgid "plugins.generic.conferenceManager.editions.campaigns"
+msgstr "Mailings"
+
+msgid "plugins.generic.conferenceManager.editions.reminders"
+msgstr "Reminders"
+
+msgid "plugins.generic.conferenceManager.editions.audit"
+msgstr "Audit log"
+
+msgid "plugins.generic.conferenceManager.dashboard.title"
+msgstr "Event summary"
+
+msgid "plugins.generic.conferenceManager.dashboard.refresh"
+msgstr "Refresh"
+
+msgid "plugins.generic.conferenceManager.dashboard.submissions"
+msgstr "Submissions"
+
+msgid "plugins.generic.conferenceManager.dashboard.waiting"
+msgstr "Waiting for a decision"
+
+msgid "plugins.generic.conferenceManager.dashboard.review"
+msgstr "In review"
+
+msgid "plugins.generic.conferenceManager.dashboard.accepted"
+msgstr "Accepted"
+
+msgid "plugins.generic.conferenceManager.dashboard.declined"
+msgstr "Declined"
+
+msgid "plugins.generic.conferenceManager.dashboard.published"
+msgstr "Published"
+
+msgid "plugins.generic.conferenceManager.dashboard.fullText"
+msgstr "Full text uploaded"
+
+msgid "plugins.generic.conferenceManager.dashboard.byType"
+msgstr "Accepted by presentation type"
+
+msgid "plugins.generic.conferenceManager.dashboard.participants"
+msgstr "Participants"
+
+msgid "plugins.generic.conferenceManager.dashboard.active"
+msgstr "Active"
+
+msgid "plugins.generic.conferenceManager.dashboard.cancelled"
+msgstr "Cancelled"
+
+msgid "plugins.generic.conferenceManager.dashboard.payments"
+msgstr "Payments"
+
+msgid "plugins.generic.conferenceManager.dashboard.noInvoices"
+msgstr "No invoices yet."
+
+msgid "plugins.generic.conferenceManager.dashboard.paid"
+msgstr "Paid"
+
+msgid "plugins.generic.conferenceManager.dashboard.open"
+msgstr "Unpaid"
+
+msgid "plugins.generic.conferenceManager.dashboard.due"
+msgstr "due"
+
+msgid "plugins.generic.conferenceManager.dashboard.partPaid"
+msgstr "Of them partly paid"
+
+msgid "plugins.generic.conferenceManager.dashboard.waived"
+msgstr "Waived"
+
+msgid "plugins.generic.conferenceManager.dashboard.replaced"
+msgstr "Replaced or cancelled"
+
+msgid "plugins.generic.conferenceManager.dashboard.pendingProofs"
+msgstr "Receipts waiting for review"
+
+msgid "plugins.generic.conferenceManager.dashboard.reminders"
+msgstr "Reminders sent"
+
+msgid "plugins.generic.conferenceManager.campaign.title"
+msgstr "Mailing"
+
+msgid "plugins.generic.conferenceManager.campaign.description"
+msgstr "A letter to the participants of the event who match the conditions. Each person gets one letter even with several roles. Preview the recipients and send yourself a test letter first."
+
+msgid "plugins.generic.conferenceManager.campaign.progress"
+msgstr "sent {$done} of {$total}"
+
+msgid "plugins.generic.conferenceManager.campaign.failedCount"
+msgstr "failed: {$count}"
+
+msgid "plugins.generic.conferenceManager.campaign.finished"
+msgstr "finished"
+
+msgid "plugins.generic.conferenceManager.campaign.recipients"
+msgstr "Recipients"
+
+msgid "plugins.generic.conferenceManager.campaign.section"
+msgstr "Section"
+
+msgid "plugins.generic.conferenceManager.campaign.accepted"
+msgstr "Only authors of accepted materials"
+
+msgid "plugins.generic.conferenceManager.campaign.fullText"
+msgstr "Full text"
+
+msgid "plugins.generic.conferenceManager.campaign.fullText.yes"
+msgstr "Uploaded"
+
+msgid "plugins.generic.conferenceManager.campaign.fullText.no"
+msgstr "Not uploaded yet"
+
+msgid "plugins.generic.conferenceManager.campaign.preview"
+msgstr "Preview recipients"
+
+msgid "plugins.generic.conferenceManager.campaign.count"
+msgstr "Recipients: {$count}"
+
+msgid "plugins.generic.conferenceManager.campaign.tooMany"
+msgstr "More than {$max}: narrow the conditions."
+
+msgid "plugins.generic.conferenceManager.campaign.subject"
+msgstr "Subject"
+
+msgid "plugins.generic.conferenceManager.campaign.body"
+msgstr "Text of the letter"
+
+msgid "plugins.generic.conferenceManager.campaign.variables"
+msgstr "Variables (click to insert)"
+
+msgid "plugins.generic.conferenceManager.campaign.test"
+msgstr "Send a test letter to myself"
+
+msgid "plugins.generic.conferenceManager.campaign.send"
+msgstr "Send the mailing"
+
+msgid "plugins.generic.conferenceManager.campaign.testSent"
+msgstr "The test letter was sent to {$email}."
+
+msgid "plugins.generic.conferenceManager.campaign.confirm"
+msgstr "Send the letter to {$count} recipients? A started mailing cannot be cancelled."
+
+msgid "plugins.generic.conferenceManager.campaign.history"
+msgstr "Previous mailings"
+
+msgid "plugins.generic.conferenceManager.reminders.title"
+msgstr "Automatic reminders"
+
+msgid "plugins.generic.conferenceManager.reminders.description"
+msgstr "Reminders are sent hourly for events whose call is open or closed. Each person gets each reminder only once. The texts are edited in Settings → Workflow → Emails."
+
+msgid "plugins.generic.conferenceManager.reminders.payment"
+msgstr "Payment"
+
+msgid "plugins.generic.conferenceManager.reminders.paper"
+msgstr "Full text"
+
+msgid "plugins.generic.conferenceManager.reminders.event"
+msgstr "Event start"
+
+msgid "plugins.generic.conferenceManager.reminders.payment.description"
+msgstr "To participants with an unpaid invoice and no receipt waiting for review, the given number of days before the payment deadline."
+
+msgid "plugins.generic.conferenceManager.reminders.paper.description"
+msgstr "To authors of accepted abstracts without a full text, the given number of days before the full text deadline. Only for events with abstracts and papers."
+
+msgid "plugins.generic.conferenceManager.reminders.event.description"
+msgstr "To listeners and presenters of accepted materials, the given number of days before the event starts."
+
+msgid "plugins.generic.conferenceManager.reminders.enabled"
+msgstr "Send"
+
+msgid "plugins.generic.conferenceManager.reminders.days"
+msgstr "Days before"
+
+msgid "plugins.generic.conferenceManager.reminders.saved"
+msgstr "The reminder settings were saved."
+
+msgid "plugins.generic.conferenceManager.audit.title"
+msgstr "Audit log"
+
+msgid "plugins.generic.conferenceManager.audit.log"
+msgstr "Actions"
+
+msgid "plugins.generic.conferenceManager.audit.consent"
+msgstr "Consent versions"
+
+msgid "plugins.generic.conferenceManager.audit.description"
+msgstr "Who changed events, fees, invoices, participants and plugin settings, and when."
+
+msgid "plugins.generic.conferenceManager.audit.entity"
+msgstr "Object"
+
+msgid "plugins.generic.conferenceManager.audit.empty"
+msgstr "No entries."
+
+msgid "plugins.generic.conferenceManager.audit.actor"
+msgstr "Who"
+
+msgid "plugins.generic.conferenceManager.audit.action"
+msgstr "Action"
+
+msgid "plugins.generic.conferenceManager.audit.system"
+msgstr "System"
+
+msgid "plugins.generic.conferenceManager.audit.details"
+msgstr "Details"
+
+msgid "plugins.generic.conferenceManager.audit.before"
+msgstr "Before"
+
+msgid "plugins.generic.conferenceManager.audit.after"
+msgstr "After"
+
+msgid "plugins.generic.conferenceManager.audit.consent.description"
+msgstr "Every version of the personal data consent text that participants saw is kept with the number of agreements. The text is changed in the institution profile."
+
+msgid "plugins.generic.conferenceManager.audit.consent.empty"
+msgstr "Nobody has agreed yet."
+
+msgid "plugins.generic.conferenceManager.audit.consent.agreements"
+msgstr "agreements: {$count}"
+
+msgid "plugins.generic.conferenceManager.audit.entity.edition"
+msgstr "Event"
+
+msgid "plugins.generic.conferenceManager.audit.entity.invoice"
+msgstr "Invoice"
+
+msgid "plugins.generic.conferenceManager.audit.entity.participant"
+msgstr "Participant"
+
+msgid "plugins.generic.conferenceManager.audit.entity.participation"
+msgstr "Participation"
+
+msgid "plugins.generic.conferenceManager.audit.entity.submission"
+msgstr "Submission"
+
+msgid "plugins.generic.conferenceManager.audit.entity.submission_registration"
+msgstr "Submission form"
+
+msgid "plugins.generic.conferenceManager.audit.entity.campaign"
+msgstr "Mailing"
+
+msgid "plugins.generic.conferenceManager.audit.entity.reminders"
+msgstr "Reminders"
+
+msgid "plugins.generic.conferenceManager.audit.entity.export"
+msgstr "Export"
+
+msgid "plugins.generic.conferenceManager.audit.entity.export_columns"
+msgstr "Export columns"
+
+msgid "plugins.generic.conferenceManager.audit.entity.fee_category"
+msgstr "Participant category"
+
+msgid "plugins.generic.conferenceManager.audit.entity.tariff"
+msgstr "Tariff"
+
+msgid "plugins.generic.conferenceManager.audit.entity.payment_rule"
+msgstr "Payment rule"

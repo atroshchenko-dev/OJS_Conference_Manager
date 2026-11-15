@@ -1895,3 +1895,582 @@ msgstr "До сплати"
 
 msgid "plugins.generic.conferenceManager.panel.error"
 msgstr "Не вдалося зберегти. Спробуйте ще раз."
+
+msgid "plugins.generic.conferenceManager.publish.unpaid"
+msgstr "Публікацію зупинено: рахунок № {$number} за участь у заході не оплачено (до сплати {$due}). Опублікуйте після оплати або звільніть доповідача від оплати в списку рахунків."
+
+msgid "plugins.generic.conferenceManager.payment.error.notReissuable"
+msgstr "Цей рахунок не можна перевиставити: він скасований, замінений, є звільненням або участь уже скасовано."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.unchanged"
+msgstr "Сума за поточним тарифом та сама. Змініть кількість сторінок, категорію учасника або тип виступу."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.overpaid"
+msgstr "Уже сплачено не менше за нову суму. Новий рахунок не потрібен; повернення переплати оформлюється окремо."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.currency"
+msgstr "Нова сума в іншій валюті, а частину вже сплачено. Перевиставте рахунок вручну."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.free"
+msgstr "За поточними правилами участь безкоштовна. Якщо рахунок більше не потрібен, скасуйте його або звільніть від оплати."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.noTariff"
+msgstr "Для цієї категорії й матеріалу немає тарифу."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.pagesRequired"
+msgstr "Тариф рахує за сторінки: вкажіть кількість сторінок."
+
+msgid "plugins.generic.conferenceManager.payment.error.reissue.notFound"
+msgstr "Учасника або захід не знайдено."
+
+msgid "plugins.generic.conferenceManager.invoice.reissue"
+msgstr "Перевиставити"
+
+msgid "plugins.generic.conferenceManager.invoice.reissuePrompt"
+msgstr "Новий рахунок за поточним тарифом, категорією й типом виступу. Сплачене буде зараховано. Кількість сторінок (порожньо — як було):"
+
+msgid "plugins.generic.conferenceManager.invoice.reissueDone"
+msgstr "Рахунок перевиставлено, старий позначено як замінений."
+
+msgid "plugins.generic.conferenceManager.export.column.number"
+msgstr "Номер рахунку"
+
+msgid "plugins.generic.conferenceManager.export.column.issuedAt"
+msgstr "Дата виставлення"
+
+msgid "plugins.generic.conferenceManager.export.column.dueAt"
+msgstr "Сплатити до"
+
+msgid "plugins.generic.conferenceManager.export.column.paidAt"
+msgstr "Дата оплати"
+
+msgid "plugins.generic.conferenceManager.export.column.status"
+msgstr "Стан"
+
+msgid "plugins.generic.conferenceManager.export.column.payerName"
+msgstr "Платник"
+
+msgid "plugins.generic.conferenceManager.export.column.payerEmail"
+msgstr "Email платника"
+
+msgid "plugins.generic.conferenceManager.export.column.payerAffiliation"
+msgstr "Організація платника"
+
+msgid "plugins.generic.conferenceManager.export.column.edition"
+msgstr "Захід"
+
+msgid "plugins.generic.conferenceManager.export.column.category"
+msgstr "Категорія учасника"
+
+msgid "plugins.generic.conferenceManager.export.column.role"
+msgstr "Роль"
+
+msgid "plugins.generic.conferenceManager.export.column.submissionId"
+msgstr "Номер подання"
+
+msgid "plugins.generic.conferenceManager.export.column.description"
+msgstr "Послуга"
+
+msgid "plugins.generic.conferenceManager.export.column.total"
+msgstr "Сума"
+
+msgid "plugins.generic.conferenceManager.export.column.paid"
+msgstr "Сплачено"
+
+msgid "plugins.generic.conferenceManager.export.column.due"
+msgstr "До сплати"
+
+msgid "plugins.generic.conferenceManager.export.column.currency"
+msgstr "Валюта"
+
+msgid "plugins.generic.conferenceManager.export.column.mode"
+msgstr "Спосіб оплати"
+
+msgid "plugins.generic.conferenceManager.export.column.paymentReference"
+msgstr "Код платежу"
+
+msgid "plugins.generic.conferenceManager.export.column.purpose"
+msgstr "Призначення платежу"
+
+msgid "plugins.generic.conferenceManager.export.column.account"
+msgstr "Рахунок одержувача (IBAN)"
+
+msgid "plugins.generic.conferenceManager.export.column.waiverReason"
+msgstr "Підстава звільнення"
+
+msgid "plugins.generic.conferenceManager.export.column.supersedes"
+msgstr "Замінює рахунок"
+
+msgid "plugins.generic.conferenceManager.export.title"
+msgstr "Експорт для бухгалтерії"
+
+msgid "plugins.generic.conferenceManager.export.description"
+msgstr "Рахунки за період у CSV або XLSX. Колонки й порядок обираєте ви; вибір запам'ятовується для журналу."
+
+msgid "plugins.generic.conferenceManager.export.period"
+msgstr "Що вивантажити"
+
+msgid "plugins.generic.conferenceManager.export.scope.edition"
+msgstr "Лише цей захід"
+
+msgid "plugins.generic.conferenceManager.export.scope.all"
+msgstr "Усі заходи журналу"
+
+msgid "plugins.generic.conferenceManager.export.from"
+msgstr "З"
+
+msgid "plugins.generic.conferenceManager.export.to"
+msgstr "По"
+
+msgid "plugins.generic.conferenceManager.export.dateField"
+msgstr "Дата"
+
+msgid "plugins.generic.conferenceManager.export.dateField.issued"
+msgstr "виставлення"
+
+msgid "plugins.generic.conferenceManager.export.dateField.paid"
+msgstr "повної оплати"
+
+msgid "plugins.generic.conferenceManager.export.withReplaced"
+msgstr "Разом зі скасованими й заміненими рахунками"
+
+msgid "plugins.generic.conferenceManager.export.columns"
+msgstr "Колонки"
+
+msgid "plugins.generic.conferenceManager.export.addColumn"
+msgstr "Додати колонку"
+
+msgid "plugins.generic.conferenceManager.export.up"
+msgstr "Вище"
+
+msgid "plugins.generic.conferenceManager.export.down"
+msgstr "Нижче"
+
+msgid "plugins.generic.conferenceManager.export.remove"
+msgstr "Прибрати"
+
+msgid "plugins.generic.conferenceManager.export.csv"
+msgstr "Завантажити CSV"
+
+msgid "plugins.generic.conferenceManager.export.xlsx"
+msgstr "Завантажити XLSX"
+
+msgid "plugins.generic.conferenceManager.export.saveColumns"
+msgstr "Зберегти колонки"
+
+msgid "plugins.generic.conferenceManager.export.columnsSaved"
+msgstr "Колонки збережено."
+
+msgid "plugins.generic.conferenceManager.export.error.columns"
+msgstr "Оберіть хоча б одну колонку."
+
+msgid "plugins.generic.conferenceManager.export.error.edition"
+msgstr "Захід не знайдено."
+
+msgid "plugins.generic.conferenceManager.export.error.date"
+msgstr "Дата у форматі РРРР-ММ-ДД."
+
+msgid "plugins.generic.conferenceManager.export.error.period"
+msgstr "Початок періоду пізніше за кінець."
+
+msgid "plugins.generic.conferenceManager.export.error.xlsx"
+msgstr "На сервері немає розширення PHP zip, тож доступний лише CSV."
+
+msgid "plugins.generic.conferenceManager.mailable.confirm.name"
+msgstr "Учасники: підтвердження співавторства"
+
+msgid "plugins.generic.conferenceManager.mailable.confirm.description"
+msgstr "Надсилається співавторові, щоб він підтвердив участь у поданні."
+
+msgid "plugins.generic.conferenceManager.mailable.invoice.name"
+msgstr "Учасники: рахунок виставлено"
+
+msgid "plugins.generic.conferenceManager.mailable.invoice.description"
+msgstr "Надсилається учасникові, коли йому виставлено рахунок."
+
+msgid "plugins.generic.conferenceManager.mailable.proofAccepted.name"
+msgstr "Учасники: квитанцію прийнято"
+
+msgid "plugins.generic.conferenceManager.mailable.proofAccepted.description"
+msgstr "Надсилається учасникові, коли менеджер прийняв квитанцію про оплату."
+
+msgid "plugins.generic.conferenceManager.mailable.proofRejected.name"
+msgstr "Учасники: квитанцію відхилено"
+
+msgid "plugins.generic.conferenceManager.mailable.proofRejected.description"
+msgstr "Надсилається учасникові, коли менеджер відхилив квитанцію, з причиною."
+
+msgid "plugins.generic.conferenceManager.mailable.remindPayment.name"
+msgstr "Нагадування: оплата участі"
+
+msgid "plugins.generic.conferenceManager.mailable.remindPayment.description"
+msgstr "Автоматичне нагадування за кілька днів до строку оплати, якщо рахунок не оплачено й квитанція не чекає перевірки."
+
+msgid "plugins.generic.conferenceManager.mailable.remindPaper.name"
+msgstr "Нагадування: повний текст"
+
+msgid "plugins.generic.conferenceManager.mailable.remindPaper.description"
+msgstr "Автоматичне нагадування авторам прийнятих тез, які ще не завантажили повний текст."
+
+msgid "plugins.generic.conferenceManager.mailable.remindEvent.name"
+msgstr "Нагадування: початок заходу"
+
+msgid "plugins.generic.conferenceManager.mailable.remindEvent.description"
+msgstr "Автоматичне нагадування слухачам і доповідачам за кілька днів до початку заходу."
+
+msgid "plugins.generic.conferenceManager.mailable.variable.recipientName"
+msgstr "Ім'я одержувача"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.contextName"
+msgstr "Назва журналу"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.submitterName"
+msgstr "Ім'я автора, який зробив подання"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.submissionTitle"
+msgstr "Назва подання"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.participantRole"
+msgstr "Роль учасника"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.confirmUrl"
+msgstr "Посилання для підтвердження"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.expiresAt"
+msgstr "Дійсне до"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.invoiceNumber"
+msgstr "Номер рахунку"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.amount"
+msgstr "Сума рахунку"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.amountDue"
+msgstr "Сума до сплати"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.paymentPurpose"
+msgstr "Призначення платежу"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.paymentReference"
+msgstr "Код платежу"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.paymentInstructions"
+msgstr "Як оплатити"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.dueDate"
+msgstr "Строк оплати"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.invoiceStatus"
+msgstr "Стан рахунку"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.reviewNote"
+msgstr "Коментар менеджера"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.paperDeadline"
+msgstr "Строк подання повного тексту"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.startsAt"
+msgstr "Початок заходу"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.venue"
+msgstr "Місце проведення"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.eventUrl"
+msgstr "Сторінка заходу"
+
+msgid "plugins.generic.conferenceManager.campaign.error.subject"
+msgstr "Вкажіть тему листа (до 255 символів)."
+
+msgid "plugins.generic.conferenceManager.campaign.error.body"
+msgstr "Напишіть текст листа (до 20 000 символів)."
+
+msgid "plugins.generic.conferenceManager.campaign.error.variable"
+msgstr "У листі є невідома змінна. Доступні: {$recipientName}, {$conferenceName}, {$cabinetUrl}, {$contextName}."
+
+msgid "plugins.generic.conferenceManager.campaign.error.noEmail"
+msgstr "У вашому обліковому записі немає адреси електронної пошти."
+
+msgid "plugins.generic.conferenceManager.campaign.error.send"
+msgstr "Тестовий лист не вдалося надіслати. Перевірте налаштування пошти OJS."
+
+msgid "plugins.generic.conferenceManager.campaign.error.none"
+msgstr "За цими умовами немає жодного одержувача."
+
+msgid "plugins.generic.conferenceManager.campaign.error.tooMany"
+msgstr "Забагато одержувачів для однієї розсилки. Звузьте умови."
+
+msgid "plugins.generic.conferenceManager.reminder.error.days"
+msgstr "Кількість днів має бути від 1 до 60."
+
+msgid "plugins.generic.conferenceManager.task.reminders"
+msgstr "Нагадування учасникам конференцій"
+
+msgid "plugins.generic.conferenceManager.task.reminders.sent"
+msgstr "Надіслано нагадувань: {$count}."
+
+msgid "plugins.generic.conferenceManager.task.reminders.failed"
+msgstr "Не вдалося надіслати нагадувань: {$count}."
+
+msgid "plugins.generic.conferenceManager.editions.dashboard"
+msgstr "Підсумки"
+
+msgid "plugins.generic.conferenceManager.editions.campaigns"
+msgstr "Розсилки"
+
+msgid "plugins.generic.conferenceManager.editions.reminders"
+msgstr "Нагадування"
+
+msgid "plugins.generic.conferenceManager.editions.audit"
+msgstr "Журнал дій"
+
+msgid "plugins.generic.conferenceManager.dashboard.title"
+msgstr "Підсумки заходу"
+
+msgid "plugins.generic.conferenceManager.dashboard.refresh"
+msgstr "Оновити"
+
+msgid "plugins.generic.conferenceManager.dashboard.submissions"
+msgstr "Подання"
+
+msgid "plugins.generic.conferenceManager.dashboard.waiting"
+msgstr "Чекають рішення"
+
+msgid "plugins.generic.conferenceManager.dashboard.review"
+msgstr "На рецензуванні"
+
+msgid "plugins.generic.conferenceManager.dashboard.accepted"
+msgstr "Прийнято"
+
+msgid "plugins.generic.conferenceManager.dashboard.declined"
+msgstr "Відхилено"
+
+msgid "plugins.generic.conferenceManager.dashboard.published"
+msgstr "Опубліковано"
+
+msgid "plugins.generic.conferenceManager.dashboard.fullText"
+msgstr "Повний текст завантажено"
+
+msgid "plugins.generic.conferenceManager.dashboard.byType"
+msgstr "Прийняті за типом виступу"
+
+msgid "plugins.generic.conferenceManager.dashboard.participants"
+msgstr "Учасники"
+
+msgid "plugins.generic.conferenceManager.dashboard.active"
+msgstr "Активні"
+
+msgid "plugins.generic.conferenceManager.dashboard.cancelled"
+msgstr "Скасовані"
+
+msgid "plugins.generic.conferenceManager.dashboard.payments"
+msgstr "Оплати"
+
+msgid "plugins.generic.conferenceManager.dashboard.noInvoices"
+msgstr "Рахунків ще немає."
+
+msgid "plugins.generic.conferenceManager.dashboard.paid"
+msgstr "Оплачено"
+
+msgid "plugins.generic.conferenceManager.dashboard.open"
+msgstr "Не оплачено"
+
+msgid "plugins.generic.conferenceManager.dashboard.due"
+msgstr "до сплати"
+
+msgid "plugins.generic.conferenceManager.dashboard.partPaid"
+msgstr "З них частково оплачено"
+
+msgid "plugins.generic.conferenceManager.dashboard.waived"
+msgstr "Звільнено від оплати"
+
+msgid "plugins.generic.conferenceManager.dashboard.replaced"
+msgstr "Замінено або скасовано"
+
+msgid "plugins.generic.conferenceManager.dashboard.pendingProofs"
+msgstr "Квитанцій чекає перевірки"
+
+msgid "plugins.generic.conferenceManager.dashboard.reminders"
+msgstr "Надіслано нагадувань"
+
+msgid "plugins.generic.conferenceManager.campaign.title"
+msgstr "Розсилка"
+
+msgid "plugins.generic.conferenceManager.campaign.description"
+msgstr "Лист учасникам заходу за обраними умовами. Кожна людина отримає один лист, навіть якщо вона має кілька ролей. Спершу перегляньте одержувачів і надішліть собі тестовий лист."
+
+msgid "plugins.generic.conferenceManager.campaign.progress"
+msgstr "надіслано {$done} з {$total}"
+
+msgid "plugins.generic.conferenceManager.campaign.failedCount"
+msgstr "помилок: {$count}"
+
+msgid "plugins.generic.conferenceManager.campaign.finished"
+msgstr "завершено"
+
+msgid "plugins.generic.conferenceManager.campaign.recipients"
+msgstr "Кому"
+
+msgid "plugins.generic.conferenceManager.campaign.section"
+msgstr "Секція"
+
+msgid "plugins.generic.conferenceManager.campaign.accepted"
+msgstr "Лише автори прийнятих матеріалів"
+
+msgid "plugins.generic.conferenceManager.campaign.fullText"
+msgstr "Повний текст"
+
+msgid "plugins.generic.conferenceManager.campaign.fullText.yes"
+msgstr "Завантажено"
+
+msgid "plugins.generic.conferenceManager.campaign.fullText.no"
+msgstr "Ще не завантажено"
+
+msgid "plugins.generic.conferenceManager.campaign.preview"
+msgstr "Переглянути одержувачів"
+
+msgid "plugins.generic.conferenceManager.campaign.count"
+msgstr "Одержувачів: {$count}"
+
+msgid "plugins.generic.conferenceManager.campaign.tooMany"
+msgstr "Більше за {$max}: звузьте умови."
+
+msgid "plugins.generic.conferenceManager.campaign.subject"
+msgstr "Тема"
+
+msgid "plugins.generic.conferenceManager.campaign.body"
+msgstr "Текст листа"
+
+msgid "plugins.generic.conferenceManager.campaign.variables"
+msgstr "Змінні (натисніть, щоб вставити)"
+
+msgid "plugins.generic.conferenceManager.campaign.test"
+msgstr "Надіслати тестовий лист собі"
+
+msgid "plugins.generic.conferenceManager.campaign.send"
+msgstr "Надіслати розсилку"
+
+msgid "plugins.generic.conferenceManager.campaign.testSent"
+msgstr "Тестовий лист надіслано на {$email}."
+
+msgid "plugins.generic.conferenceManager.campaign.confirm"
+msgstr "Надіслати лист {$count} одержувачам? Скасувати розсилку після запуску не можна."
+
+msgid "plugins.generic.conferenceManager.campaign.history"
+msgstr "Попередні розсилки"
+
+msgid "plugins.generic.conferenceManager.reminders.title"
+msgstr "Автоматичні нагадування"
+
+msgid "plugins.generic.conferenceManager.reminders.description"
+msgstr "Нагадування надсилаються раз на годину для заходів із відкритим або закритим прийомом заявок. Кожна людина отримує кожне нагадування лише один раз. Тексти листів змінюються в «Налаштування → Робочий процес → Листи»."
+
+msgid "plugins.generic.conferenceManager.reminders.payment"
+msgstr "Про оплату"
+
+msgid "plugins.generic.conferenceManager.reminders.paper"
+msgstr "Про повний текст"
+
+msgid "plugins.generic.conferenceManager.reminders.event"
+msgstr "Про початок заходу"
+
+msgid "plugins.generic.conferenceManager.reminders.payment.description"
+msgstr "Учасникам з неоплаченим рахунком, якщо квитанція не чекає перевірки, за вказану кількість днів до строку оплати."
+
+msgid "plugins.generic.conferenceManager.reminders.paper.description"
+msgstr "Авторам прийнятих тез без повного тексту, за вказану кількість днів до строку подання повного тексту. Лише для заходів «тези й повні тексти»."
+
+msgid "plugins.generic.conferenceManager.reminders.event.description"
+msgstr "Слухачам і доповідачам прийнятих матеріалів, за вказану кількість днів до початку заходу."
+
+msgid "plugins.generic.conferenceManager.reminders.enabled"
+msgstr "Надсилати"
+
+msgid "plugins.generic.conferenceManager.reminders.days"
+msgstr "За скільки днів"
+
+msgid "plugins.generic.conferenceManager.reminders.saved"
+msgstr "Налаштування нагадувань збережено."
+
+msgid "plugins.generic.conferenceManager.audit.title"
+msgstr "Журнал дій"
+
+msgid "plugins.generic.conferenceManager.audit.log"
+msgstr "Дії"
+
+msgid "plugins.generic.conferenceManager.audit.consent"
+msgstr "Версії згоди"
+
+msgid "plugins.generic.conferenceManager.audit.description"
+msgstr "Хто й коли змінював заходи, оргвнески, рахунки, учасників і налаштування плагіна."
+
+msgid "plugins.generic.conferenceManager.audit.entity"
+msgstr "Об'єкт"
+
+msgid "plugins.generic.conferenceManager.audit.empty"
+msgstr "Записів немає."
+
+msgid "plugins.generic.conferenceManager.audit.actor"
+msgstr "Хто"
+
+msgid "plugins.generic.conferenceManager.audit.action"
+msgstr "Дія"
+
+msgid "plugins.generic.conferenceManager.audit.system"
+msgstr "Система"
+
+msgid "plugins.generic.conferenceManager.audit.details"
+msgstr "Подробиці"
+
+msgid "plugins.generic.conferenceManager.audit.before"
+msgstr "Було"
+
+msgid "plugins.generic.conferenceManager.audit.after"
+msgstr "Стало"
+
+msgid "plugins.generic.conferenceManager.audit.consent.description"
+msgstr "Кожна версія тексту згоди на обробку персональних даних, яку бачили учасники, зберігається з кількістю згод. Змінити текст можна в профілі закладу."
+
+msgid "plugins.generic.conferenceManager.audit.consent.empty"
+msgstr "Ще ніхто не давав згоди."
+
+msgid "plugins.generic.conferenceManager.audit.consent.agreements"
+msgstr "згод: {$count}"
+
+msgid "plugins.generic.conferenceManager.audit.entity.edition"
+msgstr "Захід"
+
+msgid "plugins.generic.conferenceManager.audit.entity.invoice"
+msgstr "Рахунок"
+
+msgid "plugins.generic.conferenceManager.audit.entity.participant"
+msgstr "Учасник"
+
+msgid "plugins.generic.conferenceManager.audit.entity.participation"
+msgstr "Участь"
+
+msgid "plugins.generic.conferenceManager.audit.entity.submission"
+msgstr "Подання"
+
+msgid "plugins.generic.conferenceManager.audit.entity.submission_registration"
+msgstr "Анкета подання"
+
+msgid "plugins.generic.conferenceManager.audit.entity.campaign"
+msgstr "Розсилка"
+
+msgid "plugins.generic.conferenceManager.audit.entity.reminders"
+msgstr "Нагадування"
+
+msgid "plugins.generic.conferenceManager.audit.entity.export"
+msgstr "Експорт"
+
+msgid "plugins.generic.conferenceManager.audit.entity.export_columns"
+msgstr "Колонки експорту"
+
+msgid "plugins.generic.conferenceManager.audit.entity.fee_category"
+msgstr "Категорія учасника"
+
+msgid "plugins.generic.conferenceManager.audit.entity.tariff"
+msgstr "Тариф"
+
+msgid "plugins.generic.conferenceManager.audit.entity.payment_rule"
+msgstr "Правило оплати"

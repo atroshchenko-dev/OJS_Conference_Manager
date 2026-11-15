@@ -13,6 +13,8 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentMode;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentRule;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\ProofStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\ValidationErrors;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Export\CsvTableWriter;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Export\XlsxTableWriter;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Http\JsonResponse;
@@ -46,6 +48,9 @@ use PKP\security\Role;
  * GET    proofs/{prid}/file                          the receipt file
  * POST   proofs/{prid}/accept                        {amount}; empty = what is due
  * POST   proofs/{prid}/reject                        {note}
+ * GET    exports/accounting/columns                  columns to choose from and the chosen ones (FEE-12)
+ * PUT    exports/accounting/columns                  {columns: [..]} in their order
+ * GET    exports/accounting?format=csv|xlsx&editionId&from&to&dateField=issued|paid&withReplaced  the file
  */
 final class InvoiceRoutes implements RouteModule
 {
@@ -77,6 +82,9 @@ final class InvoiceRoutes implements RouteModule
         Route::post('invoices/{invoiceId}/reissue', $this->reissueInvoice(...))->name('conference.invoices.reissue')->whereNumber('invoiceId');
         Route::post('invoices/{invoiceId}/cancel', $this->cancelInvoice(...))->name('conference.invoices.cancel')->whereNumber('invoiceId');
         Route::get('editions/{editionId}/payment-events', $this->getPaymentJournal(...))->name('conference.payments.journal')->whereNumber('editionId');
+        Route::get('exports/accounting/columns', $this->getExportColumns(...))->name('conference.exports.columns');
+        Route::put('exports/accounting/columns', $this->editExportColumns(...))->name('conference.exports.columns.edit');
+        Route::get('exports/accounting', $this->getAccountingExport(...))->name('conference.exports.accounting');
         Route::get('proofs', $this->getProofs(...))->name('conference.proofs.list');
         Route::get('proofs/{proofId}/file', $this->getProofFile(...))->name('conference.proofs.file')->whereNumber('proofId');
         Route::post('proofs/{proofId}/accept', $this->acceptProof(...))->name('conference.proofs.accept')->whereNumber('proofId');
@@ -339,6 +347,53 @@ final class InvoiceRoutes implements RouteModule
         return $invoice === null
             ? ConferenceApiController::errorResponse($errors, $errors->has('status') ? Response::HTTP_CONFLICT : Response::HTTP_BAD_REQUEST)
             : response()->json($service->present($context, $invoice, \PKP\facades\Locale::getLocale()), Response::HTTP_OK);
+    }
+
+    public function getExportColumns(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        return response()->json(ServiceFactory::accountingExport()->columns($this->api->contextInfo(), \PKP\facades\Locale::getLocale()) + [
+            'xlsx' => XlsxTableWriter::isAvailable(),
+        ], Response::HTTP_OK);
+    }
+
+    public function editExportColumns(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $service = ServiceFactory::accountingExport();
+        $errors = $service->saveColumns($this->api->contextInfo(), (array) $r->input('columns', []), $this->api->actorId());
+        return $errors->isEmpty()
+            ? response()->json($service->columns($this->api->contextInfo(), \PKP\facades\Locale::getLocale()), Response::HTTP_OK)
+            : ConferenceApiController::errorResponse($errors, Response::HTTP_BAD_REQUEST);
+    }
+
+    /** FEE-12: the file itself, built row by row in a temporary file. */
+    public function getAccountingExport(Request $r): \Symfony\Component\HttpFoundation\Response
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $xlsx = $r->query('format') === 'xlsx';
+        if ($xlsx && !XlsxTableWriter::isAvailable()) {
+            return response()->json(['format' => [__('plugins.generic.conferenceManager.export.error.xlsx')]], Response::HTTP_BAD_REQUEST);
+        }
+        @set_time_limit(120);
+        [$file, $errors] = ServiceFactory::accountingExport()->export(
+            $this->api->contextInfo(),
+            $r->query(),
+            $xlsx ? new XlsxTableWriter() : new CsvTableWriter(),
+            \PKP\facades\Locale::getLocale(),
+            $this->api->actorId(),
+        );
+        if ($file === null) {
+            return ConferenceApiController::errorResponse($errors, Response::HTTP_BAD_REQUEST);
+        }
+        return response()->download($file['path'], $file['filename'], ['Content-Type' => $file['contentType'], 'X-Rows' => (string) $file['rows']])
+            ->deleteFileAfterSend(true);
     }
 
     public function cancelInvoice(Request $r): JsonResponse

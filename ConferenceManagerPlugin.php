@@ -24,6 +24,7 @@ use APP\plugins\generic\conferenceManager\classes\Application\DecisionService;
 use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
 use APP\plugins\generic\conferenceManager\classes\Core\Decisions\ConferenceAcceptance;
 use APP\plugins\generic\conferenceManager\classes\Core\Mail\ConferenceDecisionMailable;
+use APP\plugins\generic\conferenceManager\classes\Core\Mail\ConferenceParticipantMailable;
 use APP\plugins\generic\conferenceManager\classes\Core\Mail\ConferenceTypeChanged;
 use APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory;
 use APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway;
@@ -34,6 +35,7 @@ use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMig
 use APP\plugins\generic\conferenceManager\classes\Pages\ConferencePageHandler;
 use APP\plugins\generic\conferenceManager\classes\Pages\ManageConferenceHandler;
 use APP\plugins\generic\conferenceManager\classes\Tasks\EditionWindowsTask;
+use APP\plugins\generic\conferenceManager\classes\Tasks\ReminderTask;
 use APP\plugins\generic\conferenceManager\classes\Wizard\ConferenceWizardStep;
 use APP\template\TemplateManager;
 use DateTimeImmutable;
@@ -537,7 +539,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         if (!$this->isEnabledFor((int) $args[1]->getId())) {
             return Hook::CONTINUE;
         }
-        foreach ([...ConferenceDecisionMailable::classes(), ConferenceTypeChanged::class] as $class) {
+        foreach ([...ConferenceDecisionMailable::classes(), ConferenceTypeChanged::class, ...ConferenceParticipantMailable::classes()] as $class) {
             $args[0]->push($class);
         }
         return Hook::CONTINUE;
@@ -550,6 +552,9 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
     {
         $scheduler->addSchedule(new EditionWindowsTask())
             ->everyFifteenMinutes()
+            ->withoutOverlapping();
+        $scheduler->addSchedule(new ReminderTask())
+            ->hourly()
             ->withoutOverlapping();
     }
 

@@ -9,10 +9,13 @@ use APP\facades\Repo;
 use APP\plugins\generic\conferenceManager\classes\Application\ConfirmationRequest;
 use APP\plugins\generic\conferenceManager\classes\Application\ContextInfo;
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceNotifier;
+use APP\plugins\generic\conferenceManager\classes\Application\ParticipantMailer;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantNotifier;
 use APP\plugins\generic\conferenceManager\classes\Application\ProofNotifier;
 use APP\plugins\generic\conferenceManager\classes\Application\TypeChangeNotifier;
+use APP\plugins\generic\conferenceManager\classes\Core\Mail\ConferenceParticipantMailable;
 use APP\plugins\generic\conferenceManager\classes\Core\Mail\ConferenceTypeChanged;
+use APP\plugins\generic\conferenceManager\classes\Domain\Communication\ParticipantMailTexts;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Invoice;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\LocalizedText;
 use APP\plugins\generic\conferenceManager\classes\Pages\ConferencePageHandler;
@@ -27,14 +30,15 @@ use PKP\user\User;
  * Letters of the plugin through the OJS mailer, from the journal's
  * contact address, in the journal's primary language.
  */
-final class MailGateway implements ParticipantNotifier, InvoiceNotifier, ProofNotifier, TypeChangeNotifier
+final class MailGateway implements ParticipantNotifier, InvoiceNotifier, ProofNotifier, TypeChangeNotifier, ParticipantMailer
 {
-    private const K = 'plugins.generic.conferenceManager.registration.mail.';
+    /** Variables whose values keep line breaks. */
+    private const MULTILINE = ['paymentInstructions', 'reviewNote'];
 
     public function requestConfirmation(ContextInfo $context, ConfirmationRequest $request): void
     {
-        $journal = Application::getContextDAO()->getById($context->id);
-        if (!$journal instanceof Context) {
+        $journal = $this->journal($context);
+        if ($journal === null) {
             return;
         }
         $locale = $context->primaryLocale;
@@ -47,91 +51,130 @@ final class MailGateway implements ParticipantNotifier, InvoiceNotifier, ProofNo
             'confirm',
             [$request->token],
         );
-        $edition = (new LocalizedText($request->editionTitle))->resolve($locale) ?? '';
-        $submission = (new LocalizedText($request->submissionTitle))->resolve($locale) ?? '';
-        $expires = $request->expiresAt->setTimezone(new \DateTimeZone($request->timezone))->format('d.m.Y');
-        $params = [
-            'name' => htmlspecialchars($request->name !== '' ? $request->name : $request->email),
-            'edition' => htmlspecialchars($edition),
-            'submission' => htmlspecialchars($submission),
-            'submitter' => htmlspecialchars($request->submitterName),
-            'role' => htmlspecialchars(__('plugins.generic.conferenceManager.registration.participantRole.' . $request->role, [], $locale)),
-            'url' => htmlspecialchars($url),
-            'expires' => $expires,
-            'journal' => htmlspecialchars((string) $journal->getLocalizedData('name', $locale)),
-        ];
-
-        $mailable = new Mailable();
-        $mailable
-            ->from((string) $journal->getData('contactEmail'), (string) $journal->getData('contactName'))
-            ->to($request->email, $request->name !== '' ? $request->name : null)
-            ->subject(__(self::K . 'confirmSubject', ['edition' => $edition], $locale))
-            ->body(__(self::K . 'confirmBody', $params, $locale));
-        Mail::send($mailable);
+        $this->sendTemplate($context, ParticipantMailTexts::CONFIRM, $request->email, $request->name !== '' ? $request->name : null, [
+            'recipientName' => $request->name !== '' ? $request->name : $request->email,
+            'conferenceName' => (string) (new LocalizedText($request->editionTitle))->resolve($locale),
+            'submissionTitle' => (string) (new LocalizedText($request->submissionTitle))->resolve($locale),
+            'submitterName' => $request->submitterName,
+            'participantRole' => __('plugins.generic.conferenceManager.registration.participantRole.' . $request->role, [], $locale),
+            'confirmUrl' => $url,
+            'expiresAt' => $request->expiresAt->setTimezone(new \DateTimeZone($request->timezone))->format('d.m.Y'),
+        ], $locale);
     }
 
     public function invoiceIssued(ContextInfo $context, Invoice $invoice, array $presented): void
     {
         $email = (string) ($invoice->payer['email'] ?? '');
-        $journal = Application::getContextDAO()->getById($context->id);
-        if ($email === '' || !$journal instanceof Context) {
+        if ($email === '') {
             return;
         }
-        $locale = $context->primaryLocale;
-        $httpRequest = Application::get()->getRequest();
-        $url = $httpRequest->getDispatcher()->url($httpRequest, Application::ROUTE_PAGE, $journal->getPath(), ConferencePageHandler::PAGE, 'my');
         $name = (string) ($invoice->payer['name'] ?? '');
         $total = (array) $presented['total'];
-        $params = [
-            'name' => htmlspecialchars($name !== '' ? $name : $email),
-            'edition' => htmlspecialchars((string) $presented['editionName']),
-            'number' => htmlspecialchars((string) $invoice->number),
-            'reference' => htmlspecialchars((string) $invoice->paymentReference),
-            'amount' => htmlspecialchars($total['decimal'] . ' ' . $total['currency']),
-            'purpose' => htmlspecialchars((string) $presented['purpose']),
-            'instructions' => nl2br(htmlspecialchars((string) $presented['instructions'])),
-            'url' => htmlspecialchars($url),
-            'journal' => htmlspecialchars((string) $journal->getLocalizedData('name', $locale)),
-        ];
-        $mailable = new Mailable();
-        $mailable
-            ->from((string) $journal->getData('contactEmail'), (string) $journal->getData('contactName'))
-            ->to($email, $name !== '' ? $name : null)
-            ->subject(__('plugins.generic.conferenceManager.invoice.mail.subject', ['edition' => (string) $presented['editionName'], 'number' => (string) $invoice->number], $locale))
-            ->body(__('plugins.generic.conferenceManager.invoice.mail.body', $params, $locale));
-        Mail::send($mailable);
+        $this->sendTemplate($context, ParticipantMailTexts::INVOICE, $email, $name !== '' ? $name : null, [
+            'recipientName' => $name !== '' ? $name : $email,
+            'conferenceName' => (string) $presented['editionName'],
+            'invoiceNumber' => (string) $invoice->number,
+            'paymentReference' => (string) $invoice->paymentReference,
+            'amount' => $total['decimal'] . ' ' . $total['currency'],
+            'paymentPurpose' => (string) $presented['purpose'],
+            'paymentInstructions' => (string) $presented['instructions'],
+            'dueDate' => self::localDate($invoice->dueAt, (string) $presented['timezone']),
+        ], $context->primaryLocale);
     }
 
     public function proofReviewed(ContextInfo $context, Invoice $invoice, array $presented, bool $accepted, ?string $note): void
     {
         $email = (string) ($invoice->payer['email'] ?? '');
-        $journal = Application::getContextDAO()->getById($context->id);
-        if ($email === '' || !$journal instanceof Context) {
+        if ($email === '') {
             return;
         }
-        $locale = $context->primaryLocale;
-        $httpRequest = Application::get()->getRequest();
-        $url = $httpRequest->getDispatcher()->url($httpRequest, Application::ROUTE_PAGE, $journal->getPath(), ConferencePageHandler::PAGE, 'my');
         $name = (string) ($invoice->payer['name'] ?? '');
         $due = (array) $presented['due'];
-        $params = [
-            'name' => htmlspecialchars($name !== '' ? $name : $email),
-            'edition' => htmlspecialchars((string) $presented['editionName']),
-            'number' => htmlspecialchars((string) $invoice->number),
-            'status' => htmlspecialchars((string) $presented['statusLabel']),
-            'due' => htmlspecialchars($due['decimal'] . ' ' . $due['currency']),
-            'note' => nl2br(htmlspecialchars((string) $note)),
-            'url' => htmlspecialchars($url),
-            'journal' => htmlspecialchars((string) $journal->getLocalizedData('name', $locale)),
-        ];
-        $kind = $accepted ? 'accepted' : 'rejected';
-        $mailable = new Mailable();
+        $this->sendTemplate($context, $accepted ? ParticipantMailTexts::PROOF_ACCEPTED : ParticipantMailTexts::PROOF_REJECTED, $email, $name !== '' ? $name : null, [
+            'recipientName' => $name !== '' ? $name : $email,
+            'conferenceName' => (string) $presented['editionName'],
+            'invoiceNumber' => (string) $invoice->number,
+            'invoiceStatus' => (string) $presented['statusLabel'],
+            'amountDue' => $due['decimal'] . ' ' . $due['currency'],
+            'reviewNote' => (string) $note,
+        ], $context->primaryLocale);
+    }
+
+    public function sendTemplate(ContextInfo $context, string $templateKey, string $email, ?string $name, array $data, string $locale): void
+    {
+        $journal = $this->journal($context);
+        $class = ConferenceParticipantMailable::forKey($templateKey);
+        if ($journal === null || $class === null) {
+            return;
+        }
+        $template = Repo::emailTemplate()->getByKey($context->id, $templateKey);
+        if ($template === null) {
+            throw new \RuntimeException('No email template ' . $templateKey);
+        }
+        $mailable = new $class($journal, $this->escape($data + [
+            'cabinetUrl' => $this->cabinetUrl($context),
+            'contextName' => (string) $journal->getLocalizedData('name', $locale),
+        ]));
         $mailable
             ->from((string) $journal->getData('contactEmail'), (string) $journal->getData('contactName'))
-            ->to($email, $name !== '' ? $name : null)
-            ->subject(__('plugins.generic.conferenceManager.proof.mail.' . $kind . '.subject', ['edition' => (string) $presented['editionName'], 'number' => (string) $invoice->number], $locale))
-            ->body(__('plugins.generic.conferenceManager.proof.mail.' . $kind . '.body', $params, $locale));
+            ->to($email, $name)
+            ->subject((string) ($template->getData('subject', $locale) ?: $template->getData('subject', $context->primaryLocale)))
+            ->body((string) ($template->getData('body', $locale) ?: $template->getData('body', $context->primaryLocale)));
         Mail::send($mailable);
+    }
+
+    public function sendText(ContextInfo $context, string $subject, string $text, string $email, ?string $name, array $data): void
+    {
+        $journal = $this->journal($context);
+        if ($journal === null) {
+            return;
+        }
+        $mailable = new Mailable([$journal]);
+        $mailable->addData($this->escape($data));
+        $mailable
+            ->from((string) $journal->getData('contactEmail'), (string) $journal->getData('contactName'))
+            ->to($email, $name)
+            ->subject(str_replace(["\r", "\n"], ' ', $subject))
+            ->body('<p>' . nl2br(htmlspecialchars($text), false) . '</p>');
+        Mail::send($mailable);
+    }
+
+    public function cabinetUrl(ContextInfo $context): string
+    {
+        $journal = $this->journal($context);
+        $request = Application::get()->getRequest();
+        return $journal === null ? '' : (string) $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $journal->getPath(), ConferencePageHandler::PAGE, 'my');
+    }
+
+    public function editionUrl(ContextInfo $context, string $path): string
+    {
+        $journal = $this->journal($context);
+        $request = Application::get()->getRequest();
+        return $journal === null ? '' : (string) $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $journal->getPath(), ConferencePageHandler::PAGE, $path);
+    }
+
+    private function journal(ContextInfo $context): ?Context
+    {
+        $journal = Application::getContextDAO()->getById($context->id);
+        return $journal instanceof Context ? $journal : null;
+    }
+
+    /**
+     * @param array<string, string> $data
+     * @return array<string, string>
+     */
+    private function escape(array $data): array
+    {
+        $out = [];
+        foreach ($data as $k => $v) {
+            $out[$k] = in_array($k, self::MULTILINE, true) ? nl2br(htmlspecialchars($v), false) : htmlspecialchars($v);
+        }
+        return $out;
+    }
+
+    private static function localDate(?\DateTimeImmutable $d, string $timezone): string
+    {
+        return $d === null ? '' : $d->setTimezone(new \DateTimeZone($timezone !== '' ? $timezone : 'UTC'))->format('d.m.Y');
     }
 
     /**
