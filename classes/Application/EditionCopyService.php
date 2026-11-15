@@ -144,6 +144,10 @@ final class EditionCopyService
 
     private static function shift(?DateTimeImmutable $at, int $days): ?DateTimeImmutable
     {
-        return $at === null || $days === 0 ? $at : $at->modify(($days > 0 ? '+' : '') . $days . ' days');
+        if ($at === null || $days === 0) {
+            return $at;
+        }
+        $interval = new \DateInterval('P' . abs($days) . 'D');
+        return $days > 0 ? $at->add($interval) : $at->sub($interval);
     }
 }
