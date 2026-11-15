@@ -230,3 +230,13 @@
 .cmBook__groups { margin: .5rem 0; padding-left: 1.25rem; }
 .cmBook__missing { margin: .5rem 0; }
 .cmBook textarea.pkpFormField__input { width: 100%; resize: vertical; }
+
+/* Review in the submission panel (DEC-07 – DEC-09) */
+.cmPanel__conflict { margin: .5rem 0; padding: .5rem .75rem; border-left: 4px solid #d00a6c; background: #fff4f8; font-size: .875rem; }
+.cmPanel__tally { font-weight: 600; margin: .25rem 0; }
+.cmPanel__vote { border: 1px solid #ddd; border-radius: 4px; padding: .5rem .75rem; margin: .5rem 0; }
+.cmPanel__vote legend { font-weight: 600; font-size: .875rem; padding: 0 .25rem; }
+.cmPanel__voteOption { display: inline-block; margin-right: .75rem; }
+.cmPanel__comment { display: block; margin: .5rem 0; font-size: .875rem; }
+.cmPanel__comment textarea { display: block; width: 100%; box-sizing: border-box; margin-top: .25rem; }
+.cmBulk__votes { white-space: nowrap; font-size: .8125rem; }

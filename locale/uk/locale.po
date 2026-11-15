@@ -3902,3 +3902,156 @@ msgstr "Текст задовгий."
 
 msgid "plugins.generic.conferenceManager.audit.entity.abstract_book"
 msgstr "Збірник тез"
+
+msgid "plugins.generic.conferenceManager.review.vote.for"
+msgstr "За"
+
+msgid "plugins.generic.conferenceManager.review.vote.against"
+msgstr "Проти"
+
+msgid "plugins.generic.conferenceManager.review.vote.abstain"
+msgstr "Утримався"
+
+msgid "plugins.generic.conferenceManager.review.error.notLight"
+msgstr "Голосування комітету є лише в заходах зі спрощеним рецензуванням."
+
+msgid "plugins.generic.conferenceManager.review.error.vote"
+msgstr "Оберіть «за», «проти» або «утримався»."
+
+msgid "plugins.generic.conferenceManager.review.error.comment"
+msgstr "Коментар задовгий (до 2000 символів)."
+
+msgid "plugins.generic.conferenceManager.review.error.form"
+msgstr "Оберіть форму рецензії цього журналу."
+
+msgid "plugins.generic.conferenceManager.review.conflict"
+msgstr "Можливий конфлікт інтересів."
+
+msgid "plugins.generic.conferenceManager.review.conflict.you"
+msgstr "Ви й автор {$author} з однієї установи чи кафедри: {$affiliation}. Подумайте, чи варто вам ухвалювати рішення."
+
+msgid "plugins.generic.conferenceManager.review.conflict.editor"
+msgstr "Редактор {$editor} і автор {$author} з однієї установи чи кафедри: {$affiliation}."
+
+msgid "plugins.generic.conferenceManager.review.twoPhase"
+msgstr "Двофазне рецензування: перший раунд для тез, наступні для повного тексту."
+
+msgid "plugins.generic.conferenceManager.review.paperDeadline"
+msgstr "Строк подання повного тексту"
+
+msgid "plugins.generic.conferenceManager.review.votes"
+msgstr "Голосування комітету"
+
+msgid "plugins.generic.conferenceManager.review.tally"
+msgstr "За: {$for}, проти: {$against}, утрималися: {$abstain}"
+
+msgid "plugins.generic.conferenceManager.review.tallyShort"
+msgstr "{$for} за · {$against} проти · {$abstain} утр."
+
+msgid "plugins.generic.conferenceManager.review.noVotes"
+msgstr "Ще ніхто не проголосував."
+
+msgid "plugins.generic.conferenceManager.review.yourVote"
+msgstr "Ваш голос"
+
+msgid "plugins.generic.conferenceManager.review.comment"
+msgstr "Коментар (бачать інші члени комітету й голова)"
+
+msgid "plugins.generic.conferenceManager.review.save"
+msgstr "Проголосувати"
+
+msgid "plugins.generic.conferenceManager.review.withdraw"
+msgstr "Відкликати голос"
+
+msgid "plugins.generic.conferenceManager.review.saved"
+msgstr "Голос збережено."
+
+msgid "plugins.generic.conferenceManager.review.withdrawn"
+msgstr "Голос відкликано."
+
+msgid "plugins.generic.conferenceManager.review.settings.open"
+msgstr "Рецензування"
+
+msgid "plugins.generic.conferenceManager.review.settings.title"
+msgstr "Двофазне рецензування"
+
+msgid "plugins.generic.conferenceManager.review.settings.help"
+msgstr "У двофазному режимі спершу рецензують тези, а після рішення «Тези прийнято — подайте повний текст» автор завантажує статтю, і її рецензують у наступному раунді. Тут можна обрати форму рецензії для кожного етапу: її отримає кожен новий рецензент раунду, якщо редактор не обрав іншу."
+
+msgid "plugins.generic.conferenceManager.review.settings.notTwoPhase"
+msgstr "Цей захід зараз не у двофазному режимі. Режим рецензування змінюється в налаштуваннях заходу."
+
+msgid "plugins.generic.conferenceManager.review.settings.noForms"
+msgstr "У журналі ще немає активних форм рецензії."
+
+msgid "plugins.generic.conferenceManager.review.settings.formsLink"
+msgstr "Створити форму рецензії"
+
+msgid "plugins.generic.conferenceManager.review.settings.abstractForm"
+msgstr "Форма для тез (раунд 1)"
+
+msgid "plugins.generic.conferenceManager.review.settings.abstractFormHelp"
+msgstr "Наприклад: відповідність тематиці, новизна, якість тез."
+
+msgid "plugins.generic.conferenceManager.review.settings.paperForm"
+msgstr "Форма для повного тексту (раунд 2 і далі)"
+
+msgid "plugins.generic.conferenceManager.review.settings.paperFormHelp"
+msgstr "Наприклад: методологія, результати, оформлення, рекомендація до публікації."
+
+msgid "plugins.generic.conferenceManager.review.settings.noForm"
+msgstr "Без форми (вільний текст)"
+
+msgid "plugins.generic.conferenceManager.review.settings.howTitle"
+msgstr "Як це працює"
+
+msgid "plugins.generic.conferenceManager.review.settings.step1"
+msgstr "Редактор надсилає тези на рецензування й призначає рецензентів: вони отримують форму для тез."
+
+msgid "plugins.generic.conferenceManager.review.settings.step2"
+msgstr "Після рецензій редактор натискає «Тези прийнято — подайте повний текст». Автор отримує лист зі строком подання повного тексту із налаштувань заходу."
+
+msgid "plugins.generic.conferenceManager.review.settings.step3"
+msgstr "Автор завантажує статтю як нову версію файлу, а редактор створює новий раунд рецензування з цим файлом."
+
+msgid "plugins.generic.conferenceManager.review.settings.step4"
+msgstr "Рецензенти нового раунду отримують форму для повного тексту. Далі рішення ухвалюються як зазвичай."
+
+msgid "plugins.generic.conferenceManager.review.settings.notSaved"
+msgstr "Налаштування не збережено, перевірте поля."
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.label"
+msgstr "Тези прийнято — подайте повний текст"
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.description"
+msgstr "Тези прийнято, автор має подати повний текст до строку із налаштувань заходу. Потім створіть новий раунд рецензування для статті."
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.log"
+msgstr "Тези прийнято, автора попрошено подати повний текст."
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.completed"
+msgstr "Тези прийнято"
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.completed.description"
+msgstr "Автора подання «{$title}» попрошено подати повний текст."
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.notifyAuthorsDescription"
+msgstr "Надішліть авторам лист із проханням подати повний текст до строку."
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.error.notTwoPhase"
+msgstr "Це рішення можливе лише для заходу у двофазному режимі рецензування."
+
+msgid "plugins.generic.conferenceManager.mailable.abstractAccepted.name"
+msgstr "Тези прийнято, подайте повний текст"
+
+msgid "plugins.generic.conferenceManager.mailable.abstractAccepted.description"
+msgstr "Лист авторам після рішення «Тези прийнято — подайте повний текст» у двофазному рецензуванні."
+
+msgid "plugins.generic.conferenceManager.audit.entity.review_vote"
+msgstr "Голос комітету"
+
+msgid "plugins.generic.conferenceManager.audit.entity.review_settings"
+msgstr "Налаштування рецензування"
+
+msgid "plugins.generic.conferenceManager.mailable.paperDeadline.none"
+msgstr "строку, який повідомить оргкомітет"

@@ -27,6 +27,8 @@ use APP\plugins\generic\conferenceManager\classes\Application\ProgramBuilderServ
 use APP\plugins\generic\conferenceManager\classes\Application\ProgramService;
 use APP\plugins\generic\conferenceManager\classes\Application\PublicScheduleService;
 use APP\plugins\generic\conferenceManager\classes\Application\ReminderService;
+use APP\plugins\generic\conferenceManager\classes\Application\ReviewCommitteeService;
+use APP\plugins\generic\conferenceManager\classes\Application\ReviewPeople;
 use APP\plugins\generic\conferenceManager\classes\Application\SettingsStore;
 use APP\plugins\generic\conferenceManager\classes\Application\SubmissionInfo;
 use APP\plugins\generic\conferenceManager\classes\Application\SubmissionRegistrationService;
@@ -57,6 +59,7 @@ use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\Db
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbProgramRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbReminderRepository;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbVoteRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
 use APP\plugins\generic\conferenceManager\classes\Migrations\Steps\Step0008Communication;
@@ -188,6 +191,55 @@ final class DecisionFlowTest extends TestCase
         self::assertSame([], $service->validateSubmit($this->ctx, $submissionId, $consent, $this->now)->toArray());
         $service->onSubmitted($this->ctx, $submissionId, 1, $this->now);
         $this->editorial->stage[$submissionId] = EditorialDirectory::STAGE_SUBMISSION;
+    }
+
+    public function testReviewCommitteeConflictsAndPhases(): void
+    {
+        [$edition, $cat] = $this->edition(['reviewMode' => 'light']);
+        $this->submit(1, $edition, $cat);
+        $people = new FakeReviewPeople();
+        $settings = new FakeSettings();
+        $service = new ReviewCommitteeService(new DbEditionRepository($this->db), new DbRegistrationRepository($this->db), new DbVoteRepository($this->db), $people, $settings, new AuditLogger($this->db));
+
+        // DEC-09: votes of the committee, one per member, replaced and withdrawn.
+        self::assertSame([], $service->vote($this->ctx, 1, 1, ['vote' => 'for', 'comment' => 'Добре'], $this->now)?->toArray());
+        self::assertSame([], $service->vote($this->ctx, 1, 2, ['vote' => 'against'], $this->now)?->toArray());
+        self::assertSame([], $service->vote($this->ctx, 1, 2, ['vote' => 'abstain', 'comment' => 'Не мій напрям'], $this->now)?->toArray());
+        self::assertTrue($service->vote($this->ctx, 1, 3, ['vote' => 'maybe'], $this->now)?->has('vote'));
+        self::assertTrue($service->vote($this->ctx, 1, 3, ['vote' => 'for', 'comment' => str_repeat('x', 2001)], $this->now)?->has('comment'));
+        self::assertNull($service->vote(new ContextInfo(2, 'uk', ['uk']), 1, 3, ['vote' => 'for'], $this->now), 'another journal');
+        $panel = $service->panel($this->ctx, 1, 2, 'uk') ?? [];
+        self::assertTrue($panel['voting']);
+        self::assertSame(['for' => 1, 'against' => 0, 'abstain' => 1], $panel['counts']);
+        self::assertSame(['abstain', 'Не мій напрям'], [$panel['myVote']['vote'] ?? null, $panel['myVote']['comment'] ?? null]);
+        self::assertSame([1 => ['for' => 1, 'against' => 0, 'abstain' => 1]], $service->counts([1, 2]));
+        self::assertSame([], $service->vote($this->ctx, 1, 2, ['vote' => 'none'], $this->now)?->toArray());
+        self::assertNull(($service->panel($this->ctx, 1, 2, 'uk') ?? [])['myVote']);
+
+        // DEC-08: the viewer and an assigned editor with the affiliation of an author.
+        $people->editors = [['userId' => 1, 'name' => 'Голова', 'affiliations' => ['Інший університет']], ['userId' => 2, 'name' => 'Секретар', 'affiliations' => ['Кафедра права, Університет «КРОК»']]];
+        $people->authors = [['name' => 'Петро Іваненко', 'affiliations' => ['Університет "Крок"']]];
+        $conflicts = ($service->panel($this->ctx, 1, 1, 'uk') ?? [])['conflicts'];
+        self::assertSame([[2, 'Петро Іваненко', false]], array_map(static fn (array $c): array => [$c['userId'], $c['author'], $c['isViewer']], $conflicts));
+        $people->users[5] = ['userId' => 5, 'name' => 'Менеджер', 'affiliations' => ['УНІВЕРСИТЕТ КРОК']];
+        self::assertTrue(in_array(true, array_column($service->conflicts(1, 5, 'uk'), 'isViewer'), true), 'the manager about to decide');
+
+        // DEC-07: no voting in the two-phase mode; forms by round.
+        $this->db->table('conf_editions')->where('id', $edition)->update(['review_mode' => 'two_phase']);
+        self::assertTrue($service->vote($this->ctx, 1, 1, ['vote' => 'for'], $this->now)?->has('vote'));
+        self::assertFalse(($service->panel($this->ctx, 1, 1, 'uk') ?? [])['voting']);
+        [$saved, $e] = $service->saveSettings($this->ctx, $edition, ['abstractFormId' => '7', 'paperFormId' => 99]) ?? [null, null];
+        self::assertNull($saved);
+        self::assertTrue($e?->has('paperFormId'), 'not a form of the journal');
+        [$saved] = $service->saveSettings($this->ctx, $edition, ['abstractFormId' => '7', 'paperFormId' => 8]) ?? [null];
+        self::assertSame(['abstractFormId' => 7, 'paperFormId' => 8], $saved?->toArray());
+        $people->rounds = [10 => 1, 11 => 2, 12 => 3];
+        self::assertSame([7, 8, 8], [$service->formForAssignment($this->ctx, 1, 10), $service->formForAssignment($this->ctx, 1, 11), $service->formForAssignment($this->ctx, 1, 12)]);
+        self::assertNull($service->formForAssignment($this->ctx, 1, 99), 'unknown round');
+        self::assertNull($service->formForAssignment($this->ctx, 4, 10), 'not of an edition');
+        $this->db->table('conf_editions')->where('id', $edition)->update(['review_mode' => 'standard']);
+        self::assertNull($service->formForAssignment($this->ctx, 1, 10), 'standard review keeps the forms of the editor');
+        self::assertSame(['abstractFormId' => 7, 'paperFormId' => 8], ($service->overview($this->ctx, $edition, 'uk') ?? [])['settings']);
     }
 
     public function testAcceptanceSetsTypeIssueAndInvoice(): void
@@ -926,7 +978,7 @@ final class DecisionFlowTest extends TestCase
         $db->table('email_templates_default_data')->insert(['email_key' => 'CONF_DECISION_ORAL', 'locale' => 'uk', 'name' => 'Свій', 'subject' => 'Свій', 'body' => 'Свій']);
         (new ConferenceSchemaMigration())->usingConnection($db)->up();
         (new ConferenceSchemaMigration())->usingConnection($db)->up();
-        self::assertSame(24, $db->table('email_templates_default_data')->count(), '(5 + 7) letters × 2 languages, once');
+        self::assertSame(26, $db->table('email_templates_default_data')->count(), '(6 + 7) letters × 2 languages, once');
         self::assertSame('Свій', $db->table('email_templates_default_data')->where('email_key', 'CONF_DECISION_ORAL')->where('locale', 'uk')->value('body'));
         self::assertTrue($db->getSchemaBuilder()->hasTable('conf_decision_batch_items'));
     }
@@ -934,13 +986,13 @@ final class DecisionFlowTest extends TestCase
     public function testDefaultLettersHaveBothLanguagesAndVariables(): void
     {
         $all = DecisionMailTexts::all();
-        self::assertSame(['CONF_DECISION_ORAL', 'CONF_DECISION_POSTER', 'CONF_DECISION_ONLINE', 'CONF_DECISION_ABSENTEE', 'CONF_TYPE_CHANGED'], array_keys($all));
+        self::assertSame(['CONF_DECISION_ORAL', 'CONF_DECISION_POSTER', 'CONF_DECISION_ONLINE', 'CONF_DECISION_ABSENTEE', 'CONF_ABSTRACT_ACCEPTED', 'CONF_TYPE_CHANGED'], array_keys($all));
         foreach ($all as $key => $locales) {
             self::assertSame(['uk', 'en'], array_keys($locales), $key);
             foreach ($locales as $text) {
                 self::assertStringContainsString('{$recipientName}', $text['body']);
                 self::assertStringContainsString('{$conferenceName}', $text['subject'] . $text['body']);
-                self::assertStringContainsString('{$cabinetUrl}', $text['body']);
+                self::assertStringContainsString($key === 'CONF_ABSTRACT_ACCEPTED' ? '{$paperDeadline}' : '{$cabinetUrl}', $text['body']);
             }
         }
         self::assertStringContainsString('{$oldPresentationType}', $all['CONF_TYPE_CHANGED']['uk']['body']);
@@ -1096,6 +1148,48 @@ final class FakeTypeNotifier implements TypeChangeNotifier
     public function typeChanged(ContextInfo $context, int $submissionId, string $oldLabel, string $newLabel, ?int $editorId): void
     {
         $this->sent[] = [$submissionId, $oldLabel, $newLabel];
+    }
+}
+
+final class FakeReviewPeople implements ReviewPeople
+{
+    /** @var list<array{userId: int, name: string, affiliations: list<string>}> */
+    public array $editors = [];
+    /** @var array<int, array{userId: int, name: string, affiliations: list<string>}> */
+    public array $users = [];
+    /** @var list<array{name: string, affiliations: list<string>}> */
+    public array $authors = [];
+    /** @var array<int, int> */
+    public array $rounds = [];
+
+    public function editors(int $submissionId, string $locale): array
+    {
+        return $this->editors;
+    }
+
+    public function user(int $userId, string $locale): ?array
+    {
+        foreach ($this->editors as $e) {
+            if ($e['userId'] === $userId) {
+                return $e;
+            }
+        }
+        return $this->users[$userId] ?? ['userId' => $userId, 'name' => 'Член ' . $userId, 'affiliations' => []];
+    }
+
+    public function authors(int $submissionId, string $locale): array
+    {
+        return $this->authors;
+    }
+
+    public function reviewForms(int $contextId, string $locale): array
+    {
+        return [['id' => 7, 'title' => 'Тези'], ['id' => 8, 'title' => 'Стаття']];
+    }
+
+    public function roundNumber(int $reviewRoundId): ?int
+    {
+        return $this->rounds[$reviewRoundId] ?? null;
     }
 }
 

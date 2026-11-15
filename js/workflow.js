@@ -66,11 +66,15 @@
 	}
 
 	/** The same address as the core decision buttons, with the way back to the card. */
-	function decisionUrl(submissionId, decision) {
+	function decisionUrl(submissionId, decision, reviewRoundId) {
 		var params = new URLSearchParams(window.location.search);
 		params.set('workflowSubmissionId', submissionId);
 		params.delete('workflowMenuKey');
 		var query = new URLSearchParams({ decision: String(decision), ret: 'dashboard/editorial?' + params.toString() });
+		if (reviewRoundId) {
+			query.set('reviewRoundId', String(reviewRoundId));
+			query.set('stageId', String(pkp.const.WORKFLOW_STAGE_ID_EXTERNAL_REVIEW));
+		}
 		return pkp.context.pageBaseUrl + 'decision/record/' + encodeURIComponent(submissionId) + '?' + query.toString();
 	}
 
@@ -81,10 +85,11 @@
 			decision: { type: Number, required: true },
 			label: { type: String, required: true },
 			isPrimary: { type: Boolean, default: false },
+			reviewRoundId: { type: Number, default: 0 },
 		},
 		methods: {
 			go: function () {
-				window.location.href = decisionUrl(this.submissionId, this.decision);
+				window.location.href = decisionUrl(this.submissionId, this.decision, this.reviewRoundId);
 			},
 		},
 		template: '<pkp-button :is-primary="isPrimary" :is-secondary="!isPrimary" class="cmDecisionButton" @click="go">{{ label }}</pkp-button>',
@@ -97,7 +102,7 @@
 			stageId: { type: Number, default: 0 },
 		},
 		data: function () {
-			return { panel: null, type: '', isSaving: false, message: '', error: '' };
+			return { panel: null, type: '', isSaving: false, message: '', error: '', vote: '', comment: '', voteMessage: '', voteError: '' };
 		},
 		computed: {
 			proof: function () {
@@ -123,9 +128,33 @@
 			load: function () {
 				var self = this;
 				request('GET', this.url() + '/conference').then(function (r) {
-					self.panel = r.ok ? r.data : null;
-					self.type = self.panel ? (self.panel.presentationType || '') : '';
+					self.setPanel(r.ok ? r.data : null);
 				});
+			},
+			setPanel: function (panel) {
+				this.panel = panel;
+				this.type = panel ? (panel.presentationType || '') : '';
+				var mine = panel && panel.review && panel.review.myVote;
+				this.vote = mine ? mine.vote : '';
+				this.comment = mine ? mine.comment : '';
+			},
+			sendVote: function (value) {
+				var self = this;
+				this.isSaving = true;
+				this.voteMessage = '';
+				this.voteError = '';
+				request('PUT', this.url() + '/vote', { vote: value, comment: value === 'none' ? '' : this.comment }).then(function (r) {
+					self.isSaving = false;
+					if (!r.ok) {
+						self.voteError = firstError(r.data) || t('panel.error');
+						return;
+					}
+					self.setPanel(r.data);
+					self.voteMessage = value === 'none' ? t('review.withdrawn') : t('review.saved');
+				});
+			},
+			deadline: function (iso) {
+				return iso ? new Date(iso).toLocaleString(document.documentElement.lang || undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
 			},
 			changeType: function () {
 				var self = this;
@@ -139,7 +168,7 @@
 						return;
 					}
 					if (r.data.panel) {
-						self.panel = r.data.panel;
+						self.setPanel(r.data.panel);
 					}
 					self.message = r.data.changed ? t('panel.changeType.done') : '';
 				});
@@ -168,6 +197,29 @@
 	</form>\
 	<p v-if="message" class="cmPanel__message" role="status">{{ message }}</p>\
 	<p v-if="error" class="cmPanel__error" role="alert">{{ error }}</p>\
+	<template v-if="panel.review">\
+		<div v-for="(c, i) in panel.review.conflicts" :key="\'c\' + i" class="cmPanel__conflict" role="alert">\
+			<strong>{{ t(\'review.conflict\') }}</strong> {{ (c.isViewer ? t(\'review.conflict.you\') : t(\'review.conflict.editor\')).replace(\'{$editor}\', c.editor).replace(\'{$author}\', c.author).replace(\'{$affiliation}\', c.affiliation) }}\
+		</div>\
+		<p v-if="panel.review.twoPhase" class="cmPanel__muted">{{ t(\'review.twoPhase\') }}<template v-if="panel.review.paperDeadline"> {{ t(\'review.paperDeadline\') }}: {{ deadline(panel.review.paperDeadline) }}.</template></p>\
+		<template v-if="panel.review.voting">\
+			<h3 class="cmPanel__subtitle">{{ t(\'review.votes\') }}</h3>\
+			<p class="cmPanel__tally" role="status">{{ t(\'review.tally\').replace(\'{$for}\', panel.review.counts.for).replace(\'{$against}\', panel.review.counts.against).replace(\'{$abstain}\', panel.review.counts.abstain) }}</p>\
+			<ul v-if="panel.review.votes.length" class="cmPanel__people">\
+				<li v-for="v in panel.review.votes" :key="v.userId"><strong>{{ v.voteLabel }}</strong> · {{ v.name }}<span v-if="v.comment" class="cmPanel__muted">: {{ v.comment }}</span></li>\
+			</ul>\
+			<p v-else class="cmPanel__muted">{{ t(\'review.noVotes\') }}</p>\
+			<fieldset class="cmPanel__vote">\
+				<legend>{{ t(\'review.yourVote\') }}</legend>\
+				<label v-for="o in panel.review.voteOptions" :key="o.value" class="cmPanel__voteOption"><input type="radio" name="cmVote" :value="o.value" v-model="vote"> {{ o.label }}</label>\
+				<label class="cmPanel__comment">{{ t(\'review.comment\') }}<textarea v-model="comment" rows="2" maxlength="2000"></textarea></label>\
+				<pkp-button :disabled="isSaving || !vote" @click="sendVote(vote)">{{ t(\'review.save\') }}</pkp-button>\
+				<pkp-button v-if="panel.review.myVote" :is-warnable="true" :disabled="isSaving" @click="sendVote(\'none\')">{{ t(\'review.withdraw\') }}</pkp-button>\
+			</fieldset>\
+			<p v-if="voteMessage" class="cmPanel__message" role="status">{{ voteMessage }}</p>\
+			<p v-if="voteError" class="cmPanel__error" role="alert">{{ voteError }}</p>\
+		</template>\
+	</template>\
 	<h3 class="cmPanel__subtitle">{{ t(\'panel.participants\') }}</h3>\
 	<ul class="cmPanel__people">\
 		<li v-for="p in panel.participants" :key="p.participantId">{{ p.email }} <span class="cmPanel__muted">· {{ p.roleLabel }} · {{ p.confirmationLabel }}</span></li>\
@@ -186,11 +238,27 @@
 	pkp.registry.storeExtendFn('workflow', 'getActionItems', function (result, args) {
 		var s = args && args.submission;
 		var items = Array.isArray(result) ? result : (result && result.items);
-		if (!s || !items || stageOf(args) !== pkp.const.WORKFLOW_STAGE_ID_SUBMISSION) {
+		var stage = stageOf(args);
+		if (!s || !items) {
 			return result;
 		}
 		var publication = publicationOf(args);
 		if (!publication || !publication.conferenceEditionId) {
+			return result;
+		}
+		if (stage === pkp.const.WORKFLOW_STAGE_ID_EXTERNAL_REVIEW) {
+			// DEC-07: "abstract accepted, send the full text" in the first round of a two-phase edition.
+			var round = args.selectedReviewRound;
+			if ((cfg.twoPhaseEditions || []).indexOf(publication.conferenceEditionId) !== -1 && round && (!round.round || round.round === 1)) {
+				(s.availableEditorialDecisions || []).forEach(function (d) {
+					if (d.id === cfg.abstractAccepted) {
+						items.unshift({ component: 'ConferenceDecisionButton', props: { submissionId: s.id, decision: d.id, label: d.label, isPrimary: true, reviewRoundId: round.id } });
+					}
+				});
+			}
+			return result;
+		}
+		if (stage !== pkp.const.WORKFLOW_STAGE_ID_SUBMISSION) {
 			return result;
 		}
 		(s.availableEditorialDecisions || []).forEach(function (d) {

@@ -22,6 +22,7 @@ use APP\plugins\generic\conferenceManager\classes\Api\ConferenceApiController;
 use APP\plugins\generic\conferenceManager\classes\Api\ConferenceSiteApiController;
 use APP\plugins\generic\conferenceManager\classes\Application\DecisionService;
 use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
+use APP\plugins\generic\conferenceManager\classes\Core\Decisions\ConferenceAbstractAccepted;
 use APP\plugins\generic\conferenceManager\classes\Core\Decisions\ConferenceAcceptance;
 use APP\plugins\generic\conferenceManager\classes\Core\Mail\ConferenceDecisionMailable;
 use APP\plugins\generic\conferenceManager\classes\Core\Mail\ConferenceParticipantMailable;
@@ -65,6 +66,8 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         'panel.title', 'panel.edition', 'panel.type', 'panel.type.none', 'panel.changeType', 'panel.changeType.save',
         'panel.changeType.done', 'panel.participants', 'panel.invoice', 'panel.invoice.none', 'panel.proof', 'panel.proof.none',
         'panel.minor', 'panel.notRegistered', 'panel.paid', 'panel.due', 'panel.error',
+        'review.conflict', 'review.conflict.you', 'review.conflict.editor', 'review.twoPhase', 'review.paperDeadline', 'review.votes', 'review.tally',
+        'review.noVotes', 'review.yourVote', 'review.comment', 'review.save', 'review.withdraw', 'review.saved', 'review.withdrawn',
     ];
 
     /** Plugin setting: the journal also takes submissions that are not for an edition. */
@@ -102,6 +105,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         Event::listen(DecisionAdded::class, $this->onDecisionAdded(...));
         Hook::add('Decision::types', $this->addDecisionTypes(...));
         Hook::add('Workflow::Decisions', $this->addWorkflowDecisions(...));
+        Hook::add('ReviewAssignment::add', $this->setPhaseReviewForm(...));
         Hook::add('Mailer::Mailables', $this->addMailables(...));
         // DAT-06: OJS calls this before it moves the old account's data and deletes it.
         Hook::add('UserAction::mergeUsers', $this->mergeUsers(...));
@@ -432,6 +436,8 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
             'apiUrl' => $request->getDispatcher()->url($request, Application::ROUTE_API, $context->getPath(), 'conference'),
             'csrfToken' => $request->getSession()->token(),
             'codes' => array_map(static fn (AcceptanceDecision $d): int => $d->value, AcceptanceDecision::cases()),
+            'abstractAccepted' => \APP\plugins\generic\conferenceManager\classes\Domain\Decision\AbstractAccepted::DECISION,
+            'twoPhaseEditions' => \Illuminate\Support\Facades\DB::table('conf_editions')->where('context_id', (int) $context->getId())->where('review_mode', 'two_phase')->pluck('id')->map(static fn ($v): int => (int) $v)->all(),
             'i18n' => array_combine(self::WORKFLOW_STRINGS, array_map(static fn (string $k): string => __('plugins.generic.conferenceManager.' . $k), self::WORKFLOW_STRINGS)),
         ];
         $templateMgr->addJavaScript('conferenceWorkflowConfig', 'window.conferenceManagerWorkflow = ' . json_encode($config, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) . ';', [
@@ -635,6 +641,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         foreach (AcceptanceDecision::cases() as $d) {
             $args[0]->push(new ConferenceAcceptance($d));
         }
+        $args[0]->push(new ConferenceAbstractAccepted());
         return Hook::CONTINUE;
     }
 
@@ -648,10 +655,24 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
     public function addWorkflowDecisions(string $hookName, array $args): bool
     {
         $context = Application::get()->getRequest()->getContext();
-        if ($context === null || !$this->isEnabledFor((int) $context->getId()) || (int) $args[1] !== WORKFLOW_STAGE_ID_SUBMISSION) {
+        if ($context === null || !$this->isEnabledFor((int) $context->getId())) {
             return Hook::CONTINUE;
         }
         $types = &$args[0];
+        if ((int) $args[1] === WORKFLOW_STAGE_ID_EXTERNAL_REVIEW) {
+            // DEC-07: next to "Request revisions"; the workflow script shows it
+            // only in the first round of a two-phase edition.
+            foreach ($types as $type) {
+                if ($type->getDecision() === Decision::PENDING_REVISIONS) {
+                    $types[] = new ConferenceAbstractAccepted();
+                    break;
+                }
+            }
+            return Hook::CONTINUE;
+        }
+        if ((int) $args[1] !== WORKFLOW_STAGE_ID_SUBMISSION) {
+            return Hook::CONTINUE;
+        }
         $canSkip = false;
         foreach ($types as $type) {
             $canSkip = $canSkip || $type->getDecision() === Decision::SKIP_EXTERNAL_REVIEW;
@@ -660,6 +681,32 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
             foreach (AcceptanceDecision::cases() as $d) {
                 $types[] = new ConferenceAcceptance($d);
             }
+        }
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * DEC-07: a new reviewer of a two-phase edition gets the review form of
+     * the round (abstract or paper) unless the editor chose one.
+     *
+     * @param array{0: \PKP\submission\reviewAssignment\ReviewAssignment} $args
+     */
+    public function setPhaseReviewForm(string $hookName, array $args): bool
+    {
+        try {
+            $assignment = $args[0];
+            // The context of the submission: reviewers are also assigned from the CLI and jobs.
+            $contextId = (int) \APP\facades\Repo::submission()->get((int) $assignment->getSubmissionId())?->getData('contextId');
+            $context = $contextId > 0 ? Application::getContextDAO()->getById($contextId) : null;
+            if (!$context instanceof \PKP\context\Context || $assignment->getReviewFormId() || !$this->isEnabledFor($contextId)) {
+                return Hook::CONTINUE;
+            }
+            $form = ServiceFactory::reviewCommittee()->formForAssignment(ContextGateway::fromContext($context), (int) $assignment->getSubmissionId(), (int) $assignment->getReviewRoundId());
+            if ($form !== null) {
+                \APP\facades\Repo::reviewAssignment()->edit($assignment, ['reviewFormId' => $form]);
+            }
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: review form: ' . $e->getMessage());
         }
         return Hook::CONTINUE;
     }
@@ -674,7 +721,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         if (!$this->isEnabledFor((int) $args[1]->getId())) {
             return Hook::CONTINUE;
         }
-        foreach ([...ConferenceDecisionMailable::classes(), ConferenceTypeChanged::class, ...ConferenceParticipantMailable::classes()] as $class) {
+        foreach ([...ConferenceDecisionMailable::classes(), \APP\plugins\generic\conferenceManager\classes\Core\Mail\AbstractAcceptedNotifyAuthor::class, ConferenceTypeChanged::class, ...ConferenceParticipantMailable::classes()] as $class) {
             $args[0]->push($class);
         }
         return Hook::CONTINUE;

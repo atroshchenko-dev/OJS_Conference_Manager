@@ -3902,3 +3902,156 @@ msgstr "The text is too long."
 
 msgid "plugins.generic.conferenceManager.audit.entity.abstract_book"
 msgstr "Book of abstracts"
+
+msgid "plugins.generic.conferenceManager.review.vote.for"
+msgstr "For"
+
+msgid "plugins.generic.conferenceManager.review.vote.against"
+msgstr "Against"
+
+msgid "plugins.generic.conferenceManager.review.vote.abstain"
+msgstr "Abstain"
+
+msgid "plugins.generic.conferenceManager.review.error.notLight"
+msgstr "Committee voting is available only for events with light review."
+
+msgid "plugins.generic.conferenceManager.review.error.vote"
+msgstr "Choose for, against or abstain."
+
+msgid "plugins.generic.conferenceManager.review.error.comment"
+msgstr "The comment is too long (up to 2000 characters)."
+
+msgid "plugins.generic.conferenceManager.review.error.form"
+msgstr "Choose a review form of this journal."
+
+msgid "plugins.generic.conferenceManager.review.conflict"
+msgstr "Possible conflict of interest."
+
+msgid "plugins.generic.conferenceManager.review.conflict.you"
+msgstr "You and the author {$author} have the same affiliation: {$affiliation}. Consider whether you should take this decision."
+
+msgid "plugins.generic.conferenceManager.review.conflict.editor"
+msgstr "The editor {$editor} and the author {$author} have the same affiliation: {$affiliation}."
+
+msgid "plugins.generic.conferenceManager.review.twoPhase"
+msgstr "Two-phase review: the first round is for the abstract, the next ones for the full paper."
+
+msgid "plugins.generic.conferenceManager.review.paperDeadline"
+msgstr "Full paper deadline"
+
+msgid "plugins.generic.conferenceManager.review.votes"
+msgstr "Committee votes"
+
+msgid "plugins.generic.conferenceManager.review.tally"
+msgstr "For: {$for}, against: {$against}, abstained: {$abstain}"
+
+msgid "plugins.generic.conferenceManager.review.tallyShort"
+msgstr "{$for} for · {$against} against · {$abstain} abst."
+
+msgid "plugins.generic.conferenceManager.review.noVotes"
+msgstr "No votes yet."
+
+msgid "plugins.generic.conferenceManager.review.yourVote"
+msgstr "Your vote"
+
+msgid "plugins.generic.conferenceManager.review.comment"
+msgstr "Comment (seen by the committee and the chair)"
+
+msgid "plugins.generic.conferenceManager.review.save"
+msgstr "Vote"
+
+msgid "plugins.generic.conferenceManager.review.withdraw"
+msgstr "Withdraw the vote"
+
+msgid "plugins.generic.conferenceManager.review.saved"
+msgstr "The vote is saved."
+
+msgid "plugins.generic.conferenceManager.review.withdrawn"
+msgstr "The vote is withdrawn."
+
+msgid "plugins.generic.conferenceManager.review.settings.open"
+msgstr "Review"
+
+msgid "plugins.generic.conferenceManager.review.settings.title"
+msgstr "Two-phase review"
+
+msgid "plugins.generic.conferenceManager.review.settings.help"
+msgstr "In the two-phase mode the abstract is reviewed first; after the decision “Abstract accepted, send the full text” the author uploads the paper, which is reviewed in the next round. Choose a review form for each phase here: every new reviewer of the round gets it unless the editor chooses another one."
+
+msgid "plugins.generic.conferenceManager.review.settings.notTwoPhase"
+msgstr "This event is not in the two-phase mode now. The review mode is set in the event settings."
+
+msgid "plugins.generic.conferenceManager.review.settings.noForms"
+msgstr "The journal has no active review forms yet."
+
+msgid "plugins.generic.conferenceManager.review.settings.formsLink"
+msgstr "Create a review form"
+
+msgid "plugins.generic.conferenceManager.review.settings.abstractForm"
+msgstr "Form for the abstract (round 1)"
+
+msgid "plugins.generic.conferenceManager.review.settings.abstractFormHelp"
+msgstr "For example: fit to the topics, novelty, quality of the abstract."
+
+msgid "plugins.generic.conferenceManager.review.settings.paperForm"
+msgstr "Form for the full paper (round 2 and later)"
+
+msgid "plugins.generic.conferenceManager.review.settings.paperFormHelp"
+msgstr "For example: methods, results, presentation, recommendation for publication."
+
+msgid "plugins.generic.conferenceManager.review.settings.noForm"
+msgstr "No form (free text)"
+
+msgid "plugins.generic.conferenceManager.review.settings.howTitle"
+msgstr "How it works"
+
+msgid "plugins.generic.conferenceManager.review.settings.step1"
+msgstr "The editor sends the abstract to review and assigns reviewers: they get the abstract form."
+
+msgid "plugins.generic.conferenceManager.review.settings.step2"
+msgstr "After the reviews the editor clicks “Abstract accepted, send the full text”. The author gets a letter with the full paper deadline of the event."
+
+msgid "plugins.generic.conferenceManager.review.settings.step3"
+msgstr "The author uploads the paper as a new version of the file, and the editor creates a new review round with it."
+
+msgid "plugins.generic.conferenceManager.review.settings.step4"
+msgstr "Reviewers of the new round get the full paper form. Decisions then go as usual."
+
+msgid "plugins.generic.conferenceManager.review.settings.notSaved"
+msgstr "The settings were not saved; check the fields."
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.label"
+msgstr "Abstract accepted — send the full text"
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.description"
+msgstr "The abstract is accepted and the author must send the full paper by the deadline of the event. Then create a new review round for the paper."
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.log"
+msgstr "The abstract was accepted and the author was asked for the full text."
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.completed"
+msgstr "Abstract accepted"
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.completed.description"
+msgstr "The author of “{$title}” has been asked for the full text."
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.notifyAuthorsDescription"
+msgstr "Send the authors a letter asking for the full paper by the deadline."
+
+msgid "plugins.generic.conferenceManager.decision.abstractAccepted.error.notTwoPhase"
+msgstr "This decision is available only for an event in the two-phase review mode."
+
+msgid "plugins.generic.conferenceManager.mailable.abstractAccepted.name"
+msgstr "Abstract accepted, send the full text"
+
+msgid "plugins.generic.conferenceManager.mailable.abstractAccepted.description"
+msgstr "The letter to the authors after the decision “Abstract accepted — send the full text” in two-phase review."
+
+msgid "plugins.generic.conferenceManager.audit.entity.review_vote"
+msgstr "Committee vote"
+
+msgid "plugins.generic.conferenceManager.audit.entity.review_settings"
+msgstr "Review settings"
+
+msgid "plugins.generic.conferenceManager.mailable.paperDeadline.none"
+msgstr "the deadline the organizers will give you"

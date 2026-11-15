@@ -67,6 +67,9 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'clone-abstracts' => $this->cloneAbstracts($this->argv[1], (int) $this->argv[2], (int) $this->argv[3], (int) $this->argv[4]),
                 'publish-article' => $this->publishArticle((int) $this->argv[1], $this->argv[2], $this->argv[3] ?? null),
                 'set-abstract' => $this->setAbstract((int) $this->argv[1], $this->argv[2], $this->argv[3], $this->argv[4] ?? ''),
+                'review-form' => $this->reviewForm($this->argv[1], $this->argv[2]),
+                'assign-reviewer' => $this->assignReviewer((int) $this->argv[1], (int) $this->argv[2]),
+                'set-affiliation' => $this->setAffiliation((int) $this->argv[1], (int) $this->argv[2], $this->argv[3]),
                 'seed-participants' => $this->seedParticipants($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
@@ -429,6 +432,50 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
             DB::table('publication_settings')->where('publication_id', $pub)->where('setting_name', 'title')->update(['setting_value' => $title]);
         }
         echo "OK published {$submissionId}\n";
+    }
+
+    /** DEC-07: an active review form of a journal; prints its id. */
+    private function reviewForm(string $path, string $title): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $id = DB::table('review_forms')->insertGetId(['assoc_type' => Application::getContextAssocType(), 'assoc_id' => $context->getId(), 'seq' => 1, 'is_active' => 1], 'review_form_id');
+        DB::table('review_form_settings')->insert(['review_form_id' => $id, 'locale' => 'en', 'setting_name' => 'title', 'setting_value' => $title, 'setting_type' => 'string']);
+        echo $id, "\n";
+    }
+
+    /**
+     * DEC-07: a new reviewer (a reader of the journal) in the last external
+     * review round of a submission, through the OJS repository, so the
+     * plugin hook runs; prints the review form the assignment got.
+     */
+    private function assignReviewer(int $submissionId, int $n): void
+    {
+        $submission = \APP\facades\Repo::submission()->get($submissionId) ?? throw new RuntimeException('no submission');
+        $round = DB::table('review_rounds')->where('submission_id', $submissionId)->orderByDesc('round')->first() ?? throw new RuntimeException('no round');
+        $context = Application::getContextDAO()->getById((int) $submission->getData('contextId'));
+        ob_start();
+        $this->newUser($context->getPath(), 'cmreviewer' . $n . '_' . $submissionId, 'cmreviewer' . $n . '_' . $submissionId . '@example.org');
+        $userId = (int) trim((string) ob_get_clean());
+        $a = \APP\facades\Repo::reviewAssignment()->newDataObject([
+            'submissionId' => $submissionId, 'reviewerId' => $userId, 'reviewRoundId' => (int) $round->review_round_id,
+            'stageId' => WORKFLOW_STAGE_ID_EXTERNAL_REVIEW, 'round' => (int) $round->round, 'reviewMethod' => 2,
+            'dateAssigned' => \PKP\core\Core::getCurrentDate(), 'dateNotified' => \PKP\core\Core::getCurrentDate(),
+            'dateDue' => '2030-01-01', 'dateResponseDue' => '2030-01-01',
+        ]);
+        $id = \APP\facades\Repo::reviewAssignment()->add($a);
+        echo 'round=', $round->round, ' form=', (int) DB::table('review_assignments')->where('review_id', $id)->value('review_form_id'), "\n";
+    }
+
+    /** DEC-08: the affiliation of a user and of the first author of a submission. */
+    private function setAffiliation(int $submissionId, int $userId, string $text): void
+    {
+        $user = \APP\facades\Repo::user()->get($userId) ?? throw new RuntimeException('no user');
+        \APP\facades\Repo::user()->edit($user, ['affiliation' => ['en' => $text, 'uk' => $text]]);
+        $publication = \APP\facades\Repo::submission()->get($submissionId)?->getCurrentPublication() ?? throw new RuntimeException('no publication');
+        $authorId = (int) DB::table('authors')->where('publication_id', $publication->getId())->orderBy('seq')->value('author_id');
+        $aff = \APP\facades\Repo::affiliation()->newDataObject(['authorId' => $authorId, 'name' => ['uk' => 'Кафедра права, ' . $text, 'en' => $text]]);
+        \APP\facades\Repo::affiliation()->add($aff);
+        echo "OK affiliation\n";
     }
 
     /** The abstract and keywords of the current publication, through the OJS repository. */

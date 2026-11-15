@@ -70,6 +70,9 @@
 			};
 		},
 		computed: {
+			hasVotes: function () {
+				return this.items.some(function (i) { return !!i.votes; });
+			},
 			allSelected: function () {
 				return this.items.length > 0 && this.selected.length === this.items.length;
 			},
@@ -231,6 +234,7 @@
 			<th>{{ t(\'decision.bulk.column.title\') }}</th>\
 			<th>{{ t(\'decision.bulk.column.section\') }}</th>\
 			<th>{{ t(\'decision.bulk.column.type\') }}</th>\
+			<th v-if="hasVotes">{{ t(\'review.votes\') }}</th>\
 		</tr></thead>\
 		<tbody>\
 			<tr v-for="i in items" :key="i.submissionId">\
@@ -239,6 +243,7 @@
 				<td><strong>{{ i.title }}</strong><div class="cmEditions__path">{{ i.authors }}</div></td>\
 				<td>{{ i.section }}</td>\
 				<td>{{ i.presentationTypeLabel }}<span v-if="i.presenterMinor" class="cmPanel__badge">{{ t(\'participants.minor\') }}</span></td>\
+				<td v-if="hasVotes" class="cmBulk__votes">{{ i.votes ? t(\'review.tallyShort\', { for: i.votes.for, against: i.votes.against, abstain: i.votes.abstain }) : \'—\' }}</td>\
 			</tr>\
 		</tbody>\
 	</table>\

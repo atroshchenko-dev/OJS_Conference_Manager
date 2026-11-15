@@ -306,6 +306,29 @@ A published program also gives:
 - stream links only for registered participants of the event and managers, and only from the time set in the session or, by default, from the start of the session's day. iCal and PDF files never contain stream links;
 - an **In the conference program** block with the date, time, session and room on the page of a published article.
 
+## How review works in an event
+
+The review mode is chosen in the event settings (the **Review** field).
+
+### Committee voting (light mode)
+In the light mode decisions are made at the submission stage. Every committee member, that is an editor or section editor assigned to the submission, sees a **Committee votes** block in the submission card:
+- the votes of the other members and the totals for, against and abstained;
+- their own vote with a comment, which they can change or withdraw.
+
+The chair also sees the totals on the **Decisions on submissions** page in the votes column, so they can decide on many submissions at once. A vote only helps the decision: the editor still makes it. Every vote is written to the audit log.
+
+### Conflict of interest
+The plugin compares the affiliation of the submission's editors (from the user profile) with the affiliation of the authors (from the submission, in any language, with the ROR id). If the institution or department matches, the submission card shows a **Possible conflict of interest** warning. The editor concerned sees a separate warning for themselves. The plugin blocks nothing: a person decides whether to take part.
+
+### Two-phase review (abstract, then full text)
+1. In the event settings choose the **Two-phase (abstracts, then papers)** mode and, if needed, the full text deadline.
+2. Next to the event on the **Conferences** page click **Review** and choose the review form for abstracts (round 1) and for full texts (round 2 and later). Forms are created in the OJS journal settings.
+3. The editor sends the abstract to review and assigns reviewers: they get the abstract form.
+4. After the reviews the editor clicks **Abstract accepted — send the full text**. The author gets a letter with the full text deadline. The letter can be changed in the journal's email templates.
+5. The author uploads the paper as a new file version and the editor creates a new review round with that file. The reviewers of the new round get the full text form. Further decisions are made as usual.
+
+If the editor chose another form when assigning a reviewer, the plugin keeps it.
+
 ## How to make the book of abstracts
 
 The book of abstracts is one PDF with the abstracts of the accepted papers of the event: submissions that passed review and were not declined. The text of each abstract, its keywords and the authors with their affiliations come from the submission. To change a text, edit the abstract of the submission and download the book again.

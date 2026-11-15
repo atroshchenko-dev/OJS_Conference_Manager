@@ -28,6 +28,7 @@
 			certificatePdfUrl: { type: String, default: '' },
 			attendanceThreshold: { type: Number, default: 30 },
 			proofFileUrl: { type: String, default: '' },
+			reviewFormsUrl: { type: String, default: '' },
 			csrfToken: { type: String, required: true },
 			locales: { type: Array, required: true },
 			primaryLocale: { type: String, required: true },
@@ -165,6 +166,10 @@
 			openCertificateTemplates: function () {
 				this.selected = null;
 				this.view = 'certificateTemplates';
+			},
+			openReview: function (edition) {
+				this.selected = edition;
+				this.view = 'review';
 			},
 			openBook: function (edition) {
 				this.selected = edition;
@@ -461,6 +466,7 @@
 						<pkp-button @click="openCertificates(e)">{{ t(\'certificates\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions && e.submissionMode !== \'none\'" @click="openDecisions(e)">{{ t(\'decisions\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions" @click="openProgram(e)">{{ t(\'program.builder.open\') }}</pkp-button>\
+						<pkp-button v-if="canEditEditions && e.reviewMode === \'two_phase\'" @click="openReview(e)">{{ t(\'review.settings.open\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions && e.submissionMode !== \'none\'" @click="openBook(e)">{{ t(\'book.open\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions" @click="copy(e)">{{ t(\'copy\') }}</pkp-button>\
 						<a class="pkpButton" :href="publicLink(e)" target="_blank" rel="noopener">{{ t(\'publicPage\') }}</a>\
@@ -482,6 +488,7 @@
 	<conference-certificate-templates v-else-if="view === \'certificateTemplates\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-certificate-templates>\
 	<conference-setup-wizard v-else-if="view === \'setup\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :ui-locale="uiLocale" :default-timezone="defaultTimezone" :i18n="i18n" @back="backToList" @created="setupCreated"></conference-setup-wizard>\
 	<conference-program-builder v-else-if="view === \'program\'" :api-url="apiUrl + \'/\' + selected.id" :public-url="publicLink(selected) + \'/program\'" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :i18n="i18n" @back="backToList"></conference-program-builder>\
+	<conference-review-settings v-else-if="view === \'review\'" :api-url="apiUrl + \'/\' + selected.id" :forms-url="reviewFormsUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-review-settings>\
 	<conference-abstract-book v-else-if="view === \'book\'" :api-url="apiUrl + \'/\' + selected.id" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-abstract-book>\
 	<conference-legacy-urls v-else-if="view === \'legacy\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-legacy-urls>\
 	<conference-personal-data v-else-if="view === \'privacy\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-personal-data>\

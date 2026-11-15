@@ -54,6 +54,24 @@ final class DecisionMailTexts
                 ],
             ];
         }
+        $out[AbstractAccepted::EMAIL_KEY] = [
+            'uk' => [
+                'name' => 'Рішення: тези прийнято, подайте повний текст',
+                'subject' => 'Тези прийнято: подайте повний текст',
+                'body' => '<p>Шановна/шановний {$recipientName}!</p>'
+                    . '<p>Тези «{$submissionTitle}» прийнято на заході «{$conferenceName}». Тепер подайте повний текст статті до {$paperDeadline}: завантажте його як нову версію файлу в поданні.</p>'
+                    . '<p>Повний текст пройде другий раунд рецензування, після якого ми повідомимо остаточне рішення.</p>'
+                    . '<p>{$signature}</p>',
+            ],
+            'en' => [
+                'name' => 'Decision: abstract accepted, send the full text',
+                'subject' => 'Abstract accepted: please send the full text',
+                'body' => '<p>Dear {$recipientName},</p>'
+                    . '<p>The abstract "{$submissionTitle}" has been accepted for "{$conferenceName}". Please send the full paper by {$paperDeadline}: upload it as a new version of the file in your submission.</p>'
+                    . '<p>The full paper will go through a second review round, after which we will tell you the final decision.</p>'
+                    . '<p>{$signature}</p>',
+            ],
+        ];
         $out[self::TYPE_CHANGED] = [
             'uk' => [
                 'name' => 'Змінено тип виступу',

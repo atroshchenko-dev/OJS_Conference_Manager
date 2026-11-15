@@ -21,6 +21,7 @@ final class ConferenceMailData
     public const CONFERENCE = 'conferenceName';
     public const TYPE = 'presentationType';
     public const CABINET = 'cabinetUrl';
+    public const PAPER_DEADLINE = 'paperDeadline';
 
     /** @return array<string, string> */
     public static function of(Context $context, Submission $submission, ?PresentationType $type = null): array
@@ -41,6 +42,18 @@ final class ConferenceMailData
             self::TYPE => $type === null ? '' : htmlspecialchars(__($type->labelKey(), [], $locale)),
             self::CABINET => (string) $url,
         ];
+    }
+
+    /** DEC-07: the paper deadline of the edition in its time zone, or a note that the organizers will give it. */
+    public static function paperDeadline(Context $context, Submission $submission): string
+    {
+        $editionId = (int) $submission->getCurrentPublication()?->getData('conferenceEditionId');
+        $edition = $editionId > 0 ? (new DbEditionRepository(DB::connection()))->find((int) $context->getId(), $editionId) : null;
+        $date = $edition?->date('paperDeadline');
+        if ($date === null || $edition === null) {
+            return __('plugins.generic.conferenceManager.mailable.paperDeadline.none', [], (string) ($submission->getData('locale') ?: $context->getPrimaryLocale()));
+        }
+        return $date->setTimezone(new \DateTimeZone($edition->timezone))->format('d.m.Y H:i');
     }
 
     /** @return array<string, string> */

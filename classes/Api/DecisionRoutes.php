@@ -26,6 +26,9 @@ use PKP\security\Role;
  * GET  decisions/bulk/{bid}                 progress of a run
  * GET  submissions/{sid}/conference         the conference panel of the submission (DEC-06)
  * PUT  submissions/{sid}/presentation-type  {presentationType} after the decision (DEC-05)
+ * PUT  submissions/{sid}/vote               {vote: for|against|abstain|none, comment} (DEC-09)
+ * GET  editions/{id}/review-settings        review forms of the two-phase rounds (DEC-07), manager
+ * PUT  editions/{id}/review-settings        {abstractFormId, paperFormId}
  */
 final class DecisionRoutes implements RouteModule
 {
@@ -46,6 +49,9 @@ final class DecisionRoutes implements RouteModule
         Route::post('editions/{editionId}/decisions/bulk', $this->startBulkDecision(...))->name('conference.decisions.bulk')->whereNumber('editionId');
         Route::get('decisions/bulk/{batchId}', $this->getBulkDecision(...))->name('conference.decisions.bulk.get')->whereNumber('batchId');
         Route::get('submissions/{submissionId}/conference', $this->getSubmissionConference(...))->name('conference.submissions.panel')->whereNumber('submissionId');
+        Route::put('submissions/{submissionId}/vote', $this->putVote(...))->name('conference.submissions.vote')->whereNumber('submissionId');
+        Route::get('editions/{editionId}/review-settings', $this->getReviewSettings(...))->name('conference.review.settings')->whereNumber('editionId');
+        Route::put('editions/{editionId}/review-settings', $this->putReviewSettings(...))->name('conference.review.settings.save')->whereNumber('editionId');
         Route::put('submissions/{submissionId}/presentation-type', $this->putPresentationType(...))->name('conference.submissions.presentationType')->whereNumber('submissionId');
     }
 
@@ -73,6 +79,8 @@ final class DecisionRoutes implements RouteModule
         if ($items === null) {
             return ConferenceApiController::notFound();
         }
+        $votes = ServiceFactory::reviewCommittee()->counts(array_column($items, 'submissionId'));
+        $items = array_map(static fn (array $i): array => $i + ['votes' => $votes[$i['submissionId']] ?? null], $items);
         return response()->json([
             'items' => $items,
             'itemsMax' => count($items),
@@ -126,8 +134,58 @@ final class DecisionRoutes implements RouteModule
         if (!$this->canEditSubmission($id)) {
             return ConferenceApiController::forbidden();
         }
-        $panel = ServiceFactory::decisions()->panel($this->api->contextInfo(), $id, \PKP\facades\Locale::getLocale());
+        $panel = $this->panel($id);
         return $panel === null ? ConferenceApiController::notFound() : response()->json($panel, Response::HTTP_OK);
+    }
+
+    /** @return array<string, mixed>|null the conference panel with the review block (DEC-07 – DEC-09) */
+    private function panel(int $submissionId): ?array
+    {
+        $context = $this->api->contextInfo();
+        $locale = \PKP\facades\Locale::getLocale();
+        $panel = ServiceFactory::decisions()->panel($context, $submissionId, $locale);
+        if ($panel !== null) {
+            $panel['review'] = ServiceFactory::reviewCommittee()->panel($context, $submissionId, (int) $this->api->actorId(), $locale);
+        }
+        return $panel;
+    }
+
+    public function putVote(Request $r): JsonResponse
+    {
+        $id = (int) $r->route('submissionId');
+        $actor = $this->api->actorId();
+        if ($actor === null || !$this->canEditSubmission($id)) {
+            return ConferenceApiController::forbidden();
+        }
+        $errors = ServiceFactory::reviewCommittee()->vote($this->api->contextInfo(), $id, $actor, (array) $r->input(), self::now());
+        if ($errors === null) {
+            return ConferenceApiController::notFound();
+        }
+        return $errors->isEmpty() ? response()->json($this->panel($id), Response::HTTP_OK) : ConferenceApiController::errorResponse($errors);
+    }
+
+    public function getReviewSettings(Request $r): JsonResponse
+    {
+        if (!$this->isManager()) {
+            return ConferenceApiController::forbidden();
+        }
+        $data = ServiceFactory::reviewCommittee()->overview($this->api->contextInfo(), (int) $r->route('editionId'), \PKP\facades\Locale::getLocale());
+        return $data === null ? ConferenceApiController::notFound() : response()->json($data, Response::HTTP_OK);
+    }
+
+    public function putReviewSettings(Request $r): JsonResponse
+    {
+        if (!$this->isManager()) {
+            return ConferenceApiController::forbidden();
+        }
+        $service = ServiceFactory::reviewCommittee();
+        $context = $this->api->contextInfo();
+        $id = (int) $r->route('editionId');
+        $result = $service->saveSettings($context, $id, (array) $r->input(), $this->api->actorId());
+        if ($result === null) {
+            return ConferenceApiController::notFound();
+        }
+        return $result[0] === null ? ConferenceApiController::errorResponse($result[1]) : response()->json($service->overview($context, $id, \PKP\facades\Locale::getLocale()), Response::HTTP_OK);
     }
 
     public function putPresentationType(Request $r): JsonResponse
@@ -144,7 +202,6 @@ final class DecisionRoutes implements RouteModule
         if ($result instanceof ValidationErrors) {
             return ConferenceApiController::errorResponse($result);
         }
-        $panel = ServiceFactory::decisions()->panel($context, $id, \PKP\facades\Locale::getLocale());
-        return response()->json($result + ['panel' => $panel], Response::HTTP_OK);
+        return response()->json($result + ['panel' => $this->panel($id)], Response::HTTP_OK);
     }
 }

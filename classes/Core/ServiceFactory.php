@@ -273,6 +273,20 @@ final class ServiceFactory
     }
 
     /** PRG-04 – PRG-08: the program by days, as visitors see it. */
+    public static function reviewCommittee(): \APP\plugins\generic\conferenceManager\classes\Application\ReviewCommitteeService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\ReviewCommitteeService(
+            new DbEditionRepository($db),
+            new DbRegistrationRepository($db),
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbVoteRepository($db),
+            new ReviewPeopleGateway(),
+            self::settings(),
+            new AuditLogger($db),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
+        );
+    }
+
     public static function abstractBook(): \APP\plugins\generic\conferenceManager\classes\Application\AbstractBookService
     {
         $db = DB::connection();
