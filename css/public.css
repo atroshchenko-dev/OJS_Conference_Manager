@@ -49,6 +49,7 @@
 .cmRegister__field input[type="text"], .cmRegister__field select { width: 100%; max-width: 100%; box-sizing: border-box; padding: .45rem .5rem; }
 .cmRegister__choice { display: block; margin: .25rem 0; font-weight: normal; }
 .cmRegister__error { color: #b00020; margin: .35rem 0 0; }
+.cmRegister__hint { color: #555; font-size: .9em; margin: .35rem 0; }
 .cmRegister__required { color: #b00020; }
 .cmRegister__consentText { font-size: .9em; max-height: 12rem; overflow: auto; padding: .5rem .75rem; border: 1px solid rgba(0, 0, 0, .15); }
 .cmRegister__trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
@@ -60,3 +61,13 @@
 .cmMy__section { margin-top: 2rem; }
 .cmInvoice__instructions { margin: .5rem 0; padding: .5rem .75rem; border-left: 3px solid #b26b00; background: rgba(178, 107, 0, .06); }
 .cmInvoice__actions .cmEdition__button { margin: 0 .5rem .5rem 0; }
+.cmInvoice__subtitle { margin: .75rem 0 .25rem; font-size: 1rem; }
+.cmInvoice__proofs { margin: 0 0 .5rem; padding-left: 1.2rem; }
+.cmInvoice__proof--accepted strong { color: #1b5e20; }
+.cmInvoice__proof--rejected strong { color: #b00020; }
+.cmInvoice__proofNote { color: #555; font-size: .9em; }
+.cmInvoice__upload { margin: .75rem 0 0; padding: .5rem .75rem; border: 1px dashed #bbb; border-radius: 4px; }
+.cmInvoice__upload label { display: block; font-weight: 600; }
+.cmInvoice__upload input[type=file] { display: block; max-width: 100%; margin: .35rem 0 .5rem; }
+/* The guardian block shows once "under 18" is ticked (browsers without :has() always show it). */
+.cmRegister__field:has(input[name=minor]:not(:checked)) .cmRegister__guardian { display: none; }

@@ -317,6 +317,69 @@ final class ParticipantFlowTest extends TestCase
         // A category in use cannot be deleted.
         self::assertTrue($this->fees->deleteCategory($this->ctx, $id, $cats['other_faculty'])?->has('id'));
     }
+
+    public function testMinorListenerNeedsGuardianConsent(): void
+    {
+        $id = $this->edition();
+        $cats = $this->presets($id);
+        $pupil = self::person(3, 'pupil@example.org', 'Іваненко');
+        $input = ['categoryId' => $cats['students'], 'participationForm' => 'online', 'consent' => true, 'minor' => '1'];
+
+        [$r, $e] = $this->participants->registerListener($this->ctx, $id, $pupil, $input, $this->consent, $this->now);
+        self::assertNull($r);
+        self::assertSame(['registration.error.guardianRequired'], array_map(static fn (string $k): string => substr($k, -strlen('registration.error.guardianRequired')), $e->toArray()['guardianConsent'] ?? []));
+        self::assertSame(0, $this->db->table('conf_participations')->count());
+
+        [$r] = $this->participants->registerListener($this->ctx, $id, $pupil, $input + ['guardianConsent' => true], $this->consent, $this->now);
+        self::assertNotNull($r);
+        $row = $this->db->table('conf_participants')->where('email', 'pupil@example.org')->first();
+        self::assertTrue((bool) $row->is_minor);
+        self::assertNotNull($row->guardian_consent_at);
+        // Minimal data: the job position is not kept for a minor.
+        self::assertNull($row->position);
+
+        $list = $this->participants->register($this->ctx, $id, new ParticipantFilter(), 'uk')['items'] ?? [];
+        self::assertTrue($list[0]['minor'] ?? false);
+        self::assertNotNull($list[0]['guardianConsentAt'] ?? null);
+    }
+
+    public function testMinorPresenterNeedsGuardianConsent(): void
+    {
+        $id = $this->edition();
+        $cats = $this->presets($id);
+        $service = new SubmissionRegistrationService(
+            new DbRegistrationRepository($this->db),
+            new DbEditionRepository($this->db),
+            new FakeSubmissions(),
+            null,
+            null,
+            new DbFeeRepository($this->db),
+        );
+        $submission = new SubmissionInfo(1, 1, false);
+        $service->save($this->ctx, $submission, [
+            'editionId' => $id, 'presentationType' => 'oral', 'participationForm' => 'in_person',
+            'presenterEmail' => 'petro@example.org', 'consent' => true, 'categoryId' => (string) $cats['students'],
+            'presenterMinor' => true,
+        ], $this->consent, 1, $this->now);
+        self::assertTrue($service->validateSubmit($this->ctx, 1, $this->consent, $this->now)->has(RegistrationValidator::FIELD_GUARDIAN));
+
+        $service->save($this->ctx, $submission, ['guardianConsent' => '1'], $this->consent, 1, $this->now);
+        self::assertNotNull($service->get(1)->guardianConsentAt);
+        self::assertSame([], $service->validateSubmit($this->ctx, 1, $this->consent, $this->now)->toArray());
+
+        // Unticking "minor" drops the guardian consent time; ticking it
+        // again asks for the consent anew.
+        $service->save($this->ctx, $submission, ['presenterMinor' => false], $this->consent, 1, $this->now);
+        self::assertNull($service->get(1)->guardianConsentAt);
+        $service->save($this->ctx, $submission, ['presenterMinor' => true, 'guardianConsent' => true], $this->consent, 1, $this->now);
+
+        $service->onSubmitted($this->ctx, 1, 1, $this->now);
+        $presenter = $this->db->table('conf_participants')->where('email', 'petro@example.org')->first();
+        $coauthor = $this->db->table('conf_participants')->where('email', 'olena@example.org')->first();
+        self::assertTrue((bool) $presenter->is_minor);
+        self::assertNotNull($presenter->guardian_consent_at);
+        self::assertFalse((bool) $coauthor->is_minor);
+    }
 }
 
 final class FakeGroups implements ParticipantGroups

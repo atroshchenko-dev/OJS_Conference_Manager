@@ -11,9 +11,11 @@ use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfile
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceDocumentService;
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceService;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
+use APP\plugins\generic\conferenceManager\classes\Application\ProofService;
 use APP\plugins\generic\conferenceManager\classes\Application\SubmissionRegistrationService;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConsentText;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Files\LocalProofStore;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Queries\UpcomingEditionsQuery;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbFeeRepository;
@@ -23,6 +25,7 @@ use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\Db
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbRegistrationRepository;
 use APP\plugins\generic\conferenceManager\classes\Jurisdiction\JurisdictionRegistry;
 use Illuminate\Support\Facades\DB;
+use PKP\config\Config;
 use PKP\plugins\Hook;
 
 /**
@@ -112,6 +115,19 @@ final class ServiceFactory
             new AuditLogger($db),
             static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
             self::jurisdictions(),
+        );
+    }
+
+    public static function proofs(): ProofService
+    {
+        $files = (string) Config::getVar('files', 'files_dir');
+        return new ProofService(
+            new DbPaymentRepository(DB::connection()),
+            self::invoices(),
+            new LocalProofStore($files === '' ? '' : rtrim($files, '/') . '/conferenceManager/proofs'),
+            new MailGateway(),
+            new AuditLogger(DB::connection()),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
         );
     }
 

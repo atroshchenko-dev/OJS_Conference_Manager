@@ -213,6 +213,9 @@ final class SubmissionRegistrationService
                 && in_array($registration->categoryId, $this->categoryIds($edition->id ?? 0), true)) {
                 $this->registrations->setParticipantCategory($result['participantId'], $registration->categoryId);
             }
+            if ($role === ParticipantRole::Presenter && $registration->presenterMinor) {
+                $this->registrations->setParticipantMinor($result['participantId'], $registration->guardianConsentAt);
+            }
             $created[] = ['participantId' => $result['participantId'], 'role' => $role->value, 'isNew' => $result['isNew']];
             if ($result['confirmationStatus'] === ConfirmationStatus::Pending) {
                 [$token, $hash] = ConfirmationToken::generate();

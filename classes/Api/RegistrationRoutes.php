@@ -75,6 +75,8 @@ final class RegistrationRoutes implements RouteModule
             F::FIELD_PRESENTER => 'presenterEmail',
             F::FIELD_CONSENT => 'consent',
             F::FIELD_CATEGORY => 'categoryId',
+            F::FIELD_MINOR => 'presenterMinor',
+            F::FIELD_GUARDIAN => 'guardianConsent',
         ];
         foreach ($map as $field => $key) {
             if ($illuminateRequest->has($field)) {
@@ -85,6 +87,8 @@ final class RegistrationRoutes implements RouteModule
         // checkbox (an empty array) is left out.
         if (!array_key_exists('consent', $input) && (array_key_exists('editionId', $input) || array_key_exists('presenterEmail', $input))) {
             $input['consent'] = false;
+            $input['presenterMinor'] ??= false;
+            $input['guardianConsent'] ??= false;
         }
         $locale = \PKP\facades\Locale::getLocale();
         [$saved, $errors] = ServiceFactory::registrations()->save(
@@ -120,6 +124,8 @@ final class RegistrationRoutes implements RouteModule
             'consentAt' => DateInput::toIsoUtc($r->consentAt),
             'registeredAt' => DateInput::toIsoUtc($r->registeredAt),
             'categoryId' => $r->categoryId,
+            'presenterMinor' => $r->presenterMinor,
+            'guardianConsentAt' => DateInput::toIsoUtc($r->guardianConsentAt),
         ];
     }
 }

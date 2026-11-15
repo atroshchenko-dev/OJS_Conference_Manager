@@ -1481,3 +1481,189 @@ msgstr "Note for the payer"
 
 msgid "plugins.generic.conferenceManager.jurisdiction.ua.treasuryNote.description"
 msgstr "Additional treasury requirements for the payment, if any."
+
+msgid "plugins.generic.conferenceManager.registration.minor"
+msgstr "Minor presenter"
+
+msgid "plugins.generic.conferenceManager.registration.minor.yes"
+msgstr "The presenter is under 18"
+
+msgid "plugins.generic.conferenceManager.registration.guardian"
+msgstr "Parent or legal guardian consent"
+
+msgid "plugins.generic.conferenceManager.registration.guardian.description"
+msgstr "If the participant is under 18, registration requires the consent of a parent or legal guardian. We keep only the minimum data: name, institution and contact."
+
+msgid "plugins.generic.conferenceManager.registration.guardian.agree"
+msgstr "A parent or legal guardian consents to participation and data processing"
+
+msgid "plugins.generic.conferenceManager.registration.error.guardianRequired"
+msgstr "A minor participant needs the consent of a parent or legal guardian."
+
+msgid "plugins.generic.conferenceManager.listener.minor"
+msgstr "I am under 18"
+
+msgid "plugins.generic.conferenceManager.participants.minor"
+msgstr "minor"
+
+msgid "plugins.generic.conferenceManager.editions.proofs"
+msgstr "Receipts"
+
+msgid "plugins.generic.conferenceManager.proof.title"
+msgstr "Payment receipts"
+
+msgid "plugins.generic.conferenceManager.proof.status.pending"
+msgstr "Awaiting review"
+
+msgid "plugins.generic.conferenceManager.proof.status.accepted"
+msgstr "Accepted"
+
+msgid "plugins.generic.conferenceManager.proof.status.rejected"
+msgstr "Rejected"
+
+msgid "plugins.generic.conferenceManager.proof.emptyPending"
+msgstr "No new receipts."
+
+msgid "plugins.generic.conferenceManager.proof.empty"
+msgstr "No receipts."
+
+msgid "plugins.generic.conferenceManager.proof.due"
+msgstr "Due"
+
+msgid "plugins.generic.conferenceManager.proof.file"
+msgstr "File"
+
+msgid "plugins.generic.conferenceManager.proof.duplicate"
+msgstr "The same file was already sent for another invoice"
+
+msgid "plugins.generic.conferenceManager.proof.view"
+msgstr "View"
+
+msgid "plugins.generic.conferenceManager.proof.accept"
+msgstr "Accept"
+
+msgid "plugins.generic.conferenceManager.proof.reject"
+msgstr "Reject"
+
+msgid "plugins.generic.conferenceManager.proof.acceptDone"
+msgstr "The receipt is accepted; invoice {$number} is marked paid."
+
+msgid "plugins.generic.conferenceManager.proof.rejectPrompt"
+msgstr "Why is the receipt rejected? The payer will see this text in the letter and in the cabinet."
+
+msgid "plugins.generic.conferenceManager.proof.rejectDone"
+msgstr "The receipt is rejected; the payer was notified."
+
+msgid "plugins.generic.conferenceManager.proof.paidNote"
+msgstr "By receipt #{$id}"
+
+msgid "plugins.generic.conferenceManager.proof.mine"
+msgstr "Sent receipts"
+
+msgid "plugins.generic.conferenceManager.proof.noteFromManager"
+msgstr "Manager's note"
+
+msgid "plugins.generic.conferenceManager.proof.upload"
+msgstr "Send a receipt or payment order"
+
+msgid "plugins.generic.conferenceManager.proof.uploadHint"
+msgstr "PDF, JPG or PNG, up to 5 MB. The manager will check the payment and send you a letter."
+
+msgid "plugins.generic.conferenceManager.proof.send"
+msgstr "Send"
+
+msgid "plugins.generic.conferenceManager.proof.sent"
+msgstr "The receipt has been sent for review."
+
+msgid "plugins.generic.conferenceManager.proof.duplicateWarning"
+msgstr "Note: the same file was sent before. If this is a mistake, please send the correct receipt."
+
+msgid "plugins.generic.conferenceManager.proof.error.empty"
+msgstr "Choose the receipt file."
+
+msgid "plugins.generic.conferenceManager.proof.error.tooLarge"
+msgstr "The file is larger than 5 MB."
+
+msgid "plugins.generic.conferenceManager.proof.error.type"
+msgstr "Only PDF, JPG or PNG files are accepted."
+
+msgid "plugins.generic.conferenceManager.proof.error.tooMany"
+msgstr "Too many receipts were sent for this invoice. Please wait for the review."
+
+msgid "plugins.generic.conferenceManager.proof.error.sameInvoice"
+msgstr "This file was already sent for this invoice."
+
+msgid "plugins.generic.conferenceManager.proof.error.storage"
+msgstr "The file could not be saved. Try later or contact the journal."
+
+msgid "plugins.generic.conferenceManager.proof.error.notYours"
+msgstr "Invoice not found."
+
+msgid "plugins.generic.conferenceManager.proof.error.notPending"
+msgstr "The receipt was already reviewed or the invoice is closed."
+
+msgid "plugins.generic.conferenceManager.proof.error.noteRequired"
+msgstr "Write the reason for rejection."
+
+msgid "plugins.generic.conferenceManager.proof.error.statusFilter"
+msgstr "Unknown receipt status."
+
+msgid "plugins.generic.conferenceManager.proof.mail.accepted.subject"
+msgstr "Payment confirmed: invoice {$number}, {$edition}"
+
+msgid "plugins.generic.conferenceManager.proof.mail.accepted.body"
+msgstr "<p>Dear {$name},</p><p>Your receipt for invoice {$number} ({$edition}) has been checked and accepted. Invoice status: {$status}. Still due: {$due}.</p><p>Details are in your cabinet: <a href=\"{$url}\">{$url}</a></p><p>{$journal}</p>"
+
+msgid "plugins.generic.conferenceManager.proof.mail.rejected.subject"
+msgstr "Receipt not accepted: invoice {$number}, {$edition}"
+
+msgid "plugins.generic.conferenceManager.proof.mail.rejected.body"
+msgstr "<p>Dear {$name},</p><p>Your receipt for invoice {$number} ({$edition}) was not accepted.</p><p>Reason: {$note}</p><p>Due: {$due}. You can send the correct receipt in your cabinet: <a href=\"{$url}\">{$url}</a></p><p>{$journal}</p>"
+
+msgid "plugins.generic.conferenceManager.invoice.event.proof_uploaded"
+msgstr "receipt sent"
+
+msgid "plugins.generic.conferenceManager.invoice.event.proof_accepted"
+msgstr "receipt accepted"
+
+msgid "plugins.generic.conferenceManager.invoice.event.proof_rejected"
+msgstr "receipt rejected"
+
+msgid "plugins.generic.conferenceManager.journal.title"
+msgstr "Payment journal"
+
+msgid "plugins.generic.conferenceManager.journal.description"
+msgstr "All invoice events of the edition, newest first. Journal entries are never changed or deleted."
+
+msgid "plugins.generic.conferenceManager.journal.empty"
+msgstr "No events yet."
+
+msgid "plugins.generic.conferenceManager.journal.time"
+msgstr "Time (UTC)"
+
+msgid "plugins.generic.conferenceManager.journal.event"
+msgstr "Event"
+
+msgid "plugins.generic.conferenceManager.journal.amount"
+msgstr "Amount"
+
+msgid "plugins.generic.conferenceManager.journal.note"
+msgstr "Note"
+
+msgid "plugins.generic.conferenceManager.participants.payment"
+msgstr "Payment"
+
+msgid "plugins.generic.conferenceManager.participants.payment.paid"
+msgstr "Paid or exempt"
+
+msgid "plugins.generic.conferenceManager.participants.payment.unpaid"
+msgstr "Awaiting payment"
+
+msgid "plugins.generic.conferenceManager.participants.payment.proof_pending"
+msgstr "Receipt awaiting review"
+
+msgid "plugins.generic.conferenceManager.participants.payment.none"
+msgstr "No invoice"
+
+msgid "plugins.generic.conferenceManager.proof.tab.pending"
+msgstr "Awaiting review"

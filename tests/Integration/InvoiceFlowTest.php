@@ -13,12 +13,19 @@ use APP\plugins\generic\conferenceManager\classes\Application\InvoiceNotifier;
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceService;
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceTemplateStore;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
+use APP\plugins\generic\conferenceManager\classes\Application\ProofNotifier;
+use APP\plugins\generic\conferenceManager\classes\Application\ProofService;
 use APP\plugins\generic\conferenceManager\classes\Domain\Institution\InstitutionType;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Invoice;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentReference;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\ProofFile;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\ProofStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConsentText;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantFilter;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\PaymentFilter;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Files\LocalProofStore;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbFeeRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
@@ -315,6 +322,238 @@ final class InvoiceFlowTest extends TestCase
         self::assertSame(1, $repo->nextNumber(2, 2027));
         self::assertSame(1, $repo->nextNumber(1, 2028));
     }
+
+    /** @return array{0: ProofService, 1: FakeProofNotifier, 2: string} */
+    private function proofService(): array
+    {
+        $dir = sys_get_temp_dir() . '/cm-proofs-' . bin2hex(random_bytes(4));
+        $notifier = new FakeProofNotifier();
+        $service = new ProofService(
+            new DbPaymentRepository($this->db),
+            $this->invoices,
+            new LocalProofStore($dir),
+            $notifier,
+            new AuditLogger($this->db),
+            static fn (string $key, array $params, string $locale): string => $key,
+        );
+        return [$service, $notifier, $dir];
+    }
+
+    private static function file(string $content): string
+    {
+        $path = (string) tempnam(sys_get_temp_dir(), 'cmp');
+        file_put_contents($path, $content);
+        return $path;
+    }
+
+    /** @return array{0: int, 1: Invoice} edition id and an open invoice of 150 UAH for user 1 */
+    private function openInvoice(): array
+    {
+        [$id, $cats] = $this->edition();
+        $this->rule($id, ['mode' => 'bank_transfer', 'paymentAccountId' => $this->bankId]);
+        $this->tariff($id, $cats['other_faculty'], '150');
+        $p = $this->listener($id, $cats['other_faculty'], 1, 'olena@example.org');
+        $invoice = $this->invoices->issueFor($this->ctx, $p, null, 1, $this->now)['invoice'];
+        self::assertInstanceOf(Invoice::class, $invoice);
+        return [$id, $invoice];
+    }
+
+    public function testReceiptUploadChecks(): void
+    {
+        [, $invoice] = $this->openInvoice();
+        [$proofs, , $dir] = $this->proofService();
+        $iid = (int) $invoice->id;
+        $pdf = self::file("%PDF-1.4\n% receipt 1\n");
+
+        // Somebody else's invoice: nothing is said about it.
+        self::assertNull($proofs->upload($this->ctx, $iid, 2, 'other@example.org', $pdf, 'r.pdf', $this->now, 'uk'));
+        self::assertNull($proofs->upload(new ContextInfo(2, 'uk', ['uk']), $iid, 1, 'olena@example.org', $pdf, 'r.pdf', $this->now, 'uk'));
+
+        // The type comes from the content, not from the name.
+        [$r, $e] = $proofs->upload($this->ctx, $iid, 1, 'olena@example.org', self::file('<html><script>alert(1)</script>'), 'receipt.pdf', $this->now, 'uk') ?? [null, null];
+        self::assertNull($r);
+        self::assertTrue($e?->has('file'));
+        [$r, $e] = $proofs->upload($this->ctx, $iid, 1, 'olena@example.org', self::file(''), 'empty.pdf', $this->now, 'uk') ?? [null, null];
+        self::assertNull($r);
+        $big = self::file('%PDF-' . str_repeat('x', ProofFile::MAX_BYTES));
+        [$r, $e] = $proofs->upload($this->ctx, $iid, 1, 'olena@example.org', $big, 'big.pdf', $this->now, 'uk') ?? [null, null];
+        self::assertNull($r);
+        self::assertSame(['plugins.generic.conferenceManager.proof.error.tooLarge'], $e?->toArray()['file'] ?? null);
+
+        // Found by email too (an author without an account).
+        [$r, $e, $warnings] = $proofs->upload($this->ctx, $iid, null, 'Olena@Example.org', $pdf, '../../etc/Квитанція "1".PDF', $this->now, 'uk') ?? [null, null, null];
+        self::assertSame([], $e?->toArray());
+        self::assertSame([], $warnings);
+        self::assertSame('Квитанція 1.pdf', $r['name'] ?? null);
+        self::assertSame('application/pdf', $r['mime'] ?? null);
+        self::assertSame('pending', $r['status'] ?? null);
+        $row = $this->db->table('conf_payment_proofs')->first();
+        self::assertSame(hash('sha256', "%PDF-1.4\n% receipt 1\n"), $row->sha256);
+        self::assertStringStartsWith('1/' . $iid . '/', (string) $row->file_path);
+        self::assertFileExists($dir . '/' . $row->file_path);
+        self::assertContains('proof_uploaded', array_column($this->invoices->events($this->ctx, $iid), 'type'));
+
+        // The same file again for the same invoice: refused.
+        [$r, $e] = $proofs->upload($this->ctx, $iid, 1, 'olena@example.org', $pdf, 'again.pdf', $this->now, 'uk') ?? [null, null];
+        self::assertNull($r);
+        self::assertSame(['plugins.generic.conferenceManager.proof.error.sameInvoice'], $e?->toArray()['file'] ?? null);
+
+        // A PNG is fine; the payer sees both receipts.
+        [$r] = $proofs->upload($this->ctx, $iid, 1, 'olena@example.org', self::file("\x89PNG\r\n\x1A\n" . 'data'), 'photo.jpeg', $this->now, 'uk') ?? [null];
+        self::assertSame('photo.png', $r['name'] ?? null);
+        $mine = $proofs->withProofs($this->ctx, $this->invoices->mine($this->ctx, 1, 'olena@example.org', 'uk'), 'uk');
+        self::assertCount(2, $mine[0]['proofs']);
+        self::assertTrue($mine[0]['canUploadProof']);
+
+        // Only the payer or a manager gets the file.
+        $proofId = (int) $row->id;
+        self::assertSame("%PDF-1.4\n% receipt 1\n", $proofs->file($this->ctx, $proofId, [1, ''])['content'] ?? null);
+        self::assertNull($proofs->file($this->ctx, $proofId, [2, 'other@example.org']));
+        self::assertNotNull($proofs->file($this->ctx, $proofId, null));
+        self::assertNull($proofs->file(new ContextInfo(2, 'uk', ['uk']), $proofId, null));
+    }
+
+    public function testReceiptReviewQueue(): void
+    {
+        [$editionId, $invoice] = $this->openInvoice();
+        [$proofs, $notifier] = $this->proofService();
+        $iid = (int) $invoice->id;
+        $pdf = self::file("%PDF-1.7\nbank order 77\n");
+        [$first] = $proofs->upload($this->ctx, $iid, 1, 'olena@example.org', $pdf, 'order.pdf', $this->now, 'uk') ?? [null];
+
+        $queue = $proofs->queue($this->ctx, $editionId, ProofStatus::Pending, 30, 0, 'uk');
+        self::assertSame(1, $queue['itemsMax']);
+        self::assertSame('2027-00001', $queue['items'][0]['invoice']['number']);
+        self::assertSame(15000, $queue['items'][0]['invoice']['due']['minor']);
+        self::assertSame([], $queue['items'][0]['duplicateOf']);
+        self::assertSame(0, $proofs->queue(new ContextInfo(2, 'uk', ['uk']), null, ProofStatus::Pending, 30, 0, 'uk')['itemsMax']);
+
+        // Rejecting needs a reason; the payer gets a letter with it.
+        self::assertTrue($proofs->reject($this->ctx, (int) $first['id'], '  ', 3, $this->now)?->has('note'));
+        self::assertSame([], $proofs->reject($this->ctx, (int) $first['id'], 'Не та сума', 3, $this->now)?->toArray());
+        self::assertSame([false, 'Не та сума'], [$notifier->sent[0][1], $notifier->sent[0][2]]);
+        self::assertTrue($proofs->reject($this->ctx, (int) $first['id'], 'ще раз', 3, $this->now)?->has('status'), 'reviewed once');
+        self::assertTrue($proofs->accept($this->ctx, (int) $first['id'], null, 3, $this->now)?->has('status'));
+        self::assertSame(0, $proofs->queue($this->ctx, $editionId, ProofStatus::Pending, 30, 0, 'uk')['itemsMax']);
+
+        // After a rejection the same file may be sent again.
+        [$second, , $warnings] = $proofs->upload($this->ctx, $iid, 1, 'olena@example.org', $pdf, 'order.pdf', $this->now, 'uk') ?? [null, null, null];
+        self::assertNotNull($second);
+        self::assertSame(['duplicate'], $warnings, 'the same content was seen before');
+
+        // A wrong amount is refused before anything changes.
+        self::assertTrue($proofs->accept($this->ctx, (int) $second['id'], 'abc', 3, $this->now)?->has('amount'));
+        self::assertSame('pending', $proofs->get($this->ctx, (int) $second['id'], 'uk')['status'] ?? null);
+
+        // Accepting marks the invoice paid for what is due and sends a letter.
+        self::assertSame([], $proofs->accept($this->ctx, (int) $second['id'], null, 3, $this->now)?->toArray());
+        $paid = $this->invoices->find($this->ctx, $iid);
+        self::assertSame(InvoiceStatus::Paid, $paid?->status);
+        self::assertSame(15000, $paid->paidAmount()->minor);
+        self::assertTrue($notifier->sent[1][1]);
+        self::assertSame(['proof_uploaded', 'proof_rejected', 'proof_uploaded', 'proof_accepted', 'paid'], array_values(array_filter(
+            array_column($this->invoices->events($this->ctx, $iid), 'type'),
+            static fn (string $t): bool => $t !== 'issued',
+        )));
+        // A paid invoice takes no more receipts.
+        [$r, $e] = $proofs->upload($this->ctx, $iid, 1, 'olena@example.org', self::file('%PDF-new'), 'n.pdf', $this->now, 'uk') ?? [null, null];
+        self::assertNull($r);
+        self::assertTrue($e?->has('status'));
+        self::assertFalse($proofs->withProofs($this->ctx, $this->invoices->mine($this->ctx, 1, 'olena@example.org', 'uk'), 'uk')[0]['canUploadProof']);
+
+        // The journal of the edition shows all of it, newest first.
+        $journal = $proofs->journal($this->ctx, $editionId, 50, 0, 'uk');
+        self::assertSame('paid', $journal['items'][0]['type'] ?? null);
+        self::assertSame(15000, $journal['items'][0]['amount']['minor'] ?? null);
+        self::assertSame('issued', $journal['items'][$journal['itemsMax'] - 1]['type'] ?? null);
+        self::assertNull($proofs->journal(new ContextInfo(2, 'uk', ['uk']), $editionId, 50, 0, 'uk'));
+    }
+
+    public function testPartPaymentByReceipt(): void
+    {
+        [, $invoice] = $this->openInvoice();
+        [$proofs] = $this->proofService();
+        [$p] = $proofs->upload($this->ctx, (int) $invoice->id, 1, 'olena@example.org', self::file("\xFF\xD8\xFF\xE0 jpeg"), 'scan.jpg', $this->now, 'uk') ?? [null];
+        self::assertSame([], $proofs->accept($this->ctx, (int) $p['id'], '100', 3, $this->now)?->toArray());
+        $after = $this->invoices->find($this->ctx, (int) $invoice->id);
+        self::assertSame(InvoiceStatus::Issued, $after?->status);
+        self::assertSame(5000, $after->due()->minor);
+    }
+
+    public function testRegisterFilterByPayment(): void
+    {
+        [$id, $invoice] = $this->openInvoice();
+        [$proofs] = $this->proofService();
+        $cats = array_column(array_map(static fn ($c): array => [$c->code, (int) $c->id], $this->fees->categories($this->ctx, $id) ?? []), 1, 0);
+        $paidP = $this->listener($id, $cats['other_faculty'], 2, 'paid@example.org');
+        $paid = $this->invoices->issueFor($this->ctx, $paidP, null, 1, $this->now)['invoice'];
+        $this->invoices->markPaid($this->ctx, (int) $paid?->id, null, null, 3, $this->now);
+        $this->listener($id, $cats['students'], 3, 'free@example.org');
+
+        $emails = function (?PaymentFilter $f) use ($id): array {
+            $page = $this->participants->register($this->ctx, $id, new ParticipantFilter(payment: $f), 'uk') ?? ['items' => []];
+            $out = array_column($page['items'], 'email');
+            sort($out);
+            return $out;
+        };
+        self::assertSame(['paid@example.org'], $emails(PaymentFilter::Paid));
+        self::assertSame(['olena@example.org'], $emails(PaymentFilter::Unpaid));
+        self::assertSame([], $emails(PaymentFilter::ProofPending));
+        self::assertSame(['free@example.org'], $emails(PaymentFilter::None));
+        $proofs->upload($this->ctx, (int) $invoice->id, 1, 'olena@example.org', self::file('%PDF-f'), 'f.pdf', $this->now, 'uk');
+        self::assertSame(['olena@example.org'], $emails(PaymentFilter::ProofPending));
+        self::assertCount(3, $emails(null));
+    }
+
+    /**
+     * FEE-13: the payment journal is only ever appended to. The whole flow
+     * of invoices and receipts runs, then every row written before is
+     * still there unchanged, and no code updates or deletes the table.
+     */
+    public function testPaymentJournalIsAppendOnly(): void
+    {
+        [$editionId, $cats] = $this->edition('second');
+        $this->rule($editionId, ['mode' => 'bank_transfer', 'paymentAccountId' => $this->bankId]);
+        $this->tariff($editionId, $cats['other_faculty'], '150');
+        [$proofs] = $this->proofService();
+        $snapshot = fn (): array => array_map(static fn (object $r): array => (array) $r, $this->db->table('conf_payment_events')->orderBy('id')->get()->all());
+
+        $p1 = $this->listener($editionId, $cats['other_faculty'], 1, 'olena@example.org');
+        $i1 = (int) $this->invoices->issueFor($this->ctx, $p1, null, 1, $this->now)['invoice']?->id;
+        $before = $snapshot();
+        $p2 = $this->listener($editionId, $cats['other_faculty'], 2, 'taras@example.org');
+        $i2 = (int) $this->invoices->issueFor($this->ctx, $p2, null, 1, $this->now)['invoice']?->id;
+        $this->invoices->markPaid($this->ctx, $i1, '50', null, 3, $this->now);
+        [$proof] = $proofs->upload($this->ctx, $i1, 1, 'olena@example.org', self::file('%PDF-1 j'), 'a.pdf', $this->now, 'uk') ?? [null];
+        $proofs->reject($this->ctx, (int) $proof['id'], 'нечитабельно', 3, $this->now);
+        $this->invoices->waive($this->ctx, $i2, 'пільга', 3, $this->now);
+        $this->participants->cancel($this->ctx, $p1, 1, 'olena@example.org', true, $this->now, null);
+        $after = $snapshot();
+
+        self::assertGreaterThan(count($before), count($after));
+        self::assertSame($before, array_slice($after, 0, count($before)), 'earlier journal rows are unchanged');
+        $ids = array_column($after, 'id');
+        self::assertSame(range((int) $ids[0], (int) $ids[0] + count($ids) - 1), array_map('intval', $ids), 'no row was deleted');
+
+        $root = dirname(__DIR__, 2) . '/classes';
+        $offenders = [];
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS));
+        foreach ($files as $f) {
+            if (!$f instanceof \SplFileInfo || $f->getExtension() !== 'php') {
+                continue;
+            }
+            $code = (string) file_get_contents($f->getPathname());
+            // Any statement that names the table and then updates, deletes
+            // or truncates it, whatever the query builder chain looks like.
+            foreach (preg_split('/;\s*\n/', $code) ?: [] as $statement) {
+                if (str_contains($statement, "'conf_payment_events")
+                    && preg_match('/->\s*(update|delete|truncate|upsert|updateOrInsert|forceDelete)\s*\(|\b(UPDATE|DELETE\s+FROM|TRUNCATE)\b[^;]*conf_payment_events/i', $statement)) {
+                    $offenders[] = substr($f->getPathname(), strlen($root) + 1);
+                }
+            }
+        }
+        self::assertSame([], $offenders, 'code that changes the payment journal');
+    }
 }
 
 final class FakeInvoiceNotifier implements InvoiceNotifier
@@ -345,5 +584,16 @@ final class MemoryTemplateStore implements InvoiceTemplateStore
         } else {
             $this->html[$contextId . $kind] = $html;
         }
+    }
+}
+
+final class FakeProofNotifier implements ProofNotifier
+{
+    /** @var list<array{Invoice, bool, ?string}> */
+    public array $sent = [];
+
+    public function proofReviewed(ContextInfo $context, Invoice $invoice, array $presented, bool $accepted, ?string $note): void
+    {
+        $this->sent[] = [$invoice, $accepted, $note];
     }
 }

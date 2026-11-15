@@ -82,7 +82,7 @@ final class ParticipantService
      *
      * @param array{userId: int, email: string, givenName: array<string, string>, familyName: array<string, string>,
      *   affiliation: ?string, country: ?string, orcid: ?string, position: ?string} $person
-     * @param array{categoryId?: mixed, participationForm?: mixed, consent?: mixed} $input
+     * @param array{categoryId?: mixed, participationForm?: mixed, consent?: mixed, minor?: mixed, guardianConsent?: mixed} $input
      * @return array{0: array{participantId: int, participationId: int}|null, 1: ValidationErrors}
      */
     public function registerListener(
@@ -129,6 +129,11 @@ final class ParticipantService
         if (!filter_var($input['consent'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
             $errors->add('consent', 'plugins.generic.conferenceManager.registration.error.consentRequired');
         }
+        // EVT-04: without the legal representative's consent a minor is not registered.
+        $minor = filter_var($input['minor'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        if ($minor && !filter_var($input['guardianConsent'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            $errors->add('guardianConsent', 'plugins.generic.conferenceManager.registration.error.guardianRequired');
+        }
         if (trim($person['email']) === '') {
             $errors->add('email', self::K . 'email');
         }
@@ -136,7 +141,7 @@ final class ParticipantService
             return [null, $errors];
         }
 
-        $result = $this->participants->addListener($context->id, $editionId, $person, $categoryId, $form, $consentVersion, $now);
+        $result = $this->participants->addListener($context->id, $editionId, $person, $categoryId, $form, $consentVersion, $now, $minor);
         if ($result === null) {
             $errors->add('editionId', self::K . 'already');
             return [null, $errors];
@@ -147,6 +152,7 @@ final class ParticipantService
             'categoryId' => $categoryId,
             'participationForm' => $form->value,
             'consentVersion' => $consentVersion,
+            'minor' => $minor,
         ], $ip);
         try {
             $this->invoices?->issueFor($context, $result['participationId'], null, $person['userId'], $now);

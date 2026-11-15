@@ -66,6 +66,30 @@
 							{if $i.externalUrl}<a class="cmEdition__button" href="{$i.externalUrl|escape}" target="_blank" rel="noopener noreferrer">{translate key="plugins.generic.conferenceManager.invoice.payExternal"}</a>{/if}
 						</p>
 					{/if}
+					{if $i.proofs}
+						<h4 class="cmInvoice__subtitle">{translate key="plugins.generic.conferenceManager.proof.mine"}</h4>
+						<ul class="cmInvoice__proofs">
+							{foreach from=$i.proofs item=p}
+								<li class="cmInvoice__proof cmInvoice__proof--{$p.status|escape}">
+									<a href="{$p.url|escape}" target="_blank" rel="noopener">{$p.name|escape}</a>
+									{if $p.uploadedAtText}· {$p.uploadedAtText|escape}{/if}
+									· <strong>{$p.statusLabel|escape}</strong>
+									{if $p.note}<div class="cmInvoice__proofNote">{translate key="plugins.generic.conferenceManager.proof.noteFromManager"}: {$p.note|escape}</div>{/if}
+								</li>
+							{/foreach}
+						</ul>
+					{/if}
+					{if $i.canUploadProof}
+						<form method="post" action="{$myUrl|escape}" enctype="multipart/form-data" class="cmInvoice__upload">
+							{csrf}
+							<input type="hidden" name="invoiceId" value="{$i.id|escape}">
+							<input type="hidden" name="MAX_FILE_SIZE" value="5242880">
+							<label for="cmProof{$i.id|escape}">{translate key="plugins.generic.conferenceManager.proof.upload"}</label>
+							<p class="cmRegister__hint">{translate key="plugins.generic.conferenceManager.proof.uploadHint"}</p>
+							<input id="cmProof{$i.id|escape}" type="file" name="proof" accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png" required>
+							<button type="submit" class="cmEdition__button">{translate key="plugins.generic.conferenceManager.proof.send"}</button>
+						</form>
+					{/if}
 				</li>
 			{/foreach}
 		</ul>

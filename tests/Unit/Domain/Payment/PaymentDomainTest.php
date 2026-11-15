@@ -11,6 +11,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceNumber;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentMode;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentReference;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentRule;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\ProofFile;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\LocalizedText;
 use PHPUnit\Framework\TestCase;
 
@@ -110,5 +111,18 @@ final class PaymentDomainTest extends TestCase
         }
         self::assertSame(InvoiceDocument::KIND_TREASURY, InvoiceDocument::kindFor(PaymentMode::TreasuryTransfer));
         self::assertNull(InvoiceDocument::kindFor(PaymentMode::ExternalLink));
+    }
+
+    public function testReceiptFileTypeAndName(): void
+    {
+        self::assertSame('application/pdf', ProofFile::detectMime('%PDF-1.7'));
+        self::assertSame('image/jpeg', ProofFile::detectMime("\xFF\xD8\xFF\xE1"));
+        self::assertSame('image/png', ProofFile::detectMime("\x89PNG\r\n\x1A\n"));
+        self::assertNull(ProofFile::detectMime('<svg onload=alert(1)>'));
+        self::assertNull(ProofFile::detectMime('GIF89a'));
+        self::assertNull(ProofFile::detectMime(' %PDF-1.7'));
+        self::assertSame('receipt.pdf', ProofFile::displayName('', 'application/pdf'));
+        self::assertSame('Платіжка 5.jpg', ProofFile::displayName('C:\\Users\\x\\Платіжка 5.JPEG', 'image/jpeg'));
+        self::assertSame('ab.png', ProofFile::displayName("a\"b;\x00.exe", 'image/png'));
     }
 }

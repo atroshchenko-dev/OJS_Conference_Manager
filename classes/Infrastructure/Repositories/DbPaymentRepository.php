@@ -10,9 +10,11 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceItem;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceNumber;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentMode;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentProof;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentReference;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentRepository;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentRule;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\ProofStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\DateInput;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\LocalizedText;
 use DateTimeImmutable;
@@ -228,6 +230,145 @@ final class DbPaymentRepository implements PaymentRepository
             'payload' => json_decode((string) ($e->payload ?? 'null'), true),
             'createdAt' => DateInput::toIsoUtc(DateInput::fromStorage((string) $e->created_at)),
         ], $this->db->table('conf_payment_events')->where('invoice_id', $invoiceId)->orderBy('id')->get()->all());
+    }
+
+    public function addProof(PaymentProof $proof, DateTimeImmutable $now): PaymentProof
+    {
+        $stamp = DateInput::toStorage($now);
+        $id = $this->db->transaction(function () use ($proof, $stamp): int {
+            $id = (int) $this->db->table('conf_payment_proofs')->insertGetId([
+                'invoice_id' => $proof->invoiceId,
+                'uploaded_by' => $proof->uploadedBy,
+                'file_path' => $proof->filePath,
+                'original_name' => $proof->originalName,
+                'mime' => $proof->mime,
+                'size' => $proof->size,
+                'sha256' => $proof->sha256,
+                'review_status' => ProofStatus::Pending->value,
+                'created_at' => $stamp,
+                'updated_at' => $stamp,
+            ]);
+            $this->event($proof->invoiceId, 'proof_uploaded', $proof->uploadedBy, ['proofId' => $id, 'name' => $proof->originalName, 'size' => $proof->size], $stamp);
+            return $id;
+        });
+        return new PaymentProof($id, $proof->invoiceId, $proof->uploadedBy, $proof->filePath, $proof->originalName, $proof->mime, $proof->size, $proof->sha256, ProofStatus::Pending, null, null, null, $now);
+    }
+
+    public function findProof(int $contextId, int $id): ?PaymentProof
+    {
+        $r = $this->db->table('conf_payment_proofs as pr')
+            ->join('conf_invoices as i', 'i.id', '=', 'pr.invoice_id')
+            ->where('i.context_id', $contextId)->where('pr.id', $id)
+            ->select('pr.*')->first();
+        return $r === null ? null : self::proof($r);
+    }
+
+    public function proofsOf(array $invoiceIds): array
+    {
+        if ($invoiceIds === []) {
+            return [];
+        }
+        $out = [];
+        foreach ($this->db->table('conf_payment_proofs')->whereIn('invoice_id', $invoiceIds)->orderBy('id')->get() as $r) {
+            $out[(int) $r->invoice_id][] = self::proof($r);
+        }
+        return $out;
+    }
+
+    public function proofQueue(int $contextId, ?int $editionId, ?ProofStatus $status, int $count, int $offset): array
+    {
+        $q = $this->db->table('conf_payment_proofs as pr')
+            ->join('conf_invoices as i', 'i.id', '=', 'pr.invoice_id')
+            ->where('i.context_id', $contextId);
+        if ($editionId !== null) {
+            $q->where('i.edition_id', $editionId);
+        }
+        if ($status !== null) {
+            $q->where('pr.review_status', $status->value);
+        }
+        $total = (clone $q)->count();
+        $rows = $q->orderBy('pr.id')->limit(max(1, min(50, $count)))->offset(max(0, $offset))->select('pr.*')->get()->all();
+        $invoices = [];
+        $ids = array_values(array_unique(array_map(static fn (object $r): int => (int) $r->invoice_id, $rows)));
+        if ($ids !== []) {
+            foreach ($this->hydrate($this->db->table('conf_invoices')->whereIn('id', $ids)->get()->all()) as $invoice) {
+                $invoices[(int) $invoice->id] = $invoice;
+            }
+        }
+        $items = [];
+        foreach ($rows as $r) {
+            $invoice = $invoices[(int) $r->invoice_id] ?? null;
+            if ($invoice !== null) {
+                $items[] = ['proof' => self::proof($r), 'invoice' => $invoice];
+            }
+        }
+        return ['items' => $items, 'itemsMax' => $total];
+    }
+
+    public function sameFile(int $contextId, string $sha256, ?int $exceptProofId): array
+    {
+        $q = $this->db->table('conf_payment_proofs as pr')
+            ->join('conf_invoices as i', 'i.id', '=', 'pr.invoice_id')
+            ->where('i.context_id', $contextId)->where('pr.sha256', $sha256);
+        if ($exceptProofId !== null) {
+            $q->where('pr.id', '<>', $exceptProofId);
+        }
+        return array_values(array_unique(array_map(static fn (mixed $v): int => (int) $v, $q->pluck('pr.invoice_id')->all())));
+    }
+
+    public function reviewProof(int $proofId, ProofStatus $to, ?int $reviewerId, ?string $note, string $event, array $payload, DateTimeImmutable $now): bool
+    {
+        $stamp = DateInput::toStorage($now);
+        return $this->db->transaction(function () use ($proofId, $to, $reviewerId, $note, $event, $payload, $stamp): bool {
+            $invoiceId = $this->db->table('conf_payment_proofs')->where('id', $proofId)->value('invoice_id');
+            $changed = $this->db->table('conf_payment_proofs')
+                ->where('id', $proofId)->where('review_status', ProofStatus::Pending->value)
+                ->update(['review_status' => $to->value, 'reviewed_by' => $reviewerId, 'reviewed_at' => $stamp, 'note' => $note, 'updated_at' => $stamp]);
+            if ($changed !== 1 || $invoiceId === null) {
+                return false;
+            }
+            $this->event((int) $invoiceId, $event, $reviewerId, $payload + ['proofId' => $proofId], $stamp);
+            return true;
+        });
+    }
+
+    public function editionEvents(int $contextId, int $editionId, int $count, int $offset): array
+    {
+        $q = $this->db->table('conf_payment_events as e')
+            ->join('conf_invoices as i', 'i.id', '=', 'e.invoice_id')
+            ->where('i.context_id', $contextId)->where('i.edition_id', $editionId);
+        $total = (clone $q)->count();
+        $rows = $q->orderByDesc('e.id')->limit(max(1, min(100, $count)))->offset(max(0, $offset))
+            ->get(['e.id', 'e.invoice_id', 'e.type', 'e.actor_user_id', 'e.payload', 'e.created_at', 'i.number', 'i.currency'])->all();
+        return ['items' => array_map(static fn (object $e): array => [
+            'id' => (int) $e->id,
+            'invoiceId' => (int) $e->invoice_id,
+            'invoiceNumber' => $e->number === null ? null : (string) $e->number,
+            'currency' => (string) $e->currency,
+            'type' => (string) $e->type,
+            'actorUserId' => $e->actor_user_id === null ? null : (int) $e->actor_user_id,
+            'payload' => json_decode((string) ($e->payload ?? 'null'), true),
+            'createdAt' => DateInput::toIsoUtc(DateInput::fromStorage((string) $e->created_at)),
+        ], $rows), 'itemsMax' => $total];
+    }
+
+    private static function proof(object $r): PaymentProof
+    {
+        return new PaymentProof(
+            (int) $r->id,
+            (int) $r->invoice_id,
+            $r->uploaded_by === null ? null : (int) $r->uploaded_by,
+            (string) $r->file_path,
+            (string) $r->original_name,
+            (string) $r->mime,
+            (int) $r->size,
+            (string) $r->sha256,
+            ProofStatus::tryFrom((string) $r->review_status) ?? ProofStatus::Pending,
+            $r->reviewed_by === null ? null : (int) $r->reviewed_by,
+            DateInput::fromStorage($r->reviewed_at === null ? null : (string) $r->reviewed_at),
+            $r->note === null ? null : (string) $r->note,
+            DateInput::fromStorage($r->created_at === null ? null : (string) $r->created_at),
+        );
     }
 
     /**

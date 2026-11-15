@@ -20,6 +20,7 @@ final class ParticipantFilter
         public readonly string $search = '',
         public readonly int $count = 20,
         public readonly int $offset = 0,
+        public readonly ?PaymentFilter $payment = null,
     ) {
     }
 

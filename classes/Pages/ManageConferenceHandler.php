@@ -19,6 +19,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Edition\SubmissionMode;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConfirmationStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRole;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationStatus;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\PaymentFilter;
 use APP\plugins\generic\conferenceManager\ConferenceManagerPlugin;
 use APP\template\TemplateManager;
 use PKP\security\authorization\ContextAccessPolicy;
@@ -44,7 +45,7 @@ class ManageConferenceHandler extends Handler
         'fee.quote.pagesRequired', 'fee.quote.error',
         'participants.title', 'participants.search', 'participants.role', 'participants.category', 'participants.noCategory',
         'participants.confirmation', 'participants.status', 'participants.all', 'participants.find', 'participants.export',
-        'participants.empty', 'participants.count', 'participants.name', 'participants.cancel', 'participants.cancelConfirm',
+        'participants.empty', 'participants.minor', 'participants.payment', 'participants.count', 'participants.name', 'participants.cancel', 'participants.cancelConfirm',
         'participants.cancelled', 'participants.page',
         'payment.title', 'payment.rules', 'payment.rules.description', 'payment.rules.empty', 'payment.rule.add', 'payment.rule.default',
         'payment.rule.deleteConfirm', 'payment.mode', 'payment.account', 'payment.account.none', 'payment.externalUrl',
@@ -56,6 +57,11 @@ class ManageConferenceHandler extends Handler
         'invoice.waiveDone', 'invoice.cancelConfirm', 'invoice.cancelDone', 'invoice.issue', 'invoice.issued', 'invoice.pagesPrompt',
         'invoice.event.issued', 'invoice.event.part_paid', 'invoice.event.paid', 'invoice.event.waived', 'invoice.event.superseded',
         'invoice.event.cancelled', 'invoice.event.status_cancelled', 'invoice.event.status_refund_requested',
+        'invoice.event.proof_uploaded', 'invoice.event.proof_accepted', 'invoice.event.proof_rejected',
+        'proof.title', 'proof.tab.pending', 'proof.status.pending', 'proof.status.accepted', 'proof.status.rejected', 'proof.emptyPending', 'proof.empty',
+        'proof.due', 'proof.file', 'proof.duplicate', 'proof.view', 'proof.accept', 'proof.reject', 'proof.acceptDone', 'proof.rejectPrompt',
+        'proof.rejectDone',
+        'journal.title', 'journal.description', 'journal.empty', 'journal.time', 'journal.event', 'journal.amount', 'journal.note',
     ];
 
     /** @var bool */
@@ -129,6 +135,7 @@ class ManageConferenceHandler extends Handler
             'publicUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), ConferencePageHandler::PAGE, '__path__'),
             'issueUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), 'manageIssues'),
             'invoicePdfUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), ConferencePageHandler::PAGE, 'invoice', ['__id__']),
+            'proofFileUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), ConferencePageHandler::PAGE, 'receipt', ['__id__']),
             'csrfToken' => $request->getSession()->token(),
             'locales' => $locales,
             'primaryLocale' => $info->primaryLocale,
@@ -152,6 +159,7 @@ class ManageConferenceHandler extends Handler
                 'roles' => $choices(ParticipantRole::cases()),
                 'statuses' => $choices(ParticipationStatus::cases()),
                 'confirmations' => $choices(ConfirmationStatus::cases()),
+                'payments' => $choices(PaymentFilter::cases()),
             ],
         ]]]);
 
@@ -190,7 +198,7 @@ class ManageConferenceHandler extends Handler
             'field.startsAt', 'field.endsAt', 'field.cfpOpensAt', 'field.abstractDeadline', 'field.paperDeadline',
             'field.registrationClosesAt', 'field.paymentDeadline', 'field.dates.description',
             'field.isbn', 'field.udc', 'field.vectorProgramId', 'field.hours', 'field.ects',
-            'column.dates', 'column.status', 'column.type', 'submissionsOpen', 'submissionsClosed', 'fees', 'participants', 'payments', 'invoices', 'back',
+            'column.dates', 'column.status', 'column.type', 'submissionsOpen', 'submissionsClosed', 'fees', 'participants', 'payments', 'invoices', 'proofs', 'back',
         ] as $key) {
             $out[$key] = __('plugins.generic.conferenceManager.editions.' . $key);
         }

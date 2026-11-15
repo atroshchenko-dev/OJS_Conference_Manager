@@ -1481,3 +1481,189 @@ msgstr "Примітка для платника"
 
 msgid "plugins.generic.conferenceManager.jurisdiction.ua.treasuryNote.description"
 msgstr "Додаткові вимоги казначейства до платежу, якщо є."
+
+msgid "plugins.generic.conferenceManager.registration.minor"
+msgstr "Неповнолітній доповідач"
+
+msgid "plugins.generic.conferenceManager.registration.minor.yes"
+msgstr "Доповідачеві (доповідачці) менше 18 років"
+
+msgid "plugins.generic.conferenceManager.registration.guardian"
+msgstr "Згода батьків або законного представника"
+
+msgid "plugins.generic.conferenceManager.registration.guardian.description"
+msgstr "Якщо учасникові менше 18 років, реєстрацію завершує згода одного з батьків або законного представника. Ми зберігаємо лише мінімальні дані: ім'я, заклад, контакт."
+
+msgid "plugins.generic.conferenceManager.registration.guardian.agree"
+msgstr "Один із батьків або законний представник дає згоду на участь і обробку даних"
+
+msgid "plugins.generic.conferenceManager.registration.error.guardianRequired"
+msgstr "Для неповнолітнього учасника потрібна згода батьків або законного представника."
+
+msgid "plugins.generic.conferenceManager.listener.minor"
+msgstr "Мені менше 18 років"
+
+msgid "plugins.generic.conferenceManager.participants.minor"
+msgstr "неповнолітній"
+
+msgid "plugins.generic.conferenceManager.editions.proofs"
+msgstr "Квитанції"
+
+msgid "plugins.generic.conferenceManager.proof.title"
+msgstr "Квитанції про оплату"
+
+msgid "plugins.generic.conferenceManager.proof.status.pending"
+msgstr "Очікує перевірки"
+
+msgid "plugins.generic.conferenceManager.proof.status.accepted"
+msgstr "Прийнято"
+
+msgid "plugins.generic.conferenceManager.proof.status.rejected"
+msgstr "Відхилено"
+
+msgid "plugins.generic.conferenceManager.proof.emptyPending"
+msgstr "Нових квитанцій немає."
+
+msgid "plugins.generic.conferenceManager.proof.empty"
+msgstr "Квитанцій немає."
+
+msgid "plugins.generic.conferenceManager.proof.due"
+msgstr "До сплати"
+
+msgid "plugins.generic.conferenceManager.proof.file"
+msgstr "Файл"
+
+msgid "plugins.generic.conferenceManager.proof.duplicate"
+msgstr "Такий самий файл уже надсилали до іншого рахунку"
+
+msgid "plugins.generic.conferenceManager.proof.view"
+msgstr "Переглянути"
+
+msgid "plugins.generic.conferenceManager.proof.accept"
+msgstr "Прийняти"
+
+msgid "plugins.generic.conferenceManager.proof.reject"
+msgstr "Відхилити"
+
+msgid "plugins.generic.conferenceManager.proof.acceptDone"
+msgstr "Квитанцію прийнято, рахунок {$number} позначено як оплачений."
+
+msgid "plugins.generic.conferenceManager.proof.rejectPrompt"
+msgstr "Чому квитанцію відхилено? Платник побачить цей текст у листі й у кабінеті."
+
+msgid "plugins.generic.conferenceManager.proof.rejectDone"
+msgstr "Квитанцію відхилено, платнику надіслано лист."
+
+msgid "plugins.generic.conferenceManager.proof.paidNote"
+msgstr "За квитанцією №{$id}"
+
+msgid "plugins.generic.conferenceManager.proof.mine"
+msgstr "Надіслані квитанції"
+
+msgid "plugins.generic.conferenceManager.proof.noteFromManager"
+msgstr "Примітка менеджера"
+
+msgid "plugins.generic.conferenceManager.proof.upload"
+msgstr "Надіслати квитанцію або платіжне доручення"
+
+msgid "plugins.generic.conferenceManager.proof.uploadHint"
+msgstr "PDF, JPG або PNG, до 5 МБ. Менеджер перевірить оплату й надішле вам лист."
+
+msgid "plugins.generic.conferenceManager.proof.send"
+msgstr "Надіслати"
+
+msgid "plugins.generic.conferenceManager.proof.sent"
+msgstr "Квитанцію надіслано на перевірку."
+
+msgid "plugins.generic.conferenceManager.proof.duplicateWarning"
+msgstr "Увага: такий самий файл уже надсилали раніше. Якщо це помилка, надішліть правильну квитанцію."
+
+msgid "plugins.generic.conferenceManager.proof.error.empty"
+msgstr "Оберіть файл квитанції."
+
+msgid "plugins.generic.conferenceManager.proof.error.tooLarge"
+msgstr "Файл більший за 5 МБ."
+
+msgid "plugins.generic.conferenceManager.proof.error.type"
+msgstr "Можна надіслати лише PDF, JPG або PNG."
+
+msgid "plugins.generic.conferenceManager.proof.error.tooMany"
+msgstr "До цього рахунку вже надіслано забагато квитанцій. Дочекайтеся перевірки."
+
+msgid "plugins.generic.conferenceManager.proof.error.sameInvoice"
+msgstr "Цей файл уже надіслано до цього рахунку."
+
+msgid "plugins.generic.conferenceManager.proof.error.storage"
+msgstr "Не вдалося зберегти файл. Спробуйте пізніше або напишіть журналу."
+
+msgid "plugins.generic.conferenceManager.proof.error.notYours"
+msgstr "Рахунок не знайдено."
+
+msgid "plugins.generic.conferenceManager.proof.error.notPending"
+msgstr "Квитанцію вже перевірено або рахунок закрито."
+
+msgid "plugins.generic.conferenceManager.proof.error.noteRequired"
+msgstr "Напишіть причину відхилення."
+
+msgid "plugins.generic.conferenceManager.proof.error.statusFilter"
+msgstr "Невідомий стан квитанції."
+
+msgid "plugins.generic.conferenceManager.proof.mail.accepted.subject"
+msgstr "Оплату підтверджено: рахунок {$number}, {$edition}"
+
+msgid "plugins.generic.conferenceManager.proof.mail.accepted.body"
+msgstr "<p>Шановна/шановний {$name}!</p><p>Вашу квитанцію до рахунку {$number} ({$edition}) перевірено й прийнято. Стан рахунку: {$status}. Залишок до сплати: {$due}.</p><p>Подробиці в особистому кабінеті: <a href=\"{$url}\">{$url}</a></p><p>{$journal}</p>"
+
+msgid "plugins.generic.conferenceManager.proof.mail.rejected.subject"
+msgstr "Квитанцію не прийнято: рахунок {$number}, {$edition}"
+
+msgid "plugins.generic.conferenceManager.proof.mail.rejected.body"
+msgstr "<p>Шановна/шановний {$name}!</p><p>Вашу квитанцію до рахунку {$number} ({$edition}) не прийнято.</p><p>Причина: {$note}</p><p>До сплати: {$due}. Ви можете надіслати правильну квитанцію в особистому кабінеті: <a href=\"{$url}\">{$url}</a></p><p>{$journal}</p>"
+
+msgid "plugins.generic.conferenceManager.invoice.event.proof_uploaded"
+msgstr "надіслано квитанцію"
+
+msgid "plugins.generic.conferenceManager.invoice.event.proof_accepted"
+msgstr "квитанцію прийнято"
+
+msgid "plugins.generic.conferenceManager.invoice.event.proof_rejected"
+msgstr "квитанцію відхилено"
+
+msgid "plugins.generic.conferenceManager.journal.title"
+msgstr "Журнал платежів"
+
+msgid "plugins.generic.conferenceManager.journal.description"
+msgstr "Усі події рахунків заходу, від нових до старих. Записи журналу не змінюються й не видаляються."
+
+msgid "plugins.generic.conferenceManager.journal.empty"
+msgstr "Подій ще немає."
+
+msgid "plugins.generic.conferenceManager.journal.time"
+msgstr "Час (UTC)"
+
+msgid "plugins.generic.conferenceManager.journal.event"
+msgstr "Подія"
+
+msgid "plugins.generic.conferenceManager.journal.amount"
+msgstr "Сума"
+
+msgid "plugins.generic.conferenceManager.journal.note"
+msgstr "Примітка"
+
+msgid "plugins.generic.conferenceManager.participants.payment"
+msgstr "Оплата"
+
+msgid "plugins.generic.conferenceManager.participants.payment.paid"
+msgstr "Оплачено або звільнено"
+
+msgid "plugins.generic.conferenceManager.participants.payment.unpaid"
+msgstr "Очікує оплати"
+
+msgid "plugins.generic.conferenceManager.participants.payment.proof_pending"
+msgstr "Є квитанція на перевірці"
+
+msgid "plugins.generic.conferenceManager.participants.payment.none"
+msgstr "Без рахунку"
+
+msgid "plugins.generic.conferenceManager.proof.tab.pending"
+msgstr "Очікують перевірки"

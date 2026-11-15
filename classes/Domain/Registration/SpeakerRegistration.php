@@ -25,7 +25,22 @@ final class SpeakerRegistration
         public readonly ?DateTimeImmutable $registeredAt = null,
         /** participant category of the presenter (FEE-01) */
         public readonly ?int $categoryId = null,
+        /** the presenter is under 18 (EVT-04) */
+        public readonly bool $presenterMinor = false,
+        /** when the legal representative's consent was confirmed */
+        public readonly ?DateTimeImmutable $guardianConsentAt = null,
     ) {
+    }
+
+    public function needsGuardianConsent(): bool
+    {
+        return $this->presenterMinor && $this->guardianConsentAt === null;
+    }
+
+    private static function ticked(mixed $raw): bool
+    {
+        $raw = is_array($raw) ? ($raw[0] ?? false) : $raw;
+        return filter_var($raw, FILTER_VALIDATE_BOOLEAN);
     }
 
     public function hasConsent(): bool
@@ -77,11 +92,19 @@ final class SpeakerRegistration
                 $by = $userId;
             }
         }
-        return new self($this->submissionId, $editionId, $presentationType, $participationForm, $presenterEmail, $version, $at, $by, $this->registeredAt, $categoryId);
+        $minor = array_key_exists('presenterMinor', $input) ? self::ticked($input['presenterMinor']) : $this->presenterMinor;
+        $guardianAt = $this->guardianConsentAt;
+        if (array_key_exists('guardianConsent', $input)) {
+            $guardianAt = self::ticked($input['guardianConsent']) ? ($guardianAt ?? $now) : null;
+        }
+        if (!$minor) {
+            $guardianAt = null;
+        }
+        return new self($this->submissionId, $editionId, $presentationType, $participationForm, $presenterEmail, $version, $at, $by, $this->registeredAt, $categoryId, $minor, $guardianAt);
     }
 
     public function withRegisteredAt(DateTimeImmutable $at): self
     {
-        return new self($this->submissionId, $this->editionId, $this->presentationType, $this->participationForm, $this->presenterEmail, $this->consentVersion, $this->consentAt, $this->consentUserId, $at, $this->categoryId);
+        return new self($this->submissionId, $this->editionId, $this->presentationType, $this->participationForm, $this->presenterEmail, $this->consentVersion, $this->consentAt, $this->consentUserId, $at, $this->categoryId, $this->presenterMinor, $this->guardianConsentAt);
     }
 }

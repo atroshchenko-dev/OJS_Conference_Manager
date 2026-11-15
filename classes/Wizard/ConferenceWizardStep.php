@@ -153,6 +153,22 @@ final class ConferenceWizardStep
             'isRequired' => true,
             'showWhen' => F::FIELD_EDITION,
         ]));
+        // EVT-04: a presenter under 18 needs the legal representative's consent.
+        $form->addField(new FieldOptions(F::FIELD_MINOR, [
+            'label' => __(self::K . 'minor'),
+            'type' => 'checkbox',
+            'options' => [['value' => true, 'label' => __(self::K . 'minor.yes')]],
+            'value' => $registration->presenterMinor ? [true] : [],
+            'showWhen' => F::FIELD_EDITION,
+        ]));
+        $form->addField(new FieldOptions(F::FIELD_GUARDIAN, [
+            'label' => __(self::K . 'guardian'),
+            'description' => __(self::K . 'guardian.description'),
+            'type' => 'checkbox',
+            'options' => [['value' => true, 'label' => __(self::K . 'guardian.agree')]],
+            'value' => $registration->guardianConsentAt !== null ? [true] : [],
+            'showWhen' => F::FIELD_EDITION,
+        ]));
         $form->addField(new FieldOptions(F::FIELD_CONSENT, [
             'label' => __(self::K . 'consent'),
             'description' => $consent->text,

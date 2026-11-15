@@ -320,8 +320,70 @@ w="$(post "$api/invoices/$inv2/waive" '{"reason":"Член оргкомітет�
 [ "$(curl -s -b "$pj2" "$api/me/invoices" | j '[i["status"] for i in d["items"]]')" = "['waived', 'superseded']" ] || fail "waiver in the cabinet"
 [ "$(curl -s -b "$jar" "$api/editions/$pid/invoices?searchPhrase=payer2" | j 'd["itemsMax"]')" = 2 ] || fail "invoice search"
 [ "$(curl -s -b "$pj1" "$api/editions/$pid/invoices" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no invoice list"
-rm -f "$pj1" "$pj2" "$pdf"
 ok "part payment, payment, waiver, journal"
+
+# Receipts, review queue, payment journal, register filter (FEE-09, FEE-10, FEE-13).
+lc new-user confa payer3 payer3@example.org >/dev/null
+pj3="$(mktemp)"; login "$pj3" payer3
+ptok3="$(curl -s -L -c "$pj3" -b "$pj3" "$regp" | sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' | head -1)"
+cab3="$(curl -s -L -c "$pj3" -b "$pj3" "$regp" --data "csrfToken=$ptok3&categoryId=$other&participationForm=online&consent=1")"
+grep -q 'name="proof"' <<<"$cab3" || fail "FEE-09: upload form in the cabinet"
+inv3="$(curl -s -b "$pj3" "$api/me/invoices" | j 'd["items"][0]["id"]')"
+num3="$(curl -s -b "$pj3" "$api/me/invoices" | j 'd["items"][0]["number"]')"
+rcpt="$(mktemp --suffix=.pdf)"; printf '%%PDF-1.4\n%% receipt for %s\n%%%%EOF\n' "$num3" > "$rcpt"
+fake="$(mktemp --suffix=.pdf)"; printf '<html><script>alert(1)</script></html>' > "$fake"
+myurl="$B/confa/uk/conference/my"
+sent="$(curl -s -L -c "$pj3" -b "$pj3" "$myurl" -F "csrfToken=$ptok3" -F "invoiceId=$inv3" -F "proof=@$rcpt;type=application/pdf;filename=Квитанція.pdf")"
+grep -q 'cmInvoice__proof--pending' <<<"$sent" || fail "FEE-09: receipt sent from the cabinet: $(grep -o 'cmMy__message[^<]*<[^<]*' <<<"$sent" | head -2)"
+bad="$(curl -s -L -c "$pj3" -b "$pj3" "$myurl" -F "csrfToken=$ptok3" -F "invoiceId=$inv3" -F "proof=@$fake;type=application/pdf")"
+grep -q 'Можна надіслати лише' <<<"$bad" || fail "FEE-09: a file that is not PDF/JPG/PNG by content"
+p3csrf="$(curl -s -L -b "$pj3" "$myurl" | sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' | head -1)"
+[ "$(curl -s -b "$pj3" -H "X-Csrf-Token: $p3csrf" -F "file=@$rcpt" "$api/me/invoices/$inv3/proofs" -o /dev/null -w '%{http_code}')" = 400 ] || fail "the same file twice for one invoice"
+p2csrf="$(curl -s -L -b "$pj2" "$myurl" | sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' | head -1)"
+[ "$(curl -s -b "$pj2" -H "X-Csrf-Token: $p2csrf" -F "file=@$rcpt" "$api/me/invoices/$inv3/proofs" -o /dev/null -w '%{http_code}')" = 403 ] || fail "a receipt for another person's invoice"
+q="$(curl -s -b "$jar" "$api/proofs?status=pending&editionId=$pid")"
+[ "$(j 'd["itemsMax"], d["items"][0]["invoice"]["number"], d["items"][0]["name"], d["items"][0]["mime"]' <<<"$q")" = "(1, '$num3', 'Квитанція.pdf', 'application/pdf')" ] || fail "FEE-10 queue: $q"
+prid="$(j 'd["items"][0]["id"]' <<<"$q")"
+[ "$(curl -s -b "$pj3" "$api/proofs?status=pending" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no queue"
+[ "$(curl -s -L -b "$pj3" "$B/confa/uk/conference/receipt/$prid" -o /dev/null -w '%{http_code} %{content_type}')" = "200 application/pdf" ] || fail "own receipt"
+[ "$(curl -s -L -b "$pj2" "$B/confa/uk/conference/receipt/$prid" -o /dev/null -w '%{http_code}')" = 404 ] || fail "another person's receipt"
+curl -s -b "$jar" "$api/proofs/$prid/file" | grep -q "receipt for $num3" || fail "manager gets the receipt"
+fdir="$(docker exec "${OJS_CONTAINER:-ojs}" sh -c "sed -n 's/^files_dir *= *//p' /var/www/html/config.inc.php" | tr -d '\r')"
+stored="$(docker exec "${OJS_CONTAINER:-ojs}" sh -c "find '$fdir/conferenceManager/proofs' -type f | head -1")"
+[ -n "$stored" ] || fail "receipt in files_dir ($fdir)"
+case "$stored" in /var/www/html/*) fail "receipt inside the web root: $stored" ;; esac
+[ "$(curl -s "$B/${stored#/}" -o /dev/null -w '%{http_code}')" != 200 ] || fail "receipt reachable by a direct URL"
+[ "$(post "$api/proofs/$prid/reject" '{"note":""}' | tail -1)" = 400 ] || fail "rejection needs a note"
+rej="$(post "$api/proofs/$prid/reject" '{"note":"Сума не збігається"}')"
+[ "$(head -1 <<<"$rej" | j 'd["status"], d["note"]')" = "('rejected', 'Сума не збігається')" ] || fail "reject: $rej"
+[ "$(post "$api/proofs/$prid/accept" '{}' | tail -1)" = 409 ] || fail "a reviewed receipt cannot be accepted"
+grep -q 'Сума не збігається' <<<"$(curl -s -L -b "$pj3" "$myurl")" || fail "rejection note in the cabinet"
+if [ "$maillog" = 1 ]; then
+  docker logs "${OJS_CONTAINER:-ojs}" 2>&1 | grep -q 'Сума не збігається' || fail "FEE-10: rejection letter"
+fi
+up="$(curl -s -b "$pj3" -H "X-Csrf-Token: $p3csrf" -F "file=@$rcpt;filename=again.pdf" "$api/me/invoices/$inv3/proofs" -w '\n%{http_code}')"
+[ "$(tail -1 <<<"$up")" = 200 ] && [ "$(head -1 <<<"$up" | j 'd["warnings"]')" = "['duplicate']" ] || fail "re-upload after rejection with a duplicate warning: $up"
+prid2="$(head -1 <<<"$up" | j 'd["id"]')"
+[ "$(curl -s -b "$jar" "$api/editions/$pid/participants?payment=proof_pending" | j '[p["email"] for p in d["items"]]')" = "['payer3@example.org']" ] || fail "register filter: receipt awaiting review"
+acc3="$(post "$api/proofs/$prid2/accept" '{}')"
+[ "$(head -1 <<<"$acc3" | j 'd["status"], d["invoice"]["status"]')" = "('accepted', 'paid')" ] || fail "FEE-10 accept: $acc3"
+[ "$(curl -s -b "$jar" "$api/editions/$pid/participants?payment=paid" | j 'sorted(p["email"] for p in d["items"])')" = "['payer1@example.org', 'payer2@example.org', 'payer3@example.org']" ] || fail "register filter: paid"
+[ "$(curl -s -b "$jar" "$api/proofs?status=pending&editionId=$pid" | j 'd["itemsMax"]')" = 0 ] || fail "queue is empty"
+jr="$(curl -s -b "$jar" "$api/editions/$pid/payment-events?count=100")"
+[ "$(j '[e["type"] for e in d["items"] if e["invoiceId"] == '"$inv3"']' <<<"$jr")" = "['paid', 'proof_accepted', 'proof_uploaded', 'proof_rejected', 'proof_uploaded', 'issued']" ] || fail "FEE-13 journal: $jr"
+[ "$(curl -s -b "$jar" "$B/confb/api/v1/conference/editions/$pid/payment-events" -o /dev/null -w '%{http_code}')" = 404 ] || fail "journal context isolation"
+rm -f "$pj1" "$pj2" "$pj3" "$pdf" "$rcpt" "$fake"
+ok "receipts: upload, checks, private files, queue, reject, accept, journal, register filter"
+
+# EVT-04: a minor listener needs the guardian's consent.
+lc new-user confa pupil1 pupil1@example.org >/dev/null
+pj4="$(mktemp)"; login "$pj4" pupil1
+ptok4="$(curl -s -L -c "$pj4" -b "$pj4" "$regp" | sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' | head -1)"
+grep -q 'cmRegister__error' <<<"$(curl -s -L -c "$pj4" -b "$pj4" "$regp" --data "csrfToken=$ptok4&categoryId=$pstud&participationForm=online&consent=1&minor=1&position=учень")" || fail "EVT-04: guardian consent required"
+curl -s -L -c "$pj4" -b "$pj4" -o /dev/null "$regp" --data "csrfToken=$ptok4&categoryId=$pstud&participationForm=online&consent=1&minor=1&guardianConsent=1&position=учень"
+[ "$(curl -s -b "$jar" "$api/editions/$pid/participants?searchPhrase=pupil1" | j 'd["items"][0]["minor"], d["items"][0]["guardianConsentAt"] is not None, d["items"][0]["position"]')" = "(True, True, '')" ] || fail "EVT-04: minor in the register"
+rm -f "$pj4"
+ok "minor listener with guardian consent, no position stored"
 
 # FEE-04 after acceptance: the presenter of the last submission (edition listen-2027).
 post "$api/editions/$lid/payment-rules" '{"mode":"treasury_transfer","paymentAccountId":'"$acc"'}' >/dev/null

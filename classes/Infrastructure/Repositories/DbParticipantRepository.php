@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories;
 
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceStatus;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\ProofStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConfirmationStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantFilter;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRepository;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRole;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationForm;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationStatus;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\PaymentFilter;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\DateInput;
 use DateTimeImmutable;
 use Illuminate\Database\Connection;
@@ -24,10 +27,15 @@ final class DbParticipantRepository implements ParticipantRepository
     {
     }
 
-    public function addListener(int $contextId, int $editionId, array $person, ?int $categoryId, ParticipationForm $form, string $consentVersion, DateTimeImmutable $now): ?array
+    public function addListener(int $contextId, int $editionId, array $person, ?int $categoryId, ParticipationForm $form, string $consentVersion, DateTimeImmutable $now, bool $minor = false): ?array
     {
-        return $this->db->transaction(function () use ($contextId, $editionId, $person, $categoryId, $form, $consentVersion, $now): ?array {
+        return $this->db->transaction(function () use ($contextId, $editionId, $person, $categoryId, $form, $consentVersion, $now, $minor): ?array {
             $stamp = DateInput::toStorage($now);
+            // EVT-04: a minor keeps the minimum of data; the guardian consent is confirmed now.
+            $minorValues = $minor ? ['is_minor' => true, 'guardian_consent_at' => $stamp] : [];
+            if ($minor) {
+                $person['position'] = null;
+            }
             $email = mb_strtolower(trim($person['email']));
             $row = $this->db->table('conf_participants')->where('edition_id', $editionId)->where('email', $email)->lockForUpdate()->first();
             if ($row === null) {
@@ -47,7 +55,7 @@ final class DbParticipantRepository implements ParticipantRepository
                     'consent_at' => $stamp,
                     'created_at' => $stamp,
                     'updated_at' => $stamp,
-                ]);
+                ] + $minorValues);
             } else {
                 $participantId = (int) $row->id;
                 $active = $this->db->table('conf_participations')->where('participant_id', $participantId)
@@ -68,7 +76,7 @@ final class DbParticipantRepository implements ParticipantRepository
                     'consent_version' => $consentVersion,
                     'consent_at' => $stamp,
                     'updated_at' => $stamp,
-                ], static fn ($v): bool => $v !== null) + ['confirmation_token_hash' => null, 'confirmation_expires_at' => null]);
+                ], static fn ($v): bool => $v !== null) + ['confirmation_token_hash' => null, 'confirmation_expires_at' => null] + $minorValues);
             }
             foreach (['givenName' => $person['givenName'], 'familyName' => $person['familyName']] as $name => $values) {
                 foreach ($values as $locale => $value) {
@@ -181,6 +189,39 @@ final class DbParticipantRepository implements ParticipantRepository
         return $out;
     }
 
+    /**
+     * The current invoice of a participation: one with its item, or with
+     * the item of its submission when the participant is the payer.
+     */
+    private function paymentFilter(Builder $query, PaymentFilter $payment): void
+    {
+        $current = static function (Builder $s, array $statuses, bool $pendingProof = false): void {
+            $s->selectRaw('1')->from('conf_invoices as ci')
+                ->join('conf_invoice_items as cit', 'cit.invoice_id', '=', 'ci.id')
+                ->whereIn('ci.status', $statuses)
+                ->where(static function (Builder $w): void {
+                    $w->whereColumn('cit.participation_id', 'pn.id')
+                        ->orWhere(static function (Builder $x): void {
+                            $x->whereNotNull('pn.submission_id')->whereColumn('cit.submission_id', 'pn.submission_id')->whereColumn('ci.payer_participant_id', 'p.id');
+                        });
+                });
+            if ($pendingProof) {
+                $s->whereExists(static function (Builder $pr): void {
+                    $pr->selectRaw('1')->from('conf_payment_proofs as cpp')->whereColumn('cpp.invoice_id', 'ci.id')->where('cpp.review_status', ProofStatus::Pending->value);
+                });
+            }
+        };
+        $open = [InvoiceStatus::Draft->value, InvoiceStatus::Issued->value, InvoiceStatus::Overdue->value];
+        $settled = [InvoiceStatus::Paid->value, InvoiceStatus::Waived->value];
+        $all = array_values(array_filter(array_map(static fn (InvoiceStatus $s): string => $s->value, InvoiceStatus::cases()), static fn (string $v): bool => InvoiceStatus::from($v)->isCurrent()));
+        match ($payment) {
+            PaymentFilter::Paid => $query->whereExists(static fn (Builder $s) => $current($s, $settled))->whereNotExists(static fn (Builder $s) => $current($s, $open)),
+            PaymentFilter::Unpaid => $query->whereExists(static fn (Builder $s) => $current($s, $open)),
+            PaymentFilter::ProofPending => $query->whereExists(static fn (Builder $s) => $current($s, $open, true)),
+            PaymentFilter::None => $query->whereNotExists(static fn (Builder $s) => $current($s, $all)),
+        };
+    }
+
     public function register(int $contextId, int $editionId, ParticipantFilter $filter, string $locale): array
     {
         $query = $this->db->table('conf_participations as pn')
@@ -197,6 +238,9 @@ final class DbParticipantRepository implements ParticipantRepository
         }
         if ($filter->confirmation !== null) {
             $query->where('p.confirmation_status', $filter->confirmation->value);
+        }
+        if ($filter->payment !== null) {
+            $this->paymentFilter($query, $filter->payment);
         }
         $search = trim($filter->search);
         if ($search !== '') {
@@ -216,7 +260,7 @@ final class DbParticipantRepository implements ParticipantRepository
         $rows = $query->orderBy('p.id')->orderBy('pn.id')
             ->limit($filter->limit())->offset(max(0, $filter->offset))
             ->get(['pn.id as participation_id', 'p.id as participant_id', 'p.email', 'p.affiliation', 'p.position', 'p.country',
-                'p.category_id', 'p.confirmation_status', 'p.user_id', 'pn.role', 'pn.status', 'pn.participation_form', 'pn.submission_id', 'pn.created_at'])->all();
+                'p.category_id', 'p.confirmation_status', 'p.user_id', 'p.is_minor', 'p.guardian_consent_at', 'pn.role', 'pn.status', 'pn.participation_form', 'pn.submission_id', 'pn.created_at'])->all();
         $names = $this->names(array_map(static fn (object $r): int => (int) $r->participant_id, $rows), $locale);
         $items = array_map(static fn (object $r): array => [
             'participationId' => (int) $r->participation_id,
@@ -229,6 +273,8 @@ final class DbParticipantRepository implements ParticipantRepository
             'categoryId' => $r->category_id === null ? null : (int) $r->category_id,
             'confirmationStatus' => (string) $r->confirmation_status,
             'hasAccount' => $r->user_id !== null,
+            'minor' => (bool) $r->is_minor,
+            'guardianConsentAt' => DateInput::toIsoUtc(DateInput::fromStorage($r->guardian_consent_at === null ? null : (string) $r->guardian_consent_at)),
             'role' => (string) $r->role,
             'status' => (string) $r->status,
             'participationForm' => (string) $r->participation_form,

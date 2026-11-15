@@ -41,6 +41,8 @@ final class DbRegistrationRepository implements RegistrationRepository
             $row->consent_user_id === null ? null : (int) $row->consent_user_id,
             DateInput::fromStorage($row->registered_at === null ? null : (string) $row->registered_at),
             isset($row->category_id) ? (int) $row->category_id : null,
+            !empty($row->presenter_minor),
+            DateInput::fromStorage(isset($row->guardian_consent_at) ? (string) $row->guardian_consent_at : null),
         );
     }
 
@@ -57,6 +59,8 @@ final class DbRegistrationRepository implements RegistrationRepository
             'consent_user_id' => $registration->consentUserId,
             'registered_at' => DateInput::toStorage($registration->registeredAt),
             'category_id' => $registration->categoryId,
+            'presenter_minor' => $registration->presenterMinor,
+            'guardian_consent_at' => DateInput::toStorage($registration->guardianConsentAt),
             'updated_at' => $now,
         ];
         $table = 'conf_submission_registrations';
@@ -149,6 +153,15 @@ final class DbRegistrationRepository implements RegistrationRepository
     public function setParticipantCategory(int $participantId, int $categoryId): void
     {
         $this->db->table('conf_participants')->where('id', $participantId)->update(['category_id' => $categoryId, 'updated_at' => gmdate('Y-m-d H:i:s')]);
+    }
+
+    public function setParticipantMinor(int $participantId, ?DateTimeImmutable $guardianConsentAt): void
+    {
+        $this->db->table('conf_participants')->where('id', $participantId)->update([
+            'is_minor' => true,
+            'guardian_consent_at' => DateInput::toStorage($guardianConsentAt),
+            'updated_at' => gmdate('Y-m-d H:i:s'),
+        ]);
     }
 
     public function setConfirmationToken(int $participantId, string $hash, DateTimeImmutable $expiresAt): void

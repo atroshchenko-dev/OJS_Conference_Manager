@@ -378,7 +378,7 @@
 				items: [],
 				itemsMax: 0,
 				categories: [],
-				filter: { searchPhrase: '', role: '', categoryId: '', status: '', confirmation: '' },
+				filter: { searchPhrase: '', role: '', categoryId: '', status: '', confirmation: '', payment: '' },
 				page: 1,
 				perPage: 50,
 			};
@@ -483,6 +483,7 @@
 		<label class="cmEditions__filter">{{ t(\'participants.role\') }}<select class="pkpFormField__input" v-model="filter.role" @change="search"><option value="">{{ t(\'participants.all\') }}</option><option v-for="o in options.roles" :key="o.value" :value="o.value">{{ o.label }}</option></select></label>\
 		<label class="cmEditions__filter">{{ t(\'participants.category\') }}<select class="pkpFormField__input" v-model="filter.categoryId" @change="search"><option value="">{{ t(\'participants.all\') }}</option><option value="0">{{ t(\'participants.noCategory\') }}</option><option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option></select></label>\
 		<label class="cmEditions__filter">{{ t(\'participants.confirmation\') }}<select class="pkpFormField__input" v-model="filter.confirmation" @change="search"><option value="">{{ t(\'participants.all\') }}</option><option v-for="o in options.confirmations" :key="o.value" :value="o.value">{{ o.label }}</option></select></label>\
+		<label class="cmEditions__filter">{{ t(\'participants.payment\') }}<select class="pkpFormField__input" v-model="filter.payment" @change="search"><option value="">{{ t(\'participants.all\') }}</option><option v-for="o in (options.payments || [])" :key="o.value" :value="o.value">{{ o.label }}</option></select></label>\
 		<label class="cmEditions__filter">{{ t(\'participants.status\') }}<select class="pkpFormField__input" v-model="filter.status" @change="search"><option value="">{{ t(\'participants.all\') }}</option><option v-for="o in options.statuses" :key="o.value" :value="o.value">{{ o.label }}</option></select></label>\
 		<pkp-button @click="search">{{ t(\'participants.find\') }}</pkp-button>\
 		<a class="pkpButton" :href="exportUrl">{{ t(\'participants.export\') }}</a>\
@@ -494,7 +495,7 @@
 	<table class="cmEditions__table">\
 		<thead><tr><th>{{ t(\'participants.name\') }}</th><th>{{ t(\'participants.role\') }}</th><th>{{ t(\'participants.category\') }}</th><th>{{ t(\'participants.confirmation\') }}</th><th>{{ t(\'participants.status\') }}</th><th></th></tr></thead>\
 		<tbody><tr v-for="p in items" :key="p.participationId" :class="{ \'cmParticipants__row--cancelled\': p.status === \'cancelled\' }">\
-			<td><strong>{{ p.name || p.email }}</strong><div class="cmEditions__path">{{ p.email }}</div><div class="cmEditions__path" v-if="p.affiliation">{{ p.affiliation }}<template v-if="p.position">, {{ p.position }}</template></div></td>\
+			<td><strong>{{ p.name || p.email }}</strong><div class="cmEditions__path">{{ p.email }}</div><div class="cmEditions__path" v-if="p.affiliation">{{ p.affiliation }}<template v-if="p.position">, {{ p.position }}</template></div><div class="cmEditions__path" v-if="p.minor"><span class="cmBadge">{{ t(\'participants.minor\') }}</span></div></td>\
 			<td>{{ p.roleLabel }}<div class="cmEditions__path">{{ p.formLabel }}<template v-if="p.submissionId"> · #{{ p.submissionId }}</template></div></td>\
 			<td><select class="pkpFormField__input" :value="p.categoryId === null ? \'\' : p.categoryId" @change="setCategory(p, $event.target.value)" :aria-label="t(\'participants.category\')"><option value="">—</option><option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option></select></td>\
 			<td>{{ p.confirmationLabel }}</td>\

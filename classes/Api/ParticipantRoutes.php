@@ -10,6 +10,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Registration\Confirmati
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantFilter;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRole;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationStatus;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\PaymentFilter;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Http\JsonResponse;
@@ -145,6 +146,7 @@ final class ParticipantRoutes implements RouteModule
             mb_substr(trim((string) $r->query('searchPhrase', '')), 0, 100),
             (int) $r->query('count', '20'),
             (int) $r->query('offset', '0'),
+            PaymentFilter::tryFrom((string) $r->query('payment', '')),
         );
     }
 }

@@ -35,6 +35,9 @@ interface RegistrationRepository
 
     public function setParticipantCategory(int $participantId, int $categoryId): void;
 
+    /** EVT-04: the participant is under 18, with the legal representative's consent. */
+    public function setParticipantMinor(int $participantId, ?DateTimeImmutable $guardianConsentAt): void;
+
     public function setConfirmationToken(int $participantId, string $hash, DateTimeImmutable $expiresAt): void;
 
     /**

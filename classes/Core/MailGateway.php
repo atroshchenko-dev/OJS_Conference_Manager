@@ -9,6 +9,7 @@ use APP\plugins\generic\conferenceManager\classes\Application\ConfirmationReques
 use APP\plugins\generic\conferenceManager\classes\Application\ContextInfo;
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceNotifier;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantNotifier;
+use APP\plugins\generic\conferenceManager\classes\Application\ProofNotifier;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Invoice;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\LocalizedText;
 use APP\plugins\generic\conferenceManager\classes\Pages\ConferencePageHandler;
@@ -20,7 +21,7 @@ use PKP\mail\Mailable;
  * Letters of the plugin through the OJS mailer, from the journal's
  * contact address, in the journal's primary language.
  */
-final class MailGateway implements ParticipantNotifier, InvoiceNotifier
+final class MailGateway implements ParticipantNotifier, InvoiceNotifier, ProofNotifier
 {
     private const K = 'plugins.generic.conferenceManager.registration.mail.';
 
@@ -92,6 +93,38 @@ final class MailGateway implements ParticipantNotifier, InvoiceNotifier
             ->to($email, $name !== '' ? $name : null)
             ->subject(__('plugins.generic.conferenceManager.invoice.mail.subject', ['edition' => (string) $presented['editionName'], 'number' => (string) $invoice->number], $locale))
             ->body(__('plugins.generic.conferenceManager.invoice.mail.body', $params, $locale));
+        Mail::send($mailable);
+    }
+
+    public function proofReviewed(ContextInfo $context, Invoice $invoice, array $presented, bool $accepted, ?string $note): void
+    {
+        $email = (string) ($invoice->payer['email'] ?? '');
+        $journal = Application::getContextDAO()->getById($context->id);
+        if ($email === '' || !$journal instanceof Context) {
+            return;
+        }
+        $locale = $context->primaryLocale;
+        $httpRequest = Application::get()->getRequest();
+        $url = $httpRequest->getDispatcher()->url($httpRequest, Application::ROUTE_PAGE, $journal->getPath(), ConferencePageHandler::PAGE, 'my');
+        $name = (string) ($invoice->payer['name'] ?? '');
+        $due = (array) $presented['due'];
+        $params = [
+            'name' => htmlspecialchars($name !== '' ? $name : $email),
+            'edition' => htmlspecialchars((string) $presented['editionName']),
+            'number' => htmlspecialchars((string) $invoice->number),
+            'status' => htmlspecialchars((string) $presented['statusLabel']),
+            'due' => htmlspecialchars($due['decimal'] . ' ' . $due['currency']),
+            'note' => nl2br(htmlspecialchars((string) $note)),
+            'url' => htmlspecialchars($url),
+            'journal' => htmlspecialchars((string) $journal->getLocalizedData('name', $locale)),
+        ];
+        $kind = $accepted ? 'accepted' : 'rejected';
+        $mailable = new Mailable();
+        $mailable
+            ->from((string) $journal->getData('contactEmail'), (string) $journal->getData('contactName'))
+            ->to($email, $name !== '' ? $name : null)
+            ->subject(__('plugins.generic.conferenceManager.proof.mail.' . $kind . '.subject', ['edition' => (string) $presented['editionName'], 'number' => (string) $invoice->number], $locale))
+            ->body(__('plugins.generic.conferenceManager.proof.mail.' . $kind . '.body', $params, $locale));
         Mail::send($mailable);
     }
 }

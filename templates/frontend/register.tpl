@@ -61,6 +61,15 @@
 			</div>
 
 			<div class="cmRegister__field">
+				<label class="cmRegister__choice"><input type="checkbox" name="minor" value="1" {if $registerValues.minor}checked{/if}> {translate key="plugins.generic.conferenceManager.listener.minor"}</label>
+				<div class="cmRegister__guardian">
+					<p class="cmRegister__hint">{translate key="plugins.generic.conferenceManager.registration.guardian.description"}</p>
+					<label class="cmRegister__choice"><input type="checkbox" name="guardianConsent" value="1" {if $registerValues.guardianConsent}checked{/if}> {translate key="plugins.generic.conferenceManager.registration.guardian.agree"}</label>
+					{foreach from=$registerErrors.guardianConsent|default:[] item=e}<p class="cmRegister__error">{$e|escape}</p>{/foreach}
+				</div>
+			</div>
+
+			<div class="cmRegister__field">
 				<p class="cmRegister__consentText">{$consentHtml}</p>
 				<label class="cmRegister__choice"><input type="checkbox" name="consent" value="1" required {if $registerValues.consent}checked{/if}> {translate key="plugins.generic.conferenceManager.registration.consent.agree"}</label>
 				{foreach from=$registerErrors.consent|default:[] item=e}<p class="cmRegister__error">{$e|escape}</p>{/foreach}

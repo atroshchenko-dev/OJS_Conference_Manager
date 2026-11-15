@@ -222,6 +222,8 @@ class ConferencePageHandler extends Handler
             'affiliation' => mb_substr(trim((string) ($request->isPost() ? $request->getUserVar('affiliation') : ($person['affiliation'] ?? ''))), 0, 255),
             'position' => mb_substr(trim((string) $request->getUserVar('position')), 0, 255),
             'consent' => (bool) $request->getUserVar('consent'),
+            'minor' => (bool) $request->getUserVar('minor'),
+            'guardianConsent' => (bool) $request->getUserVar('guardianConsent'),
         ];
         if ($request->isPost()) {
             if (!$request->checkCSRF()) {
@@ -307,6 +309,11 @@ class ConferencePageHandler extends Handler
         if ($request->isPost()) {
             if (!$request->checkCSRF()) {
                 $message = ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.confirm.retry')];
+            } elseif ($request->getUserVar('invoiceId')) {
+                $message = $this->uploadProof($info, (int) $request->getUserVar('invoiceId'), (int) $user->getId(), $email, $now, $locale);
+                if ($message['type'] === 'status') {
+                    $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my', null, ['proof' => $message['duplicate'] ? 'duplicate' : 'sent']));
+                }
             } else {
                 $out = $service->cancel($info, (int) $request->getUserVar('participationId'), (int) $user->getId(), $email, false, $now, $request->getRemoteAddr());
                 if ($out['result'] === ParticipantService::CANCELLED) {
@@ -316,6 +323,9 @@ class ConferencePageHandler extends Handler
             }
         } elseif ($request->getUserVar('cancelled')) {
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.participation.cancelled')];
+        } elseif ($request->getUserVar('proof')) {
+            $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.proof.sent')
+                . ($request->getUserVar('proof') === 'duplicate' ? ' ' . __('plugins.generic.conferenceManager.proof.duplicateWarning') : '')];
         }
 
         $items = [];
@@ -328,7 +338,12 @@ class ConferencePageHandler extends Handler
         }
 
         $invoices = [];
-        foreach (ServiceFactory::invoices()->mine($info, (int) $user->getId(), $email, $locale) as $i) {
+        $proofs = ServiceFactory::proofs();
+        foreach ($proofs->withProofs($info, ServiceFactory::invoices()->mine($info, (int) $user->getId(), $email, $locale), $locale) as $i) {
+            $i['proofs'] = array_map(fn (array $p): array => $p + [
+                'url' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'receipt', [(string) $p['id']]),
+                'uploadedAtText' => $this->formatDate($p['uploadedAt'] === null ? null : new DateTimeImmutable((string) $p['uploadedAt']), (string) $i['timezone'], $locale),
+            ], $i['proofs']);
             $invoices[] = $i + [
                 'pdfUrl' => $i['hasDocument'] ? $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'invoice', [(string) $i['id']]) : null,
                 'issuedAtText' => $this->formatDate($i['issuedAt'] === null ? null : new DateTimeImmutable((string) $i['issuedAt']), (string) $i['timezone'], $locale),
@@ -349,6 +364,62 @@ class ConferencePageHandler extends Handler
             'pageTitle' => 'plugins.generic.conferenceManager.my.title',
         ]);
         return $templateMgr->display($this->plugin->getTemplateResource('frontend/my.tpl'));
+    }
+
+    /**
+     * Saves the receipt sent from the cabinet form (FEE-09).
+     *
+     * @return array{type: string, text: string, duplicate: bool}
+     */
+    private function uploadProof(\APP\plugins\generic\conferenceManager\classes\Application\ContextInfo $info, int $invoiceId, int $userId, string $email, DateTimeImmutable $now, string $locale): array
+    {
+        $file = $_FILES['proof'] ?? null;
+        $error = is_array($file) ? (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) : UPLOAD_ERR_NO_FILE;
+        $tmp = is_array($file) ? (string) ($file['tmp_name'] ?? '') : '';
+        if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+            return ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.proof.error.tooLarge'), 'duplicate' => false];
+        }
+        if ($error !== UPLOAD_ERR_OK || $tmp === '' || !is_uploaded_file($tmp)) {
+            return ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.proof.error.empty'), 'duplicate' => false];
+        }
+        $out = ServiceFactory::proofs()->upload($info, $invoiceId, $userId, $email, $tmp, (string) ($file['name'] ?? ''), $now, $locale);
+        if ($out === null) {
+            return ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.proof.error.notYours'), 'duplicate' => false];
+        }
+        [$proof, $errors, $warnings] = $out;
+        if ($proof === null) {
+            $keys = array_merge(...array_values($errors->toArray()));
+            return ['type' => 'alert', 'text' => implode(' ', array_map(static fn (string $k): string => __($k), $keys)), 'duplicate' => false];
+        }
+        return ['type' => 'status', 'text' => '', 'duplicate' => in_array('duplicate', $warnings, true)];
+    }
+
+    /**
+     * A receipt file (FEE-09) for its payer or a registration manager. The
+     * file itself lives outside the web root.
+     */
+    public function receipt($args, $request)
+    {
+        $context = $request->getContext();
+        $user = $request->getUser();
+        if ($context === null || $user === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $info = ContextGateway::fromContext($context);
+        $manager = (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId());
+        $file = ServiceFactory::proofs()->file($info, (int) ($args[0] ?? 0), $manager ? null : [(int) $user->getId(), (string) $user->getEmail()]);
+        if ($file === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $ascii = (string) preg_replace('/[^A-Za-z0-9._-]+/', '_', $file['name']);
+        header('Content-Type: ' . $file['mime']);
+        header('Content-Disposition: inline; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($file['name']));
+        header('Content-Length: ' . strlen($file['content']));
+        header('X-Content-Type-Options: nosniff');
+        header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox");
+        header('Cache-Control: private, no-store');
+        echo $file['content'];
+        exit;
     }
 
     /**

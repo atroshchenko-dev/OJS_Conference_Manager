@@ -9,6 +9,8 @@
 	}
 	var CONSENT = 'conferenceConsent';
 	var EDITION = 'conferenceEditionId';
+	var MINOR = 'conferencePresenterMinor';
+	var GUARDIAN = 'conferenceGuardianConsent';
 
 	function isEmpty(value) {
 		return value === null || value === undefined || value === '' || (Array.isArray(value) && !value.length);
@@ -32,8 +34,12 @@
 				var fields = (section && section.form && section.form.fields) || [];
 				var edition = fields.find(function (f) { return f.name === EDITION; });
 				var hasEdition = edition && !isEmpty(edition.value);
+				var minor = fields.find(function (f) { return f.name === MINOR; });
+				var isMinor = minor && !isEmpty(minor.value);
 				return fields
 					.filter(function (f) { return f.component !== 'field-html' && (f.name === EDITION || hasEdition); })
+					// EVT-04: shown only for a presenter under 18, or when OJS reports an error.
+					.filter(function (f) { return (f.name !== MINOR && f.name !== GUARDIAN) || isMinor || ((self.errors || {})[f.name] || []).length; })
 					.map(function (f) {
 						var display;
 						if (f.name === CONSENT) {

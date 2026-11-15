@@ -4,6 +4,8 @@
  *
  *   ConferencePaymentSettings  rules "category → payment mode", invoice templates
  *   ConferenceInvoicesList     invoices with payment, waiver and cancellation
+ *   ConferenceProofQueue       receipts to review: view, accept, reject (FEE-10)
+ *   ConferencePaymentJournal   the payment journal of the edition (FEE-13)
  *
  * Amounts go to the server as decimal strings; nothing here computes money.
  *
@@ -58,6 +60,9 @@
 			},
 			money: function (m) {
 				return m ? m.decimal + ' ' + m.currency : '';
+			},
+			time: function (iso) {
+				return iso ? String(iso).replace('T', ' ').slice(0, 16) + ' UTC' : '';
 			},
 		},
 	};
@@ -272,11 +277,15 @@
 				page: 1,
 				perPage: 50,
 				opened: null,
+				showJournal: false,
 			};
 		},
 		computed: {
 			pages: function () {
 				return Math.max(1, Math.ceil(this.itemsMax / this.perPage));
+			},
+			journalUrl: function () {
+				return this.apiUrl.replace(/invoices$/, 'payment-events');
 			},
 		},
 		mounted: function () {
@@ -363,8 +372,9 @@
 <div class="cmEditions cmInvoices">\
 	<div class="cmEditions__toolbar">\
 		<h2 class="cmFees__title">{{ t(\'invoice.title\') }}: {{ editionName }}</h2>\
-		<pkp-button @click="$emit(\'back\')">{{ t(\'back\') }}</pkp-button>\
+		<span><pkp-button :is-active="showJournal" @click="showJournal = !showJournal">{{ t(\'journal.title\') }}</pkp-button> <pkp-button @click="$emit(\'back\')">{{ t(\'back\') }}</pkp-button></span>\
 	</div>\
+	<conference-payment-journal v-if="showJournal" :api-url="journalUrl" :csrf-token="csrfToken" :i18n="i18n"></conference-payment-journal>\
 	<form class="cmEditions__toolbar cmParticipants__filters" @submit.prevent="search">\
 		<label class="cmEditions__filter">{{ t(\'invoice.search\') }}<input class="pkpFormField__input" type="search" v-model="filter.searchPhrase" maxlength="100"></label>\
 		<label class="cmEditions__filter">{{ t(\'participants.status\') }}<select class="pkpFormField__input" v-model="filter.status" @change="search"><option value="">{{ t(\'participants.all\') }}</option><option v-for="o in statuses" :key="o.value" :value="o.value">{{ o.label }}</option></select></label>\
@@ -390,6 +400,186 @@
 				<pkp-button @click="toggle(i)">{{ t(\'invoice.history\') }}</pkp-button>\
 			</td>\
 		</tr><tr v-if="opened && opened.id === i.id"><td colspan="6"><ul class="cmInvoices__events"><li v-for="(e, n) in opened.events" :key="n"><code>{{ e.createdAt }}</code> {{ t(\'invoice.event.\' + e.type) }}<template v-if="e.amount"> · {{ money(e.amount) }}</template><template v-if="e.payload && e.payload.note"> · {{ e.payload.note }}</template></li></ul></td></tr></template></tbody>\
+	</table>\
+	<div class="cmEditions__buttons" v-if="pages > 1">\
+		<pkp-button :disabled="page <= 1" @click="go(page - 1)">‹</pkp-button>\
+		<span>{{ t(\'participants.page\', { page: page, pages: pages }) }}</span>\
+		<pkp-button :disabled="page >= pages" @click="go(page + 1)">›</pkp-button>\
+	</div>\
+	</template>\
+</div>',
+	});
+	pkp.registry.registerComponent('ConferenceProofQueue', {
+		name: 'ConferenceProofQueue',
+		mixins: [common],
+		props: {
+			apiUrl: { type: String, required: true },
+			editionId: { type: Number, required: true },
+			fileUrl: { type: String, required: true },
+			editionName: { type: String, default: '' },
+			csrfToken: { type: String, required: true },
+			i18n: { type: Object, required: true },
+		},
+		emits: ['back'],
+		data: function () {
+			return { isLoading: true, items: [], itemsMax: 0, status: 'pending', page: 1, perPage: 30, busy: 0 };
+		},
+		computed: {
+			pages: function () {
+				return Math.max(1, Math.ceil(this.itemsMax / this.perPage));
+			},
+		},
+		mounted: function () {
+			this.load();
+		},
+		methods: {
+			load: function () {
+				var self = this;
+				var q = 'editionId=' + self.editionId + '&status=' + encodeURIComponent(self.status) + '&count=' + self.perPage + '&offset=' + (self.page - 1) * self.perPage;
+				self.isLoading = true;
+				self.api('GET', self.apiUrl + '?' + q).then(function (r) {
+					self.isLoading = false;
+					if (!r.ok) {
+						notify(firstError(r.data), 'warning');
+						return;
+					}
+					self.items = r.data.items || [];
+					self.itemsMax = r.data.itemsMax || 0;
+				});
+			},
+			show: function (status) {
+				this.status = status;
+				this.page = 1;
+				this.load();
+			},
+			go: function (page) {
+				this.page = Math.min(this.pages, Math.max(1, page));
+				this.load();
+			},
+			file: function (p) {
+				return this.fileUrl.replace('__id__', p.id);
+			},
+			size: function (bytes) {
+				return bytes >= 1048576 ? (bytes / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB';
+			},
+			after: function (r, message) {
+				this.busy = 0;
+				if (r.ok) {
+					notify(message);
+					this.load();
+				} else {
+					notify(firstError(r.data), 'warning');
+				}
+			},
+			accept: function (p) {
+				var self = this;
+				self.busy = p.id;
+				self.api('POST', self.apiUrl + '/' + p.id + '/accept', {}).then(function (r) { self.after(r, self.t('proof.acceptDone', { number: p.invoice.number || p.invoice.id })); });
+			},
+			reject: function (p) {
+				var self = this;
+				var note = window.prompt(self.t('proof.rejectPrompt'));
+				if (note === null) {
+					return;
+				}
+				self.busy = p.id;
+				self.api('POST', self.apiUrl + '/' + p.id + '/reject', { note: note }).then(function (r) { self.after(r, self.t('proof.rejectDone')); });
+			},
+		},
+		template: '\
+<div class="cmEditions cmInvoices cmProofs">\
+	<div class="cmEditions__toolbar">\
+		<h2 class="cmFees__title">{{ t(\'proof.title\') }}: {{ editionName }}</h2>\
+		<pkp-button @click="$emit(\'back\')">{{ t(\'back\') }}</pkp-button>\
+	</div>\
+	<div class="cmProofs__tabs" role="group">\
+		<pkp-button :is-active="status === \'pending\'" @click="show(\'pending\')">{{ t(\'proof.tab.pending\') }}</pkp-button>\
+		<pkp-button :is-active="status === \'accepted\'" @click="show(\'accepted\')">{{ t(\'proof.status.accepted\') }}</pkp-button>\
+		<pkp-button :is-active="status === \'rejected\'" @click="show(\'rejected\')">{{ t(\'proof.status.rejected\') }}</pkp-button>\
+		<pkp-button :is-active="status === \'all\'" @click="show(\'all\')">{{ t(\'participants.all\') }}</pkp-button>\
+	</div>\
+	<div v-if="isLoading" class="cmEditions__loading"><spinner></spinner> {{ t(\'loading\') }}</div>\
+	<p v-else-if="!items.length" class="cmEditions__empty">{{ status === \'pending\' ? t(\'proof.emptyPending\') : t(\'proof.empty\') }}</p>\
+	<template v-else>\
+	<p class="cmEditions__note" role="status">{{ t(\'participants.count\', { count: itemsMax }) }}</p>\
+	<table class="cmEditions__table">\
+		<thead><tr><th>{{ t(\'invoice.number\') }}</th><th>{{ t(\'invoice.payer\') }}</th><th>{{ t(\'proof.due\') }}</th><th>{{ t(\'proof.file\') }}</th><th>{{ t(\'participants.status\') }}</th><th></th></tr></thead>\
+		<tbody><tr v-for="p in items" :key="p.id">\
+			<td><strong>{{ p.invoice.number }}</strong><div class="cmEditions__path" v-if="p.invoice.paymentReference">{{ p.invoice.paymentReference }}</div></td>\
+			<td>{{ p.invoice.payer.name || p.invoice.payer.email }}<div class="cmEditions__path">{{ p.invoice.payer.email }}</div></td>\
+			<td>{{ money(p.invoice.due) }}<div class="cmEditions__path">{{ t(\'invoice.total\') }}: {{ money(p.invoice.total) }}</div></td>\
+			<td><a :href="file(p)" target="_blank" rel="noopener">{{ p.name }}</a><div class="cmEditions__path">{{ size(p.size) }} · {{ time(p.uploadedAt) }}</div><div v-if="p.duplicateOf && p.duplicateOf.length" class="cmBadge">{{ t(\'proof.duplicate\') }}</div></td>\
+			<td>{{ p.statusLabel }}<div class="cmEditions__path" v-if="p.note">{{ p.note }}</div><div class="cmEditions__path" v-if="p.status === \'pending\'">{{ p.invoice.statusLabel }}</div></td>\
+			<td class="cmEditions__actions">\
+				<a class="pkpButton" :href="file(p)" target="_blank" rel="noopener">{{ t(\'proof.view\') }}</a>\
+				<pkp-button v-if="p.status === \'pending\' && p.invoice.isOpen" :disabled="busy === p.id" @click="accept(p)">{{ t(\'proof.accept\') }}</pkp-button>\
+				<pkp-button v-if="p.status === \'pending\'" :is-warnable="true" :disabled="busy === p.id" @click="reject(p)">{{ t(\'proof.reject\') }}</pkp-button>\
+			</td>\
+		</tr></tbody>\
+	</table>\
+	<div class="cmEditions__buttons" v-if="pages > 1">\
+		<pkp-button :disabled="page <= 1" @click="go(page - 1)">‹</pkp-button>\
+		<span>{{ t(\'participants.page\', { page: page, pages: pages }) }}</span>\
+		<pkp-button :disabled="page >= pages" @click="go(page + 1)">›</pkp-button>\
+	</div>\
+	</template>\
+</div>',
+	});
+
+	pkp.registry.registerComponent('ConferencePaymentJournal', {
+		name: 'ConferencePaymentJournal',
+		mixins: [common],
+		props: {
+			apiUrl: { type: String, required: true },
+			csrfToken: { type: String, required: true },
+			i18n: { type: Object, required: true },
+		},
+		data: function () {
+			return { isLoading: true, items: [], itemsMax: 0, page: 1, perPage: 20 };
+		},
+		computed: {
+			pages: function () {
+				return Math.max(1, Math.ceil(this.itemsMax / this.perPage));
+			},
+		},
+		mounted: function () {
+			this.load();
+		},
+		methods: {
+			load: function () {
+				var self = this;
+				self.isLoading = true;
+				self.api('GET', self.apiUrl + '?count=' + self.perPage + '&offset=' + (self.page - 1) * self.perPage).then(function (r) {
+					self.isLoading = false;
+					if (!r.ok) {
+						notify(firstError(r.data), 'warning');
+						return;
+					}
+					self.items = r.data.items || [];
+					self.itemsMax = r.data.itemsMax || 0;
+				});
+			},
+			go: function (page) {
+				this.page = Math.min(this.pages, Math.max(1, page));
+				this.load();
+			},
+		},
+		template: '\
+<div class="cmJournal">\
+	<h3 class="cmFees__title">{{ t(\'journal.title\') }}</h3>\
+	<p class="cmEditions__note">{{ t(\'journal.description\') }}</p>\
+	<div v-if="isLoading" class="cmEditions__loading"><spinner></spinner> {{ t(\'loading\') }}</div>\
+	<p v-else-if="!items.length" class="cmEditions__empty">{{ t(\'journal.empty\') }}</p>\
+	<template v-else>\
+	<table class="cmEditions__table">\
+		<thead><tr><th>{{ t(\'journal.time\') }}</th><th>{{ t(\'invoice.number\') }}</th><th>{{ t(\'journal.event\') }}</th><th>{{ t(\'journal.amount\') }}</th><th>{{ t(\'journal.note\') }}</th></tr></thead>\
+		<tbody><tr v-for="e in items" :key="e.id">\
+			<td class="cmJournal__time">{{ time(e.createdAt) }}</td>\
+			<td class="cmJournal__time">{{ e.invoiceNumber || (\'#\' + e.invoiceId) }}</td>\
+			<td>{{ e.typeLabel }}</td>\
+			<td class="cmJournal__time">{{ money(e.amount) }}</td>\
+			<td>{{ e.note }}</td>\
+		</tr></tbody>\
 	</table>\
 	<div class="cmEditions__buttons" v-if="pages > 1">\
 		<pkp-button :disabled="page <= 1" @click="go(page - 1)">‹</pkp-button>\

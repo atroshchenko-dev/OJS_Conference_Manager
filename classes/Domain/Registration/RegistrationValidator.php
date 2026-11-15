@@ -24,6 +24,8 @@ final class RegistrationValidator
     public const FIELD_PRESENTER = 'conferencePresenterEmail';
     public const FIELD_CONSENT = 'conferenceConsent';
     public const FIELD_CATEGORY = 'conferenceFeeCategory';
+    public const FIELD_MINOR = 'conferencePresenterMinor';
+    public const FIELD_GUARDIAN = 'conferenceGuardianConsent';
 
     /**
      * @param list<AuthorInfo> $authors authors of the current publication
@@ -67,6 +69,9 @@ final class RegistrationValidator
             $errors->add(self::FIELD_PRESENTER, self::K . 'required');
         } elseif (!in_array($registration->presenterEmail, $emails, true)) {
             $errors->add(self::FIELD_PRESENTER, self::K . 'presenterNotAuthor');
+        }
+        if ($registration->needsGuardianConsent()) {
+            $errors->add(self::FIELD_GUARDIAN, self::K . 'guardianRequired');
         }
         if (!$registration->hasConsent()) {
             $errors->add(self::FIELD_CONSENT, self::K . 'consentRequired');

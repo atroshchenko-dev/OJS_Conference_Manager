@@ -11,6 +11,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Institution\PaymentAcco
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentMode;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\PaymentRule;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\ProofStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\ValidationErrors;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -39,6 +40,11 @@ use PKP\security\Role;
  * POST   invoices/{iid}/paid                         {amount, note}; less than due = part payment
  * POST   invoices/{iid}/waive                        {reason}
  * POST   invoices/{iid}/cancel
+ * GET    editions/{id}/payment-events?count&offset  the payment journal (FEE-13)
+ * GET    proofs?status=pending&editionId&count&offset  receipts to review (FEE-10)
+ * GET    proofs/{prid}/file                          the receipt file
+ * POST   proofs/{prid}/accept                        {amount}; empty = what is due
+ * POST   proofs/{prid}/reject                        {note}
  */
 final class InvoiceRoutes implements RouteModule
 {
@@ -68,6 +74,11 @@ final class InvoiceRoutes implements RouteModule
         Route::post('invoices/{invoiceId}/paid', $this->markInvoicePaid(...))->name('conference.invoices.paid')->whereNumber('invoiceId');
         Route::post('invoices/{invoiceId}/waive', $this->waiveInvoice(...))->name('conference.invoices.waive')->whereNumber('invoiceId');
         Route::post('invoices/{invoiceId}/cancel', $this->cancelInvoice(...))->name('conference.invoices.cancel')->whereNumber('invoiceId');
+        Route::get('editions/{editionId}/payment-events', $this->getPaymentJournal(...))->name('conference.payments.journal')->whereNumber('editionId');
+        Route::get('proofs', $this->getProofs(...))->name('conference.proofs.list');
+        Route::get('proofs/{proofId}/file', $this->getProofFile(...))->name('conference.proofs.file')->whereNumber('proofId');
+        Route::post('proofs/{proofId}/accept', $this->acceptProof(...))->name('conference.proofs.accept')->whereNumber('proofId');
+        Route::post('proofs/{proofId}/reject', $this->rejectProof(...))->name('conference.proofs.reject')->whereNumber('proofId');
     }
 
     private function isManager(): bool
@@ -310,6 +321,100 @@ final class InvoiceRoutes implements RouteModule
         }
         $errors = ServiceFactory::invoices()->cancel($this->api->contextInfo(), (int) $r->route('invoiceId'), $this->api->actorId(), self::now());
         return $this->statusResult($r, $errors);
+    }
+
+    public function getPaymentJournal(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $page = ServiceFactory::proofs()->journal($this->api->contextInfo(), (int) $r->route('editionId'), (int) $r->query('count', '50'), (int) $r->query('offset', '0'), \PKP\facades\Locale::getLocale());
+        return $page === null ? ConferenceApiController::notFound() : response()->json($page, Response::HTTP_OK);
+    }
+
+    public function getProofs(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $status = $r->query('status', 'pending');
+        $status = $status === 'all' ? null : ProofStatus::tryFrom((string) $status);
+        if ($status === null && $r->query('status', 'pending') !== 'all') {
+            $errors = new ValidationErrors();
+            $errors->add('status', 'plugins.generic.conferenceManager.proof.error.statusFilter');
+            return ConferenceApiController::errorResponse($errors, Response::HTTP_BAD_REQUEST);
+        }
+        $edition = $r->query('editionId');
+        $page = ServiceFactory::proofs()->queue(
+            $this->api->contextInfo(),
+            $edition === null || $edition === '' ? null : (int) $edition,
+            $status,
+            (int) $r->query('count', '30'),
+            (int) $r->query('offset', '0'),
+            \PKP\facades\Locale::getLocale(),
+        );
+        return response()->json($page, Response::HTTP_OK);
+    }
+
+    public function getProofFile(Request $r): Response|JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        return self::proofFileResponse($this->api, (int) $r->route('proofId'), null);
+    }
+
+    /**
+     * The receipt for a manager, or for the payer when $payer = [userId, email].
+     *
+     * @param array{0: ?int, 1: string}|null $payer
+     */
+    public static function proofFileResponse(ConferenceApiController $api, int $proofId, ?array $payer): Response|JsonResponse
+    {
+        $file = ServiceFactory::proofs()->file($api->contextInfo(), $proofId, $payer);
+        if ($file === null) {
+            return ConferenceApiController::notFound();
+        }
+        $ascii = (string) preg_replace('/[^A-Za-z0-9._-]+/', '_', $file['name']);
+        return new Response($file['content'], Response::HTTP_OK, [
+            'Content-Type' => $file['mime'],
+            'Content-Disposition' => 'inline; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($file['name']),
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
+    public function acceptProof(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $amount = $r->input('amount');
+        $errors = ServiceFactory::proofs()->accept($this->api->contextInfo(), (int) $r->route('proofId'), $amount === null ? null : (string) $amount, $this->api->actorId(), self::now());
+        return $this->proofResult((int) $r->route('proofId'), $errors);
+    }
+
+    public function rejectProof(Request $r): JsonResponse
+    {
+        if (!$this->api->canManageRegistrations()) {
+            return ConferenceApiController::forbidden();
+        }
+        $note = $r->input('note');
+        $errors = ServiceFactory::proofs()->reject($this->api->contextInfo(), (int) $r->route('proofId'), is_string($note) ? $note : '', $this->api->actorId(), self::now());
+        return $this->proofResult((int) $r->route('proofId'), $errors);
+    }
+
+    private function proofResult(int $proofId, ?ValidationErrors $errors): JsonResponse
+    {
+        if ($errors === null) {
+            return ConferenceApiController::notFound();
+        }
+        if (!$errors->isEmpty()) {
+            return ConferenceApiController::errorResponse($errors, $errors->has('status') ? Response::HTTP_CONFLICT : Response::HTTP_BAD_REQUEST);
+        }
+        $proof = ServiceFactory::proofs()->get($this->api->contextInfo(), $proofId, \PKP\facades\Locale::getLocale());
+        return $proof === null ? ConferenceApiController::notFound() : response()->json($proof, Response::HTTP_OK);
     }
 
     private function statusResult(Request $r, ?ValidationErrors $errors): JsonResponse
