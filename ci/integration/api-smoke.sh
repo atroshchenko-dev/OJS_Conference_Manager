@@ -636,11 +636,11 @@ grep -qi 'content-type: application/pdf' /tmp/cm-ch.txt && [ "$(head -c 4 "$cpdf
 pdfinfo "$cpdf" 2>/dev/null | grep -q 'Page size: *841.89 x 595.28' || fail "A4 landscape: $(pdfinfo "$cpdf" 2>&1 | grep -i size)"
 [ -n "${CM_SHOTS:-}" ] && cp "$cpdf" "$CM_SHOTS/certificate.pdf"
 [ "$(curl -s -L -b "$pj4" "$B/confa/uk/conference/certificate/$cert" -o /dev/null -w '%{http_code}')" = 404 ] || fail "a stranger cannot download the certificate"
-vpage="$(curl -s "$vurl")"
+vpage="$(curl -s -L "$vurl")"
 grep -q "$cnum" <<<"$vpage" && grep -q 'cmVerify--valid' <<<"$vpage" || fail "CRT-07 public check: $(sed 's/<[^>]*>/ /g' <<<"$vpage" | tr -s ' \n' | head -c 400)"
-[ "$(curl -s "${vurl%/*}/00000000-0000-4000-8000-000000000000" -o /dev/null -w '%{http_code}')" = 404 ] || fail "unknown code"
+[ "$(curl -s -L "${vurl%/*}/00000000-0000-4000-8000-000000000000" -o /dev/null -w '%{http_code}')" = 404 ] || fail "unknown code"
 lim=""
-for k in $(seq 1 31); do lim="$(curl -s "${vurl%/*}/00000000-0000-4000-8000-00000000000$((k % 10))" -o /dev/null -w '%{http_code}')"; done
+for k in $(seq 1 31); do lim="$(curl -s -L "${vurl%/*}/00000000-0000-4000-8000-00000000000$((k % 10))" -o /dev/null -w '%{http_code}')"; done
 [ "$lim" = 429 ] || fail "CRT-07 rate limit: $lim"
 ok "CRT-04/05 issue with numbers $cnum…, PDF A4 landscape, access; CRT-07 public check with QR link and rate limit"
 

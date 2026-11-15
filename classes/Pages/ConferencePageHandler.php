@@ -519,12 +519,12 @@ class ConferencePageHandler extends Handler
             if ($limiter->tooManyAttempts($key, 30)) {
                 $limited = true;
                 header('Retry-After: ' . $limiter->availableIn($key));
-                http_response_code(429);
+                self::status(429);
             } else {
                 $limiter->hit($key, 60);
                 $result = ServiceFactory::certificates()->verify($code, Locale::getLocale());
                 if ($result === null) {
-                    http_response_code(404);
+                    self::status(404);
                 }
             }
         }
@@ -540,6 +540,16 @@ class ConferencePageHandler extends Handler
             'pageTitle' => 'plugins.generic.conferenceManager.verify.title',
         ]);
         return $templateMgr->display($this->plugin->getTemplateResource('frontend/verify.tpl'));
+    }
+
+    /**
+     * The status of a page response. OJS sends its cookies with the status
+     * of the Laravel response object, so both are set.
+     */
+    private static function status(int $code): void
+    {
+        http_response_code($code);
+        app()->get(\Illuminate\Http\Response::class)->setStatusCode($code);
     }
 
     /** @return list<int> */
