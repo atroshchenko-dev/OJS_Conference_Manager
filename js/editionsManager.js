@@ -135,6 +135,10 @@
 				this.selected = edition;
 				this.view = 'invoices';
 			},
+			openDecisions: function (edition) {
+				this.selected = edition;
+				this.view = 'decisions';
+			},
 			openProofs: function (edition) {
 				this.selected = edition;
 				this.view = 'proofs';
@@ -388,6 +392,7 @@
 						<pkp-button v-if="canEditEditions" @click="openPayments(e)">{{ t(\'payments\') }}</pkp-button>\
 						<pkp-button @click="openInvoices(e)">{{ t(\'invoices\') }}</pkp-button>\
 						<pkp-button @click="openProofs(e)">{{ t(\'proofs\') }}</pkp-button>\
+						<pkp-button v-if="canEditEditions && e.submissionMode !== \'none\'" @click="openDecisions(e)">{{ t(\'decisions\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions" @click="copy(e)">{{ t(\'copy\') }}</pkp-button>\
 						<a class="pkpButton" :href="publicLink(e)" target="_blank" rel="noopener">{{ t(\'publicPage\') }}</a>\
 						<pkp-button v-if="canEditEditions" :is-warnable="true" @click="remove(e)">{{ t(\'delete\') }}</pkp-button>\
@@ -400,6 +405,7 @@
 	<conference-participants-register v-else-if="view === \'participants\'" :api-url="apiUrl + \'/\' + selected.id + \'/participants\'" :cancel-url="apiUrl.replace(/editions$/, \'participations\')" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :primary-locale="primaryLocale" :ui-locale="uiLocale" :options="participantOptions" :i18n="i18n" @back="backToList"></conference-participants-register>\
 	<conference-payment-settings v-else-if="view === \'payments\'" :api-url="apiUrl + \'/\' + selected.id + \'/payment-rules\'" :templates-url="apiUrl.replace(/editions$/, \'invoice-templates\')" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :i18n="i18n" @back="backToList"></conference-payment-settings>\
 	<conference-proof-queue v-else-if="view === \'proofs\'" :api-url="apiUrl.replace(/editions$/, \'proofs\')" :edition-id="selected.id" :file-url="proofFileUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-proof-queue>\
+	<conference-bulk-decisions v-else-if="view === \'decisions\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :edition-id="selected.id" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :presentation-types="options.presentationTypes || []" :i18n="i18n" @back="backToList"></conference-bulk-decisions>\
 	<conference-invoices-list v-else-if="view === \'invoices\'" :api-url="apiUrl + \'/\' + selected.id + \'/invoices\'" :invoice-api-url="apiUrl.replace(/editions$/, \'invoices\')" :pdf-url="invoicePdfUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-invoices-list>\
 	<form v-else class="cmEditions__form" @submit.prevent="save" novalidate>\
 		<div v-if="errorCount" class="cmEditions__errors" role="alert">\

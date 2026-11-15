@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace APP\plugins\generic\conferenceManager\classes\Core;
 
+use APP\plugins\generic\conferenceManager\classes\Application\BulkDecisionService;
 use APP\plugins\generic\conferenceManager\classes\Application\ContextInfo;
+use APP\plugins\generic\conferenceManager\classes\Application\DecisionService;
 use APP\plugins\generic\conferenceManager\classes\Application\EditionService;
 use APP\plugins\generic\conferenceManager\classes\Application\FeeService;
 use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfileService;
@@ -17,6 +19,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ConsentTex
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Files\LocalProofStore;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Queries\UpcomingEditionsQuery;
+use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbDecisionBatchRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbFeeRepository;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbInstitutionRepository;
@@ -127,6 +130,36 @@ final class ServiceFactory
             new LocalProofStore($files === '' ? '' : rtrim($files, '/') . '/conferenceManager/proofs'),
             new MailGateway(),
             new AuditLogger(DB::connection()),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
+        );
+    }
+
+    public static function decisions(): DecisionService
+    {
+        $db = DB::connection();
+        return new DecisionService(
+            new DbRegistrationRepository($db),
+            new DbEditionRepository($db),
+            new EditorialGateway(),
+            self::invoices(),
+            self::proofs(),
+            new MailGateway(),
+            new AuditLogger($db),
+            static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
+        );
+    }
+
+    public static function bulkDecisions(): BulkDecisionService
+    {
+        $db = DB::connection();
+        return new BulkDecisionService(
+            new DbDecisionBatchRepository($db),
+            new DbRegistrationRepository($db),
+            new DbEditionRepository($db),
+            new EditorialGateway(),
+            new OjsDecisionRecorder(),
+            new OjsDecisionQueue(),
+            new AuditLogger($db),
             static fn (string $key, array $params, string $locale): string => __($key, $params, $locale),
         );
     }

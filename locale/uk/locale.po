@@ -1667,3 +1667,231 @@ msgstr "Без рахунку"
 
 msgid "plugins.generic.conferenceManager.proof.tab.pending"
 msgstr "Очікують перевірки"
+
+msgid "plugins.generic.conferenceManager.decision.accept.oral"
+msgstr "Прийняти: усна доповідь"
+
+msgid "plugins.generic.conferenceManager.decision.accept.poster"
+msgstr "Прийняти: стендова доповідь"
+
+msgid "plugins.generic.conferenceManager.decision.accept.online"
+msgstr "Прийняти: онлайн-доповідь"
+
+msgid "plugins.generic.conferenceManager.decision.accept.absentee"
+msgstr "Прийняти: заочна участь (лише публікація)"
+
+msgid "plugins.generic.conferenceManager.decision.accept.description"
+msgstr "Прийняти тези як «{$type}» без рецензування й передати подання на літературне редагування. Автори отримають лист, подання буде включено до випуску заходу, а доповідачеві буде виставлено рахунок, якщо участь платна."
+
+msgid "plugins.generic.conferenceManager.decision.accept.log.oral"
+msgstr "{$editorName}: тези прийнято як усну доповідь, подання передано на літературне редагування."
+
+msgid "plugins.generic.conferenceManager.decision.accept.log.poster"
+msgstr "{$editorName}: тези прийнято як стендову доповідь, подання передано на літературне редагування."
+
+msgid "plugins.generic.conferenceManager.decision.accept.log.online"
+msgstr "{$editorName}: тези прийнято як онлайн-доповідь, подання передано на літературне редагування."
+
+msgid "plugins.generic.conferenceManager.decision.accept.log.absentee"
+msgstr "{$editorName}: тези прийнято для заочної участі, подання передано на літературне редагування."
+
+msgid "plugins.generic.conferenceManager.decision.accept.completed"
+msgstr "Тези прийнято"
+
+msgid "plugins.generic.conferenceManager.decision.accept.completed.description"
+msgstr "Тези «{$title}» прийнято як «{$type}» і передано на літературне редагування."
+
+msgid "plugins.generic.conferenceManager.decision.accept.notifyAuthorsDescription"
+msgstr "Надішліть авторам лист про рішення. Текст можна змінити перед надсиланням; шаблон листа редагується в налаштуваннях журналу, у розділі листів."
+
+msgid "plugins.generic.conferenceManager.decision.decline"
+msgstr "Відхилити"
+
+msgid "plugins.generic.conferenceManager.decision.error.type"
+msgstr "Оберіть тип виступу зі списку."
+
+msgid "plugins.generic.conferenceManager.decision.error.notAccepted"
+msgstr "Тип виступу можна змінити лише після рішення про прийняття, на етапах редагування й виробництва."
+
+msgid "plugins.generic.conferenceManager.decision.error.decision"
+msgstr "Для масового режиму доступні лише рішення «Прийняти» з типом виступу й «Відхилити»."
+
+msgid "plugins.generic.conferenceManager.decision.error.none"
+msgstr "Оберіть хоча б одне подання."
+
+msgid "plugins.generic.conferenceManager.decision.error.tooMany"
+msgstr "За один раз можна ухвалити рішення щодо щонайбільше 200 подань."
+
+msgid "plugins.generic.conferenceManager.decision.error.notCandidate"
+msgstr "Деякі з обраних подань уже не чекають рішення або вам недоступні. Оновіть список."
+
+msgid "plugins.generic.conferenceManager.decision.error.noEdition"
+msgstr "Це рішення можна ухвалити лише для подання, прив'язаного до заходу."
+
+msgid "plugins.generic.conferenceManager.decision.bulk.status.pending"
+msgstr "У черзі"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.status.running"
+msgstr "Виконується"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.status.done"
+msgstr "Готово"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.status.failed"
+msgstr "Помилка"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.title"
+msgstr "Рішення щодо тез"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.description"
+msgstr "Тут подання цього заходу, які чекають першого рішення. Позначте потрібні, оберіть рішення й запустіть: кожен автор отримає окремий лист за шаблоном журналу. За один раз до {$max} подань."
+
+msgid "plugins.generic.conferenceManager.decision.bulk.progress"
+msgstr "виконано {$done} з {$total}"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.failedCount"
+msgstr "з помилкою: {$count}"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.finished"
+msgstr "завершено"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.search"
+msgstr "Пошук за назвою, автором або номером"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.type"
+msgstr "Бажаний тип виступу"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.anyType"
+msgstr "Будь-який"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.section"
+msgstr "Секція"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.anySection"
+msgstr "Усі секції"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.find"
+msgstr "Знайти"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.selected"
+msgstr "Обрано: {$count}"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.decision"
+msgstr "Рішення"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.choose"
+msgstr "Оберіть рішення"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.run"
+msgstr "Ухвалити рішення"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.confirm"
+msgstr "Ухвалити рішення «{$decision}» щодо {$count} подань? Кожен автор отримає лист. Скасувати це не можна."
+
+msgid "plugins.generic.conferenceManager.decision.bulk.tooMany"
+msgstr "Обрано забагато: за один раз до {$max} подань."
+
+msgid "plugins.generic.conferenceManager.decision.bulk.empty"
+msgstr "Немає подань, які чекають рішення."
+
+msgid "plugins.generic.conferenceManager.decision.bulk.selectAll"
+msgstr "Обрати всі"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.column.title"
+msgstr "Назва й автори"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.column.section"
+msgstr "Секція"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.column.type"
+msgstr "Бажаний тип"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.runs"
+msgstr "Останні запуски"
+
+msgid "plugins.generic.conferenceManager.editions.decisions"
+msgstr "Рішення"
+
+msgid "plugins.generic.conferenceManager.mailable.accept.oral.name"
+msgstr "Рішення: прийнято, усна доповідь"
+
+msgid "plugins.generic.conferenceManager.mailable.accept.poster.name"
+msgstr "Рішення: прийнято, стендова доповідь"
+
+msgid "plugins.generic.conferenceManager.mailable.accept.online.name"
+msgstr "Рішення: прийнято, онлайн-доповідь"
+
+msgid "plugins.generic.conferenceManager.mailable.accept.absentee.name"
+msgstr "Рішення: прийнято, заочна участь"
+
+msgid "plugins.generic.conferenceManager.mailable.accept.description"
+msgstr "Лист авторам після рішення про прийняття тез із певним типом виступу (плагін конференцій)."
+
+msgid "plugins.generic.conferenceManager.mailable.typeChanged.name"
+msgstr "Змінено тип виступу"
+
+msgid "plugins.generic.conferenceManager.mailable.typeChanged.description"
+msgstr "Лист авторам, коли редактор змінює тип виступу після рішення (плагін конференцій)."
+
+msgid "plugins.generic.conferenceManager.mailable.variable.conferenceName"
+msgstr "Назва заходу"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.presentationType"
+msgstr "Тип виступу"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.oldPresentationType"
+msgstr "Попередній тип виступу"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.cabinetUrl"
+msgstr "Посилання на кабінет учасника"
+
+msgid "plugins.generic.conferenceManager.panel.title"
+msgstr "Участь у заході"
+
+msgid "plugins.generic.conferenceManager.panel.edition"
+msgstr "Захід"
+
+msgid "plugins.generic.conferenceManager.panel.type"
+msgstr "Тип виступу"
+
+msgid "plugins.generic.conferenceManager.panel.type.none"
+msgstr "не вказано"
+
+msgid "plugins.generic.conferenceManager.panel.changeType"
+msgstr "Змінити тип виступу"
+
+msgid "plugins.generic.conferenceManager.panel.changeType.save"
+msgstr "Змінити"
+
+msgid "plugins.generic.conferenceManager.panel.changeType.done"
+msgstr "Тип виступу змінено, автори отримали лист."
+
+msgid "plugins.generic.conferenceManager.panel.participants"
+msgstr "Учасники"
+
+msgid "plugins.generic.conferenceManager.panel.invoice"
+msgstr "Рахунок"
+
+msgid "plugins.generic.conferenceManager.panel.invoice.none"
+msgstr "Рахунку немає"
+
+msgid "plugins.generic.conferenceManager.panel.proof"
+msgstr "Квитанція"
+
+msgid "plugins.generic.conferenceManager.panel.proof.none"
+msgstr "не надсилали"
+
+msgid "plugins.generic.conferenceManager.panel.minor"
+msgstr "до 18 років"
+
+msgid "plugins.generic.conferenceManager.panel.notRegistered"
+msgstr "анкету не заповнено"
+
+msgid "plugins.generic.conferenceManager.panel.paid"
+msgstr "Сплачено"
+
+msgid "plugins.generic.conferenceManager.panel.due"
+msgstr "До сплати"
+
+msgid "plugins.generic.conferenceManager.panel.error"
+msgstr "Не вдалося зберегти. Спробуйте ще раз."

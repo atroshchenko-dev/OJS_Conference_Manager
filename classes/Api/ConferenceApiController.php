@@ -33,7 +33,7 @@ class ConferenceApiController extends PKPBaseController
      */
     public function __construct(?array $modules = null)
     {
-        $this->modules = $modules ?? [new InstitutionRoutes($this), new EditionRoutes($this), new FeeRoutes($this), new RegistrationRoutes($this), new ParticipantRoutes($this), new InvoiceRoutes($this), new MyParticipationRoutes($this)];
+        $this->modules = $modules ?? [new InstitutionRoutes($this), new EditionRoutes($this), new FeeRoutes($this), new RegistrationRoutes($this), new ParticipantRoutes($this), new InvoiceRoutes($this), new MyParticipationRoutes($this), new DecisionRoutes($this)];
     }
 
     public function getHandlerPath(): string
@@ -51,7 +51,7 @@ class ConferenceApiController extends PKPBaseController
     {
         $this->addPolicy(new ContextAccessPolicy($request, $roleAssignments));
         $action = static::getRouteActionName($args[0] ?? null);
-        if (in_array($action, RegistrationRoutes::SUBMISSION_ACTIONS, true)) {
+        if (in_array($action, [...RegistrationRoutes::SUBMISSION_ACTIONS, ...DecisionRoutes::SUBMISSION_ACTIONS], true)) {
             // The author of the submission or an editor with access to it.
             $this->addPolicy(new SubmissionAccessPolicy($request, $args, $roleAssignments));
         }

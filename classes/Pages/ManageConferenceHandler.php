@@ -20,6 +20,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Registration\Confirmati
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRole;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\PaymentFilter;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\PresentationType;
 use APP\plugins\generic\conferenceManager\ConferenceManagerPlugin;
 use APP\template\TemplateManager;
 use PKP\security\authorization\ContextAccessPolicy;
@@ -62,6 +63,11 @@ class ManageConferenceHandler extends Handler
         'proof.due', 'proof.file', 'proof.duplicate', 'proof.view', 'proof.accept', 'proof.reject', 'proof.acceptDone', 'proof.rejectPrompt',
         'proof.rejectDone',
         'journal.title', 'journal.description', 'journal.empty', 'journal.time', 'journal.event', 'journal.amount', 'journal.note',
+        'decision.bulk.title', 'decision.bulk.description', 'decision.bulk.progress', 'decision.bulk.failedCount', 'decision.bulk.finished',
+        'decision.bulk.search', 'decision.bulk.type', 'decision.bulk.anyType', 'decision.bulk.section', 'decision.bulk.anySection',
+        'decision.bulk.find', 'decision.bulk.selected', 'decision.bulk.decision', 'decision.bulk.choose', 'decision.bulk.run',
+        'decision.bulk.confirm', 'decision.bulk.tooMany', 'decision.bulk.empty', 'decision.bulk.selectAll', 'decision.bulk.column.title',
+        'decision.bulk.column.section', 'decision.bulk.column.type', 'decision.bulk.runs',
     ];
 
     /** @var bool */
@@ -109,6 +115,7 @@ class ManageConferenceHandler extends Handler
         $templateMgr->addJavaScript('conferenceEditionsManager', $base . '/js/editionsManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferenceParticipantsManager', $base . '/js/participantsManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferenceInvoicesManager', $base . '/js/invoicesManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
+        $templateMgr->addJavaScript('conferenceDecisionsManager', $base . '/js/decisionsManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addStyleSheet('conferenceEditionsManager', $base . '/css/editionsManager.css', ['contexts' => 'backend']);
 
         $names = $context->getSupportedFormLocaleNames();
@@ -151,6 +158,7 @@ class ManageConferenceHandler extends Handler
                 'publicationModes' => $choices(PublicationMode::cases()),
                 'formats' => $choices(EventFormat::cases()),
                 'reviewModes' => $choices(ReviewMode::cases()),
+                'presentationTypes' => $choices(PresentationType::cases()),
             ],
             'i18n' => self::strings(),
             'canEditEditions' => $isManager,
@@ -198,7 +206,7 @@ class ManageConferenceHandler extends Handler
             'field.startsAt', 'field.endsAt', 'field.cfpOpensAt', 'field.abstractDeadline', 'field.paperDeadline',
             'field.registrationClosesAt', 'field.paymentDeadline', 'field.dates.description',
             'field.isbn', 'field.udc', 'field.vectorProgramId', 'field.hours', 'field.ects',
-            'column.dates', 'column.status', 'column.type', 'submissionsOpen', 'submissionsClosed', 'fees', 'participants', 'payments', 'invoices', 'proofs', 'back',
+            'column.dates', 'column.status', 'column.type', 'submissionsOpen', 'submissionsClosed', 'fees', 'participants', 'payments', 'invoices', 'proofs', 'decisions', 'back',
         ] as $key) {
             $out[$key] = __('plugins.generic.conferenceManager.editions.' . $key);
         }

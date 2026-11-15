@@ -27,9 +27,19 @@ final class DbRegistrationRepository implements RegistrationRepository
     public function findBySubmission(int $submissionId): ?SpeakerRegistration
     {
         $row = $this->db->table('conf_submission_registrations')->where('submission_id', $submissionId)->first();
-        if ($row === null) {
-            return null;
-        }
+        return $row === null ? null : self::hydrate($row);
+    }
+
+    public function registeredOfEdition(int $editionId): array
+    {
+        return array_map(
+            static fn (object $r): SpeakerRegistration => self::hydrate($r),
+            $this->db->table('conf_submission_registrations')->where('edition_id', $editionId)->whereNotNull('registered_at')->orderBy('submission_id')->get()->all(),
+        );
+    }
+
+    private static function hydrate(object $row): SpeakerRegistration
+    {
         return new SpeakerRegistration(
             (int) $row->submission_id,
             $row->edition_id === null ? null : (int) $row->edition_id,

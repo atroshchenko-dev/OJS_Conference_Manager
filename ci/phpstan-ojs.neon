@@ -13,3 +13,6 @@ parameters:
     excludePaths:
         analyseAndScan:
             - ../vendor
+    ignoreErrors:
+        # Eloquent query scopes of PKP models (scopeWithSubmissionIds…) are resolved by __callStatic.
+        - '#^Call to an undefined static method PKP\\stageAssignment\\StageAssignment::with[A-Za-z]+\(\)\.$#'

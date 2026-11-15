@@ -17,6 +17,9 @@
  *   php lifecycle.php enable-site                           site level ("Upcoming events", EDN-08)
  *   php lifecycle.php run-windows-task                      EDN-03 scheduled task, once
  *   php lifecycle.php next-numbers <contextPath> <year> <n> FEE-05: n invoice numbers, one transaction each
+ *   php lifecycle.php clone-abstracts <contextPath> <submissionId> <n> <authorUserId>  DEC-03: n submitted copies of an abstract
+ *   php lifecycle.php assign-author <contextPath> <submissionId> <userId>
+ *   php lifecycle.php email-log <submissionId> <templateKey>
  *
  * install / upgrade call the same PluginHelper methods as the upload form
  * of the plugin grid. upgrade loads the plugin first, exactly like the
@@ -55,6 +58,9 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'new-token' => $this->newToken($this->argv[1], $this->argv[2]),
                 'new-user' => $this->newUser($this->argv[1], $this->argv[2], $this->argv[3]),
                 'next-numbers' => $this->nextNumbers($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
+                'assign-author' => $this->assignAuthor($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
+                'email-log' => $this->emailLog((int) $this->argv[1], $this->argv[2]),
+                'clone-abstracts' => $this->cloneAbstracts($this->argv[1], (int) $this->argv[2], (int) $this->argv[3], (int) $this->argv[4]),
                 'seed-participants' => $this->seedParticipants($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
@@ -242,6 +248,82 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
             ->where('role_id', \PKP\security\Role::ROLE_ID_READER)->orderBy('user_group_id')->value('user_group_id');
         \APP\facades\Repo::userGroup()->assignUserToGroup($id, (int) $group);
         echo $id, "\n";
+    }
+
+    /**
+     * n submitted abstracts like the given one (same edition, questionnaire,
+     * section), each with its own author assigned to the given user, so
+     * that a bulk decision sends n letters. Prints the new ids on one line.
+     */
+    private function cloneAbstracts(string $path, int $sourceId, int $n, int $authorUserId): void
+    {
+        PluginRegistry::loadCategory('generic', true);
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $source = \APP\facades\Repo::submission()->get($sourceId) ?? throw new RuntimeException('no submission');
+        $sp = $source->getCurrentPublication();
+        $reg = DB::table('conf_submission_registrations')->where('submission_id', $sourceId)->first() ?? throw new RuntimeException('no questionnaire');
+        $authorGroup = (int) DB::table('user_groups')->where('context_id', $context->getId())
+            ->where('role_id', \PKP\security\Role::ROLE_ID_AUTHOR)->orderBy('user_group_id')->value('user_group_id');
+        $info = \APP\plugins\generic\conferenceManager\classes\Core\ContextGateway::fromContext($context);
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $ids = [];
+        for ($i = 1; $i <= $n; $i++) {
+            $submission = \APP\facades\Repo::submission()->newDataObject([
+                'contextId' => $context->getId(), 'locale' => 'uk', 'stageId' => WORKFLOW_STAGE_ID_SUBMISSION,
+                'status' => \APP\submission\Submission::STATUS_QUEUED, 'submissionProgress' => '',
+                'dateSubmitted' => \PKP\core\Core::getCurrentDate(),
+            ]);
+            $publication = \APP\facades\Repo::publication()->newDataObject([
+                'title' => ['uk' => "Тези для масового рішення {$i}"], 'abstract' => ['uk' => '<p>Зміст.</p>'],
+                'sectionId' => $sp->getData('sectionId'), 'locale' => 'uk',
+                'conferenceEditionId' => (int) $reg->edition_id, 'presentationType' => $reg->presentation_type,
+            ]);
+            $id = \APP\facades\Repo::submission()->add($submission, $publication, $context);
+            $pubId = (int) \APP\facades\Repo::submission()->get($id)->getData('currentPublicationId');
+            $email = "bulk{$id}@example.org";
+            $authorId = \APP\facades\Repo::author()->add(\APP\facades\Repo::author()->newDataObject([
+                'publicationId' => $pubId, 'email' => $email, 'givenName' => ['uk' => 'Автор'], 'familyName' => ['uk' => "Номер{$i}"],
+                'country' => 'UA', 'userGroupId' => $authorGroup, 'includeInBrowse' => true, 'seq' => 0,
+            ]));
+            \APP\facades\Repo::publication()->edit(\APP\facades\Repo::publication()->get($pubId), ['primaryContactId' => $authorId]);
+            \APP\facades\Repo::stageAssignment()->build($id, $authorGroup, $authorUserId);
+            DB::table('conf_submission_registrations')->insert([
+                'submission_id' => $id, 'edition_id' => $reg->edition_id, 'presentation_type' => $reg->presentation_type,
+                'participation_form' => $reg->participation_form, 'presenter_email' => $email, 'consent_version' => $reg->consent_version,
+                'consent_at' => $reg->consent_at, 'consent_user_id' => $reg->consent_user_id, 'category_id' => $reg->category_id,
+                'registered_at' => null,
+            ]);
+            \APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory::registrations()->onSubmitted($info, $id, 1, $now);
+            $ids[] = $id;
+        }
+        echo implode(',', $ids), "\n";
+    }
+
+    /**
+     * The user becomes the assigned author of the submission: decision
+     * letters go to assigned authors. Not the editor: OJS lets an editor
+     * who is also the assigned author decide nothing.
+     */
+    private function assignAuthor(string $path, int $submissionId, int $userId): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $group = (int) DB::table('user_groups')->where('context_id', $context->getId())
+            ->where('role_id', \PKP\security\Role::ROLE_ID_AUTHOR)->orderBy('user_group_id')->value('user_group_id');
+        \APP\facades\Repo::stageAssignment()->build($submissionId, $group, $userId);
+        echo "OK\n";
+    }
+
+    /**
+     * How many letters of this template the submission's email log has,
+     * matched by the start of the default Ukrainian subject.
+     */
+    private function emailLog(int $submissionId, string $key): void
+    {
+        $subject = (string) DB::table('email_templates_default_data')->where('email_key', $key)->where('locale', 'uk')->value('subject');
+        $subject !== '' || throw new RuntimeException("no default template {$key}");
+        $prefix = trim(explode('{', $subject)[0]);
+        echo DB::table('email_log')->where('assoc_type', Application::ASSOC_TYPE_SUBMISSION)->where('assoc_id', $submissionId)
+            ->where('subject', 'like', $prefix . '%')->count(), "\n";
     }
 
     /** Many listeners in an edition, for the speed check of the register (REG-07). */

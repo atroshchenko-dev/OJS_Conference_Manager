@@ -55,6 +55,7 @@ final class InvoiceService
     public const PAGES_REQUIRED = 'pagesRequired';
     public const EXISTS = 'exists';
     public const NOT_FOUND = 'notFound';
+    public const KEPT = 'kept';
 
     public function __construct(
         private readonly PaymentRepository $payments,
@@ -159,17 +160,7 @@ final class InvoiceService
             return ['result' => self::FREE, 'invoice' => null];
         }
 
-        $presentation = null;
-        if ($p['role'] === ParticipantRole::Listener->value) {
-            $material = MaterialType::Listener;
-        } else {
-            $material = $pages === null ? MaterialType::Abstract : MaterialType::Paper;
-            $presentation = $p['submissionId'] === null ? null : $this->registrations->findBySubmission($p['submissionId'])?->presentationType;
-        }
-        $quote = (new TariffCalculator())->quote(
-            $this->fees->tariffs($edition->id ?? 0),
-            new TariffQuery($payer['categoryId'], $material, $now, $pages, $presentation),
-        );
+        [$material, $quote] = $this->quoteFor($edition, $p, $payer['categoryId'], $pages, $now);
         if (!$quote->isOk()) {
             return ['result' => $quote->problem === Quote::PAGES_REQUIRED ? self::PAGES_REQUIRED : self::NO_TARIFF, 'invoice' => null];
         }
@@ -231,6 +222,76 @@ final class InvoiceService
             return ['result' => self::NOT_FOUND, 'invoice' => null];
         }
         return $this->issueFor($context, $participationId, null, $actorId, $now);
+    }
+
+    /** The presenter's current invoice for the submission (DEC-06). */
+    public function currentForSubmission(int $submissionId): ?Invoice
+    {
+        $participationId = $this->participants->presenterOf($submissionId);
+        return $participationId === null ? null : $this->payments->currentFor($participationId, $submissionId);
+    }
+
+    /**
+     * @param array<string, mixed> $p participation (findParticipation)
+     * @return array{0: MaterialType, 1: Quote}
+     */
+    private function quoteFor(Edition $edition, array $p, int $categoryId, ?int $pages, DateTimeImmutable $now): array
+    {
+        $presentation = null;
+        if ($p['role'] === ParticipantRole::Listener->value) {
+            $material = MaterialType::Listener;
+        } else {
+            $material = $pages === null ? MaterialType::Abstract : MaterialType::Paper;
+            $presentation = $p['submissionId'] === null ? null : $this->registrations->findBySubmission((int) $p['submissionId'])?->presentationType;
+        }
+        return [$material, (new TariffCalculator())->quote(
+            $this->fees->tariffs($edition->id ?? 0),
+            new TariffQuery($categoryId, $material, $now, $pages, $presentation),
+        )];
+    }
+
+    /**
+     * DEC-05: the presentation type of an accepted submission changed. An
+     * open, unpaid invoice whose amount no longer matches the tariff is
+     * cancelled and a new one is issued; a paid or part-paid invoice stays
+     * as it is (the manager settles the difference by hand).
+     *
+     * @return array{result: string, invoice: ?Invoice, previous: ?Invoice}
+     */
+    public function reissueForSubmission(ContextInfo $context, int $submissionId, ?int $actorId, DateTimeImmutable $now): array
+    {
+        $participationId = $this->participants->presenterOf($submissionId);
+        if ($participationId === null) {
+            return ['result' => self::NOT_FOUND, 'invoice' => null, 'previous' => null];
+        }
+        $current = $this->payments->currentFor($participationId, $submissionId);
+        if ($current === null) {
+            return $this->issueFor($context, $participationId, null, $actorId, $now) + ['previous' => null];
+        }
+        if (!$current->status->isOpen() || $current->paidAmount()->minor > 0 || $current->isWaiver()) {
+            return ['result' => self::KEPT, 'invoice' => $current, 'previous' => null];
+        }
+        $p = $this->participants->findParticipation($context->id, $participationId);
+        $edition = $this->edition($context, $current->editionId);
+        $payer = $p === null ? null : $this->participants->payer($p['participantId'], $context->primaryLocale);
+        if ($p === null || $edition === null || $payer === null || $payer['categoryId'] === null) {
+            return ['result' => self::KEPT, 'invoice' => $current, 'previous' => null];
+        }
+        $pages = null;
+        foreach ($current->items as $item) {
+            if ($item->submissionId === $submissionId && $item->quantity > 1) {
+                $pages = $item->quantity;
+            }
+        }
+        [, $quote] = $this->quoteFor($edition, $p, (int) $payer['categoryId'], $pages, $now);
+        $same = $quote->isOk() && !$quote->isFree() && $quote->total !== null && $quote->total->minor === $current->total->minor
+            && $quote->total->currency === $current->total->currency;
+        if ($same) {
+            return ['result' => self::KEPT, 'invoice' => $current, 'previous' => null];
+        }
+        $this->payments->changeStatus((int) $current->id, InvoiceStatus::Cancelled, [], 'cancelled', $actorId, ['reason' => 'presentation_type'], $now);
+        $this->audit?->log($context->id, $actorId, 'invoice', $current->id, 'cancelled', null, ['reason' => 'presentation_type']);
+        return $this->issueFor($context, $participationId, $pages, $actorId, $now) + ['previous' => $current];
     }
 
     /**

@@ -107,4 +107,10 @@ final class SpeakerRegistration
     {
         return new self($this->submissionId, $this->editionId, $this->presentationType, $this->participationForm, $this->presenterEmail, $this->consentVersion, $this->consentAt, $this->consentUserId, $at, $this->categoryId, $this->presenterMinor, $this->guardianConsentAt);
     }
+
+    /** The type set by the editor's decision or changed later (DEC-02, DEC-05). */
+    public function withPresentationType(PresentationType $type): self
+    {
+        return new self($this->submissionId, $this->editionId, $type, $this->participationForm, $this->presenterEmail, $this->consentVersion, $this->consentAt, $this->consentUserId, $this->registeredAt, $this->categoryId, $this->presenterMinor, $this->guardianConsentAt);
+    }
 }

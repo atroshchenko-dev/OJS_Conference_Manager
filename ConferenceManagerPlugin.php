@@ -20,9 +20,14 @@ use APP\core\Application;
 use APP\decision\Decision;
 use APP\plugins\generic\conferenceManager\classes\Api\ConferenceApiController;
 use APP\plugins\generic\conferenceManager\classes\Api\ConferenceSiteApiController;
+use APP\plugins\generic\conferenceManager\classes\Application\DecisionService;
 use APP\plugins\generic\conferenceManager\classes\Core\ContextGateway;
+use APP\plugins\generic\conferenceManager\classes\Core\Decisions\ConferenceAcceptance;
+use APP\plugins\generic\conferenceManager\classes\Core\Mail\ConferenceDecisionMailable;
+use APP\plugins\generic\conferenceManager\classes\Core\Mail\ConferenceTypeChanged;
 use APP\plugins\generic\conferenceManager\classes\Core\ServiceFactory;
 use APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway;
+use APP\plugins\generic\conferenceManager\classes\Domain\Decision\AcceptanceDecision;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
 use APP\plugins\generic\conferenceManager\classes\Forms\InstitutionSettingsForm;
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
@@ -48,6 +53,13 @@ use PKP\scheduledTask\PKPScheduler;
 class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
 {
     public const VERB_INSTITUTION = 'institution';
+
+    /** Strings of js/workflow.js (keys after "plugins.generic.conferenceManager."). */
+    private const WORKFLOW_STRINGS = [
+        'panel.title', 'panel.edition', 'panel.type', 'panel.type.none', 'panel.changeType', 'panel.changeType.save',
+        'panel.changeType.done', 'panel.participants', 'panel.invoice', 'panel.invoice.none', 'panel.proof', 'panel.proof.none',
+        'panel.minor', 'panel.notRegistered', 'panel.paid', 'panel.due', 'panel.error',
+    ];
 
     /** Plugin setting: the journal also takes submissions that are not for an edition. */
     public const SETTING_REGULAR_SUBMISSIONS = 'allowRegularSubmissions';
@@ -75,9 +87,13 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         Hook::add('LoadHandler', $this->loadPageHandler(...));
         Hook::add('TemplateManager::setupBackendPage', $this->addBackendMenu(...));
         Hook::add('TemplateManager::display', $this->addWizardStep(...));
+        Hook::add('TemplateManager::display', $this->addWorkflowScript(...));
         Hook::add('Submission::validateSubmit', $this->validateSubmit(...));
         Event::listen(SubmissionSubmitted::class, $this->onSubmissionSubmitted(...));
         Event::listen(DecisionAdded::class, $this->onDecisionAdded(...));
+        Hook::add('Decision::types', $this->addDecisionTypes(...));
+        Hook::add('Workflow::Decisions', $this->addWorkflowDecisions(...));
+        Hook::add('Mailer::Mailables', $this->addMailables(...));
 
         return true;
     }
@@ -254,6 +270,40 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         return Hook::CONTINUE;
     }
 
+    /**
+     * DEC-01, DEC-05, DEC-06: decision buttons and the conference panel in
+     * the submission card, opened from the editorial dashboard.
+     *
+     * @param array{0: TemplateManager, 1: string} $args
+     */
+    public function addWorkflowScript(string $hookName, array $args): bool
+    {
+        if ($args[1] !== 'dashboard/editors.tpl') {
+            return Hook::CONTINUE;
+        }
+        $request = Application::get()->getRequest();
+        $context = $request->getContext();
+        $user = $request->getUser();
+        if ($context === null || $user === null || !$this->isEnabledFor((int) $context->getId())
+            || !$user->hasRole([\PKP\security\Role::ROLE_ID_MANAGER, \PKP\security\Role::ROLE_ID_SUB_EDITOR, \PKP\security\Role::ROLE_ID_SITE_ADMIN], (int) $context->getId())) {
+            return Hook::CONTINUE;
+        }
+        $templateMgr = $args[0];
+        $base = $request->getBaseUrl() . '/' . $this->getPluginPath();
+        $config = [
+            'apiUrl' => $request->getDispatcher()->url($request, Application::ROUTE_API, $context->getPath(), 'conference'),
+            'csrfToken' => $request->getSession()->token(),
+            'codes' => array_map(static fn (AcceptanceDecision $d): int => $d->value, AcceptanceDecision::cases()),
+            'i18n' => array_combine(self::WORKFLOW_STRINGS, array_map(static fn (string $k): string => __('plugins.generic.conferenceManager.' . $k), self::WORKFLOW_STRINGS)),
+        ];
+        $templateMgr->addJavaScript('conferenceWorkflowConfig', 'window.conferenceManagerWorkflow = ' . json_encode($config, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) . ';', [
+            'inline' => true, 'contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST,
+        ]);
+        $templateMgr->addJavaScript('conferenceWorkflow', $base . '/js/workflow.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
+        $templateMgr->addStyleSheet('conferenceWorkflow', $base . '/css/editionsManager.css', ['contexts' => 'backend']);
+        return Hook::CONTINUE;
+    }
+
     public function regularSubmissionsAllowed(int $contextId): bool
     {
         return (bool) $this->getSetting($contextId, self::SETTING_REGULAR_SUBMISSIONS);
@@ -383,25 +433,83 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
     }
 
     /**
-     * FEE-04: the presenter's invoice after the acceptance decision.
+     * DEC-02, FEE-04: after an acceptance (901–904 or the core ones) the
+     * presentation type, the issue of the edition and the invoice.
      */
     public function onDecisionAdded(DecisionAdded $event): void
     {
         $decision = $event->decisionType->getDecision();
-        if (!in_array($decision, [Decision::ACCEPT, Decision::SKIP_EXTERNAL_REVIEW], true)
-            || !$this->isEnabledFor((int) $event->context->getId())) {
+        if (!DecisionService::isAcceptance($decision) || !$this->isEnabledFor((int) $event->context->getId())) {
             return;
         }
         try {
-            ServiceFactory::invoices()->onAccepted(
+            ServiceFactory::decisions()->onDecision(
                 ContextGateway::fromContext($event->context),
                 (int) $event->submission->getId(),
+                $decision,
                 $event->editor->getId(),
                 new DateTimeImmutable('now', new DateTimeZone('UTC')),
             );
         } catch (\Throwable $e) {
-            error_log('conferenceManager: invoice after decision: ' . $e->getMessage());
+            error_log('conferenceManager: after decision: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * DEC-01: decisions 901–904 are known to OJS in every context, so a
+     * recorded decision can always be shown; they are offered only where
+     * the plugin is enabled (addWorkflowDecisions).
+     *
+     * @param array{0: \Illuminate\Support\Collection<int, \PKP\decision\DecisionType>} $args
+     */
+    public function addDecisionTypes(string $hookName, array $args): bool
+    {
+        foreach (AcceptanceDecision::cases() as $d) {
+            $args[0]->push(new ConferenceAcceptance($d));
+        }
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * DEC-01: the buttons in the submission stage next to "Accept and skip
+     * review", for editors who may take that decision. The workflow script
+     * shows them only for submissions of an edition.
+     *
+     * @param array{0: array<int, \PKP\decision\DecisionType>, 1: int} $args
+     */
+    public function addWorkflowDecisions(string $hookName, array $args): bool
+    {
+        $context = Application::get()->getRequest()->getContext();
+        if ($context === null || !$this->isEnabledFor((int) $context->getId()) || (int) $args[1] !== WORKFLOW_STAGE_ID_SUBMISSION) {
+            return Hook::CONTINUE;
+        }
+        $types = &$args[0];
+        $canSkip = false;
+        foreach ($types as $type) {
+            $canSkip = $canSkip || $type->getDecision() === Decision::SKIP_EXTERNAL_REVIEW;
+        }
+        if ($canSkip) {
+            foreach (AcceptanceDecision::cases() as $d) {
+                $types[] = new ConferenceAcceptance($d);
+            }
+        }
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * The letters of the decisions and of a type change in Settings → Emails.
+     *
+     * @param array{0: \Illuminate\Support\Collection<int, class-string>, 1: \PKP\context\Context} $args
+     */
+    public function addMailables(string $hookName, array $args): bool
+    {
+        if (!$this->isEnabledFor((int) $args[1]->getId())) {
+            return Hook::CONTINUE;
+        }
+        foreach ([...ConferenceDecisionMailable::classes(), ConferenceTypeChanged::class] as $class) {
+            $args[0]->push($class);
+        }
+        return Hook::CONTINUE;
     }
 
     /**

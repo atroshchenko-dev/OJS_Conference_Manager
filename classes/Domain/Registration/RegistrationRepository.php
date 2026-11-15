@@ -12,6 +12,9 @@ interface RegistrationRepository
 
     public function save(SpeakerRegistration $registration): void;
 
+    /** @return list<SpeakerRegistration> submitted registrations of the edition */
+    public function registeredOfEdition(int $editionId): array;
+
     /**
      * Creates or updates the participant of the edition with this email
      * and adds a participation for the submission (idempotent).

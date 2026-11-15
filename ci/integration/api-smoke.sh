@@ -393,6 +393,90 @@ dec="$(post "$B/confa/api/v1/submissions/$sid/decisions" '{"decision":17,"stageI
 [ "$(curl -s -b "$jar" "$api/editions/$lid/invoices" | j '[(i["total"]["minor"], i["payer"]["email"]) for i in d["items"]]')" = "[(20000, 'admin@example.org')]" ] || fail "FEE-04: presenter invoice after acceptance"
 ok "presenter invoice after the acceptance decision"
 
+# Decisions 901–904, type change, panel, bulk decisions (DEC-01…06).
+de="$(post "$api/editions" '{"path":"dec-2027","status":"cfp_open","eventType":"conference","submissionMode":"abstracts","publicationMode":"ojs_issue","format":"hybrid","name":{"uk":"Конференція з рішеннями","en":"Conference with decisions"},"startsAt":"2027-06-20 09:00","endsAt":"2027-06-21 18:00","cfpOpensAt":"2026-01-01","abstractDeadline":"2027-03-01"}')"
+[ "$(tail -1 <<<"$de")" = 200 ] || fail "edition with an issue: $de"
+did="$(head -1 <<<"$de" | j 'd["id"]')"; dissue="$(head -1 <<<"$de" | j 'd["issueId"]')"
+[ "$dissue" != None ] || fail "EDN-04 issue of the edition"
+dc="$(post "$api/editions/$did/fees/presets" '{"institutionType":"university"}')"
+dstud="$(head -1 <<<"$dc" | j '[c["id"] for c in d["categories"] if c["code"] == "students"][0]')"
+post "$api/editions/$did/payment-rules" '{"mode":"treasury_transfer","paymentAccountId":'"$acc"'}' >/dev/null
+for tt in '"oral","300"' '"poster","250"' '"","200"'; do
+  IFS=, read -r ptype amount <<<"$tt"
+  [ "$(post "$api/editions/$did/fees/tariffs" "{\"categoryId\":$dstud,\"material\":\"abstract\",\"pricing\":\"flat\",\"amount\":$amount,\"currency\":\"UAH\",\"presentationType\":$ptype}" | tail -1)" = 200 ] || fail "tariff $tt"
+done
+auid="$(lc new-user confa author1 author1@example.org | tail -1)"
+decsub() {
+  newsub
+  curl -s -L -c "$jar" -b "$jar" -o /dev/null "$B/confa/uk/submission?id=$sid"
+  form "$api/submissions/$sid/registration" --data "conferenceEditionId=$did&conferenceFeeCategory=$dstud&conferencePresentationType=$1&conferenceParticipationForm=in_person&conferencePresenterEmail=admin%40example.org&conferenceConsent%5B%5D=true" >/dev/null
+  [ "$(form "$B/confa/api/v1/submissions/$sid/submit" --data 'confirmCopyright=1' | tail -1)" = 200 ] || fail "submit to dec-2027"
+  lc assign-author confa "$sid" "$auid" >/dev/null
+}
+decsub oral
+s1="$sid"; p1="$P"
+[ "$(curl -s -b "$jar" "$B/confa/api/v1/submissions/$s1" | j 'sorted(x["id"] for x in d["availableEditorialDecisions"] if x["id"] > 900)')" = "[901, 902, 903, 904]" ] || fail "DEC-01: decisions 901–904 offered in the submission stage"
+rec="$(curl -s -L -b "$jar" "$B/confa/uk/decision/record/$s1?decision=902" -w '\n%{http_code}')"
+[ "$(tail -1 <<<"$rec")" = 200 ] && grep -q 'Прийняти: стендова доповідь' <<<"$rec" || fail "DEC-01: decision page of 902"
+grep -q '"id":"notifyAuthors"' <<<"$rec" && grep -q 'CONF_DECISION_POSTER' <<<"$rec" || fail "decision page uses the conference letter"
+tpl="$(curl -s -b "$jar" "$B/confa/api/v1/emailTemplates/CONF_DECISION_POSTER")"
+[ "$(j 'd["key"], "{$conferenceName}" in d["body"]["uk"], bool(d["subject"]["en"])' <<<"$tpl")" = "('CONF_DECISION_POSTER', True, True)" ] || fail "default letter installed: $tpl"
+[ "$(curl -s -b "$jar" "$B/confa/api/v1/mailables?searchPhrase=$(python3 -c 'import urllib.parse;print(urllib.parse.quote("тип виступу"))')" | j 'len(d) >= 1')" = True ] || fail "mailables listed in settings"
+action="$(python3 -c 'import json,sys; t=json.loads(sys.argv[1]); print(json.dumps({"decision":902,"stageId":1,"actions":[{"id":"notifyAuthors","to":[int(sys.argv[2])],"subject":t["subject"]["uk"],"body":t["body"]["uk"],"locale":"uk"}]}))' "$tpl" "$auid")"
+dec="$(post "$B/confa/api/v1/submissions/$s1/decisions" "$action")"
+[ "$(tail -1 <<<"$dec")" = 200 ] || fail "decision 902: $dec"
+[ "$(curl -s -b "$jar" "$B/confa/api/v1/submissions/$s1" | j 'd["stageId"]')" = 4 ] || fail "DEC-02: copyediting after 902"
+[ "$(curl -s -b "$jar" "$p1" | j 'd["presentationType"], d["issueId"]')" = "('poster', $dissue)" ] || fail "DEC-02: type and issue on the publication"
+[ "$(curl -s -b "$jar" "$api/submissions/$s1/registration" | j 'd["registration"]["presentationType"]')" = poster ] || fail "DEC-02: questionnaire type"
+[ "$(curl -s -b "$jar" "$api/editions/$did/invoices" | j '[(i["total"]["minor"], i["status"]) for i in d["items"]]')" = "[(25000, 'issued')]" ] || fail "DEC-02: invoice by the poster tariff"
+[ "$(lc email-log "$s1" CONF_DECISION_POSTER | tail -1)" = 1 ] || fail "DEC-02: the letter is in the submission email log"
+ok "decision 902: letter, copyediting, type, issue, invoice"
+
+panel="$(curl -s -b "$jar" "$api/submissions/$s1/conference")"
+[ "$(j 'd["edition"]["id"], d["presentationType"], d["canChangeType"], d["invoice"]["total"]["minor"], len(d["participants"])' <<<"$panel")" = "($did, 'poster', True, 25000, 2)" ] || fail "DEC-06 panel: $panel"
+[ "$(curl -s -b "$jar" "$B/confb/api/v1/conference/submissions/$s1/conference" -o /dev/null -w '%{http_code}')" != 200 ] || fail "panel of another journal"
+ct="$(put "$api/submissions/$s1/presentation-type" '{"presentationType":"keynote"}')"
+[ "$(tail -1 <<<"$ct")" = 400 ] || fail "bad type: $ct"
+ct="$(put "$api/submissions/$s1/presentation-type" '{"presentationType":"oral"}')"
+[ "$(tail -1 <<<"$ct")" = 200 ] && [ "$(head -1 <<<"$ct" | j 'd["changed"], d["invoice"], d["panel"]["presentationType"]')" = "(True, 'issued', 'oral')" ] || fail "DEC-05 type change: $ct"
+[ "$(curl -s -b "$jar" "$api/editions/$did/invoices" | j 'sorted((i["total"]["minor"], i["status"]) for i in d["items"])')" = "[(25000, 'cancelled'), (30000, 'issued')]" ] || fail "DEC-05: invoice issued anew"
+[ "$(curl -s -b "$jar" "$p1" | j 'd["presentationType"]')" = oral ] || fail "DEC-05: publication type"
+[ "$(lc email-log "$s1" CONF_TYPE_CHANGED | tail -1)" = 1 ] || fail "DEC-05: letter about the change"
+ok "type change after the decision: new invoice, letter; panel"
+
+decsub poster
+s2="$sid"
+first="$(lc clone-abstracts confa "$s2" 3 "$auid" | tail -1)"
+bulk_ids="$s2,$first"
+cand="$(curl -s -b "$jar" "$api/editions/$did/decision-candidates")"
+[ "$(j 'sorted(i["submissionId"] for i in d["items"]) == sorted(['"$bulk_ids"']) and len(d["decisions"]) == 5' <<<"$cand")" = True ] || fail "DEC-03 candidates: $cand"
+[ "$(curl -s -b "$jar" "$api/editions/$did/decision-candidates?search=$(python3 -c 'import urllib.parse;print(urllib.parse.quote("масового рішення 2"))')" | j 'd["itemsMax"]')" = 1 ] || fail "candidates search"
+[ "$(post "$api/editions/$did/decisions/bulk" '{"decision":17,"submissionIds":['"$s2"']}' | tail -1)" = 400 ] || fail "core accept is not a bulk decision"
+[ "$(post "$api/editions/$did/decisions/bulk" '{"decision":901,"submissionIds":['"$s1"']}' | tail -1)" = 400 ] || fail "decided submission is not a candidate"
+last="${first##*,}"
+others="${bulk_ids%,$last}"
+bs="$(post "$api/editions/$did/decisions/bulk" '{"decision":903,"submissionIds":['"$others"']}')"
+[ "$(tail -1 <<<"$bs")" = 202 ] || fail "DEC-03 start: $bs"
+bid="$(head -1 <<<"$bs" | j 'd["batchId"]')"
+bd="$(post "$api/editions/$did/decisions/bulk" '{"decision":8,"submissionIds":['"$last"']}')"
+[ "$(tail -1 <<<"$bd")" = 202 ] || fail "DEC-04 bulk decline: $bd"
+did2="$(head -1 <<<"$bd" | j 'd["batchId"]')"
+t0=$(date +%s)
+for k in 1 2 3 4 5 6; do docker exec -w /var/www/html "${OJS_CONTAINER:-ojs}" php lib/pkp/tools/jobs.php run >/dev/null 2>&1 || true; done
+st="$(curl -s -b "$jar" "$api/decisions/bulk/$bid")"
+[ "$(j 'd["finished"], d["counts"]["done"], d["total"]' <<<"$st")" = "(True, 3, 3)" ] || fail "DEC-03 run: $st $(docker exec "${OJS_CONTAINER:-ojs}" php lib/pkp/tools/jobs.php list 2>&1 | tail -5)"
+for s in ${others//,/ }; do
+  [ "$(curl -s -b "$jar" "$B/confa/api/v1/submissions/$s" | j 'd["stageId"]')" = 4 ] || fail "DEC-03: submission $s in copyediting"
+  [ "$(curl -s -b "$jar" "$api/submissions/$s/registration" | j 'd["registration"]["presentationType"]')" = online ] || fail "DEC-03: type online for $s"
+  [ "$(lc email-log "$s" CONF_DECISION_ONLINE | tail -1)" = 1 ] || fail "DEC-03: one letter for $s"
+done
+[ "$(curl -s -b "$jar" "$api/decisions/bulk/$did2" | j 'd["finished"], d["counts"]["done"]')" = "(True, 1)" ] || fail "DEC-04 run"
+[ "$(curl -s -b "$jar" "$B/confa/api/v1/submissions/$last" | j 'd["status"], d["stageId"]')" = "(4, 1)" ] || fail "DEC-04: declined"
+[ "$(curl -s -b "$jar" "$api/editions/$did/invoices" | j 'len(d["items"])')" = 5 ] || fail "DEC-03: invoices for the 3 accepted abstracts"
+[ "$(curl -s -b "$jar" "$api/editions/$did/decision-candidates" | j 'd["itemsMax"]')" = 0 ] || fail "nothing waits for a decision"
+echo "bulk run of 4 decisions took $(( $(date +%s) - t0 )) s"
+ok "bulk decisions through the queue, one letter each, bulk decline"
+
 # FEE-05: parallel numbering gives 1…100 with no gaps or repeats.
 for k in $(seq 1 10); do lc next-numbers confa 2099 10 > "/tmp/cm-num-$k.txt" & done
 wait

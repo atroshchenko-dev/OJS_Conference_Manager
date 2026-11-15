@@ -1667,3 +1667,231 @@ msgstr "No invoice"
 
 msgid "plugins.generic.conferenceManager.proof.tab.pending"
 msgstr "Awaiting review"
+
+msgid "plugins.generic.conferenceManager.decision.accept.oral"
+msgstr "Accept: oral presentation"
+
+msgid "plugins.generic.conferenceManager.decision.accept.poster"
+msgstr "Accept: poster presentation"
+
+msgid "plugins.generic.conferenceManager.decision.accept.online"
+msgstr "Accept: online presentation"
+
+msgid "plugins.generic.conferenceManager.decision.accept.absentee"
+msgstr "Accept: publication only"
+
+msgid "plugins.generic.conferenceManager.decision.accept.description"
+msgstr "Accept the abstract as “{$type}” without review and send the submission to copyediting. The authors get a letter, the submission goes into the issue of the event, and the presenter gets an invoice if participation is paid."
+
+msgid "plugins.generic.conferenceManager.decision.accept.log.oral"
+msgstr "{$editorName} accepted the abstract as an oral presentation and sent the submission to copyediting."
+
+msgid "plugins.generic.conferenceManager.decision.accept.log.poster"
+msgstr "{$editorName} accepted the abstract as a poster presentation and sent the submission to copyediting."
+
+msgid "plugins.generic.conferenceManager.decision.accept.log.online"
+msgstr "{$editorName} accepted the abstract as an online presentation and sent the submission to copyediting."
+
+msgid "plugins.generic.conferenceManager.decision.accept.log.absentee"
+msgstr "{$editorName} accepted the abstract for publication only and sent the submission to copyediting."
+
+msgid "plugins.generic.conferenceManager.decision.accept.completed"
+msgstr "Abstract accepted"
+
+msgid "plugins.generic.conferenceManager.decision.accept.completed.description"
+msgstr "The abstract “{$title}” has been accepted as “{$type}” and sent to copyediting."
+
+msgid "plugins.generic.conferenceManager.decision.accept.notifyAuthorsDescription"
+msgstr "Send the authors a letter about the decision. You can change the text before sending; the template is edited in the journal settings, under emails."
+
+msgid "plugins.generic.conferenceManager.decision.decline"
+msgstr "Decline"
+
+msgid "plugins.generic.conferenceManager.decision.error.type"
+msgstr "Choose a presentation type from the list."
+
+msgid "plugins.generic.conferenceManager.decision.error.notAccepted"
+msgstr "The presentation type can be changed only after acceptance, in the copyediting and production stages."
+
+msgid "plugins.generic.conferenceManager.decision.error.decision"
+msgstr "Bulk mode offers only “Accept” with a presentation type and “Decline”."
+
+msgid "plugins.generic.conferenceManager.decision.error.none"
+msgstr "Choose at least one submission."
+
+msgid "plugins.generic.conferenceManager.decision.error.tooMany"
+msgstr "At most 200 submissions can be decided at once."
+
+msgid "plugins.generic.conferenceManager.decision.error.notCandidate"
+msgstr "Some of the chosen submissions no longer wait for a decision or are not available to you. Refresh the list."
+
+msgid "plugins.generic.conferenceManager.decision.error.noEdition"
+msgstr "This decision is only for a submission linked to an event."
+
+msgid "plugins.generic.conferenceManager.decision.bulk.status.pending"
+msgstr "Queued"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.status.running"
+msgstr "Running"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.status.done"
+msgstr "Done"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.status.failed"
+msgstr "Failed"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.title"
+msgstr "Decisions on abstracts"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.description"
+msgstr "Submissions of this event waiting for the first decision. Tick the ones you need, choose a decision and run it: every author gets their own letter from the journal template. Up to {$max} submissions at once."
+
+msgid "plugins.generic.conferenceManager.decision.bulk.progress"
+msgstr "{$done} of {$total} done"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.failedCount"
+msgstr "failed: {$count}"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.finished"
+msgstr "finished"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.search"
+msgstr "Search by title, author or number"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.type"
+msgstr "Requested presentation type"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.anyType"
+msgstr "Any"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.section"
+msgstr "Section"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.anySection"
+msgstr "All sections"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.find"
+msgstr "Find"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.selected"
+msgstr "Selected: {$count}"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.decision"
+msgstr "Decision"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.choose"
+msgstr "Choose a decision"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.run"
+msgstr "Record the decision"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.confirm"
+msgstr "Record “{$decision}” for {$count} submissions? Every author gets a letter. This cannot be undone."
+
+msgid "plugins.generic.conferenceManager.decision.bulk.tooMany"
+msgstr "Too many selected: up to {$max} submissions at once."
+
+msgid "plugins.generic.conferenceManager.decision.bulk.empty"
+msgstr "No submissions are waiting for a decision."
+
+msgid "plugins.generic.conferenceManager.decision.bulk.selectAll"
+msgstr "Select all"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.column.title"
+msgstr "Title and authors"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.column.section"
+msgstr "Section"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.column.type"
+msgstr "Requested type"
+
+msgid "plugins.generic.conferenceManager.decision.bulk.runs"
+msgstr "Recent runs"
+
+msgid "plugins.generic.conferenceManager.editions.decisions"
+msgstr "Decisions"
+
+msgid "plugins.generic.conferenceManager.mailable.accept.oral.name"
+msgstr "Decision: accepted, oral presentation"
+
+msgid "plugins.generic.conferenceManager.mailable.accept.poster.name"
+msgstr "Decision: accepted, poster presentation"
+
+msgid "plugins.generic.conferenceManager.mailable.accept.online.name"
+msgstr "Decision: accepted, online presentation"
+
+msgid "plugins.generic.conferenceManager.mailable.accept.absentee.name"
+msgstr "Decision: accepted, publication only"
+
+msgid "plugins.generic.conferenceManager.mailable.accept.description"
+msgstr "The letter to the authors after the abstract is accepted with a presentation type (conference plugin)."
+
+msgid "plugins.generic.conferenceManager.mailable.typeChanged.name"
+msgstr "Presentation type changed"
+
+msgid "plugins.generic.conferenceManager.mailable.typeChanged.description"
+msgstr "The letter to the authors when the editor changes the presentation type after the decision (conference plugin)."
+
+msgid "plugins.generic.conferenceManager.mailable.variable.conferenceName"
+msgstr "Name of the event"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.presentationType"
+msgstr "Presentation type"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.oldPresentationType"
+msgstr "Previous presentation type"
+
+msgid "plugins.generic.conferenceManager.mailable.variable.cabinetUrl"
+msgstr "Link to the participant cabinet"
+
+msgid "plugins.generic.conferenceManager.panel.title"
+msgstr "Event participation"
+
+msgid "plugins.generic.conferenceManager.panel.edition"
+msgstr "Event"
+
+msgid "plugins.generic.conferenceManager.panel.type"
+msgstr "Presentation type"
+
+msgid "plugins.generic.conferenceManager.panel.type.none"
+msgstr "not set"
+
+msgid "plugins.generic.conferenceManager.panel.changeType"
+msgstr "Change the presentation type"
+
+msgid "plugins.generic.conferenceManager.panel.changeType.save"
+msgstr "Change"
+
+msgid "plugins.generic.conferenceManager.panel.changeType.done"
+msgstr "The presentation type has been changed and the authors have got a letter."
+
+msgid "plugins.generic.conferenceManager.panel.participants"
+msgstr "Participants"
+
+msgid "plugins.generic.conferenceManager.panel.invoice"
+msgstr "Invoice"
+
+msgid "plugins.generic.conferenceManager.panel.invoice.none"
+msgstr "No invoice"
+
+msgid "plugins.generic.conferenceManager.panel.proof"
+msgstr "Receipt"
+
+msgid "plugins.generic.conferenceManager.panel.proof.none"
+msgstr "not sent"
+
+msgid "plugins.generic.conferenceManager.panel.minor"
+msgstr "under 18"
+
+msgid "plugins.generic.conferenceManager.panel.notRegistered"
+msgstr "questionnaire not filled in"
+
+msgid "plugins.generic.conferenceManager.panel.paid"
+msgstr "Paid"
+
+msgid "plugins.generic.conferenceManager.panel.due"
+msgstr "Due"
+
+msgid "plugins.generic.conferenceManager.panel.error"
+msgstr "Could not save. Please try again."
