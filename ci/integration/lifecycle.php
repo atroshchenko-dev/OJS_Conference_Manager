@@ -397,7 +397,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 ['participant_id' => $pid, 'locale' => 'uk', 'setting_name' => 'givenName', 'setting_value' => 'Учасник'],
                 ['participant_id' => $pid, 'locale' => 'uk', 'setting_name' => 'familyName', 'setting_value' => 'Номер' . $i],
             ]);
-            DB::table('conf_participations')->insert(['participant_id' => $pid, 'role' => 'listener', 'participation_form' => $form, 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
+            DB::table('conf_participations')->insert(['participant_id' => $pid, 'role' => 'listener', 'participation_form' => 'online', 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
         }
         echo "OK seeded {$count}\n";
     }

@@ -364,8 +364,11 @@ final class AttendanceService
     public function checkinCard(ContextInfo $context, int $participationId, string $locale, DateTimeImmutable $now): ?array
     {
         $editionId = $this->attendance->editionOf($context->id, $participationId);
-        $edition = $editionId === null ? null : $this->editions->find($context->id, $editionId);
-        if ($edition === null || $editionId === null) {
+        if ($editionId === null) {
+            return null;
+        }
+        $edition = $this->editions->find($context->id, $editionId);
+        if ($edition === null) {
             return null;
         }
         $person = null;
