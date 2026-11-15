@@ -88,6 +88,7 @@ jobs:
       - run: ci/integration/promo.sh
       - run: ci/integration/a11y.sh
       - run: ci/integration/segments.sh
+      - run: ci/integration/tib.sh
       - if: failure()
         run: docker logs ojs 2>&1 | tail -200
 

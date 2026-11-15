@@ -218,6 +218,7 @@ class ManageConferenceHandler extends Handler
             ],
             'i18n' => self::strings(),
             'canEditEditions' => $isManager,
+            'tibSync' => $isManager && ServiceFactory::editions()->tibEnabled($info),
             'initialItems' => $isManager ? null : $this->editionsForRegister($info),
             'participantOptions' => [
                 'roles' => $choices(ParticipantRole::cases()),
@@ -259,7 +260,7 @@ class ManageConferenceHandler extends Handler
             'publicPage', 'issue', 'filterStatus', 'allStatuses', 'loading', 'errors', 'copyOf', 'copy.partsTitle', 'copy.partsHelp', 'copy.part.fees', 'copy.part.paymentRules', 'copy.part.rooms', 'copy.part.settings', 'copy.part.partners', 'copy.done',
             'section.main', 'section.modes', 'section.dates', 'section.texts', 'section.details', 'section.program', 'program.help', 'program.open', 'field.programPublished', 'field.programText',
             'field.name', 'field.path', 'field.path.description', 'field.eventType', 'field.format', 'field.timezone',
-            'field.venue', 'field.description', 'field.learningOutcomes', 'field.partialQualifications', 'field.cfpText', 'field.status',
+            'tibSync', 'field.venue', 'field.description', 'field.learningOutcomes', 'field.partialQualifications', 'field.cfpText', 'field.status',
             'field.submissionMode', 'field.publicationMode', 'field.externalProceedingsUrl', 'field.reviewMode',
             'field.startsAt', 'field.endsAt', 'field.cfpOpensAt', 'field.abstractDeadline', 'field.paperDeadline',
             'field.registrationClosesAt', 'field.paymentDeadline', 'field.dates.description',

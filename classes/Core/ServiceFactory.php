@@ -88,6 +88,7 @@ final class ServiceFactory
             new DbInstitutionRepository($db),
             new IssueGateway(),
             new AuditLogger($db),
+            new TibGateway(),
         );
     }
 

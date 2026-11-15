@@ -109,6 +109,9 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         Hook::add('Mailer::Mailables', $this->addMailables(...));
         // DAT-06: OJS calls this before it moves the old account's data and deletes it.
         Hook::add('UserAction::mergeUsers', $this->mergeUsers(...));
+        // EDN-10: the TIB Conference fields of an issue edited in the issue
+        // form of OJS; late, after TIB has put them on the issue.
+        Hook::add('issueform::execute', $this->syncFromTib(...), Hook::SEQUENCE_LATE);
 
         return true;
     }
@@ -742,6 +745,31 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         if ($oldUserId > 0 && $newUserId > 0 && \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasTable('conf_participants')) {
             ServiceFactory::personalData()->mergeUsers($oldUserId, $newUserId);
         }
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * EDN-10: when the TIB Conference fields of an edition's issue are edited
+     * in OJS, the edition takes the new dates, format and venue.
+     *
+     * @param string $hookName
+     * @param array{0: object} $args the issue form
+     */
+    public function syncFromTib($hookName, $args): bool
+    {
+        $issue = $args[0]->issue ?? null;
+        if (!$issue instanceof \APP\issue\Issue || !$issue->getId()) {
+            return Hook::CONTINUE;
+        }
+        $context = Application::getContextDAO()->getById((int) $issue->getJournalId());
+        if ($context === null) {
+            return Hook::CONTINUE;
+        }
+        $values = [];
+        foreach (\APP\plugins\generic\conferenceManager\classes\Domain\Edition\TibFields::SYNCED as $field) {
+            $values[$field] = $issue->getData($field);
+        }
+        ServiceFactory::editions()->syncFromIssue(\APP\plugins\generic\conferenceManager\classes\Core\ContextGateway::fromContext($context), (int) $issue->getId(), $values);
         return Hook::CONTINUE;
     }
 

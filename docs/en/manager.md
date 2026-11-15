@@ -145,6 +145,17 @@ The usual order: "Draft" → "Call open" → "Call closed" → "Held" → "Proce
 
 **Public page** opens `/{journal}/conference/{path}`: type, format, dates, venue, submission windows, call for papers, workload, ISBN. The **Submit** button appears only while the call is actually open. **Register as a listener** appears while registration is open. The page carries schema.org/Event markup for search engines.
 
+### Together with the TIB Conference plugin
+
+The plugin works without [TIB Conference](https://github.com/withanage/conference). When TIB Conference is installed and enabled in the journal and the edition has its own OJS issue (the "Issue in this journal" publication mode), the dates, format and venue are entered once:
+
+- Saving the edition fills the conference fields of the issue: **start date** and **end date** (the day in the edition's time zone), **street / place** (the venue in the journal's primary language) and **online conference** (only for the "online" format).
+- When these fields are changed in the OJS issue form (**Issues → Future Issues → Edit**), the edition takes the new days with the same start and end times, the new venue in the primary language and the format ("online" when the box is ticked; "in person" when it is unticked on an online event). A hybrid event stays hybrid while the box is unticked.
+- The **city** and **country** are set in the issue form only: the edition has no such fields and the plugin does not change them.
+- A change from the issue form that the edition cannot take (an end before the start, say) is not applied. The edition stays as it was, and the next save of the edition puts the issue fields back in step with it.
+- The plugin adds Ukrainian labels for the TIB fields of the issue form, since TIB ships no Ukrainian translation.
+- Changes from the issue form go to the audit log as "tib_sync". The edition form shows a note above the fields that the sync is on.
+
 ### Co-organisers and partners
 
 **Partners** in the edition's row opens the organisations that hold the event together with the journal or support it (up to 30 per event).

@@ -44,6 +44,8 @@
 			/** editions given by the page when the editions API is not open to the user */
 			initialItems: { type: Array, default: null },
 			participantOptions: { type: Object, default: function () { return { roles: [], statuses: [], confirmations: [] }; } },
+			/** EDN-10: TIB Conference is on; dates, format and venue are shared with its issue fields */
+			tibSync: { type: Boolean, default: false },
 		},
 		data: function () {
 			return {
@@ -545,6 +547,7 @@
 		</div>\
 		<fieldset class="cmEditions__section">\
 			<legend>{{ t(\'section.main\') }}</legend>\
+			<p class="cmEditions__note" v-if="tibSync">{{ t(\'tibSync\') }}</p>\
 			<label class="cmEditions__field" :class="{ \'cmEditions__field--error\': errors.name }">\
 				<span>{{ t(\'field.name\') }} ({{ formLocale }})</span>\
 				<input class="pkpFormField__input" type="text" v-model="form.name[formLocale]" maxlength="500">\

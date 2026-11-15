@@ -74,6 +74,8 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'add-listener' => $this->addListener($this->argv[1], (int) $this->argv[2], $this->argv[3], ($this->argv[4] ?? '') === '' ? null : $this->argv[4], $this->argv[5] ?? 'online'),
                 'participant-id' => $this->participantId((int) $this->argv[1], $this->argv[2]),
                 'review-of' => $this->reviewOf((int) $this->argv[1], $this->argv[2]),
+                'plugin-enabled' => $this->pluginEnabled($this->argv[1], $this->argv[2], $this->argv[3] === '1'),
+                'issue-data' => $this->issueData((int) $this->argv[1]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
         } catch (Throwable $e) {
@@ -496,6 +498,26 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
         ]);
         $id = \APP\facades\Repo::reviewAssignment()->add($a);
         echo 'round=', $round->round, ' form=', (int) DB::table('review_assignments')->where('review_id', $id)->value('review_form_id'), "\n";
+    }
+
+    /** EDN-10: turns a generic plugin (by its folder) on or off in a context. */
+    private function pluginEnabled(string $path, string $folder, bool $on): void
+    {
+        $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
+        $plugin = \PKP\plugins\PluginRegistry::loadPlugin('generic', $folder, (int) $context->getId()) ?? throw new RuntimeException('no plugin ' . $folder);
+        $plugin->updateSetting((int) $context->getId(), 'enabled', $on, 'bool');
+        echo $plugin->getName(), ' ', $on ? 'on' : 'off', "\n";
+    }
+
+    /** EDN-10: the TIB Conference fields of an issue, as JSON. */
+    private function issueData(int $issueId): void
+    {
+        $out = [];
+        foreach (DB::table('issue_settings')->where('issue_id', $issueId)->where('setting_name', 'like', 'conference%')->get() as $row) {
+            $out[$row->setting_name] = (string) $row->setting_value;
+        }
+        ksort($out);
+        echo json_encode($out, JSON_UNESCAPED_UNICODE), "\n";
     }
 
     /** DEC-10: the review assignment of a reviewer (by email) in the last round, with its files and dates. */

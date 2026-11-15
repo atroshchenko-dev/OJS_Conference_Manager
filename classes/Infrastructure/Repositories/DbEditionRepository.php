@@ -55,6 +55,12 @@ final class DbEditionRepository implements EditionRepository
         return $row === null ? null : ($this->hydrate([$row])[0] ?? null);
     }
 
+    public function findByIssueId(int $contextId, int $issueId): ?Edition
+    {
+        $row = $this->query($contextId)->where('issue_id', $issueId)->orderBy('id')->first();
+        return $row === null ? null : ($this->hydrate([$row])[0] ?? null);
+    }
+
     public function list(int $contextId, array $statuses = [], int $limit = 50, int $offset = 0): array
     {
         $rows = $this->filtered($contextId, $statuses)

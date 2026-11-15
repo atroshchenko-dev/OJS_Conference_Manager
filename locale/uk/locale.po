@@ -465,6 +465,9 @@ msgstr "Формат"
 msgid "plugins.generic.conferenceManager.editions.field.timezone"
 msgstr "Часовий пояс"
 
+msgid "plugins.generic.conferenceManager.editions.tibSync"
+msgstr "Увімкнено TIB Conference: дати початку й завершення, онлайн-формат і місце проведення (основною мовою) збігаються з полями конференції у випуску OJS. Змінювати їх можна тут або у формі випуску, інше підтягнеться саме. Місто й країну вказують у формі випуску."
+
 msgid "plugins.generic.conferenceManager.editions.field.venue"
 msgstr "Місце проведення"
 
@@ -5060,3 +5063,32 @@ msgstr "Рецензенти: призначено за вибором"
 
 msgid "plugins.generic.conferenceManager.mailable.bidAssigned.description"
 msgstr "Лист рецензентові, якому за його вибором призначено подання на рецензію."
+
+# EDN-10: the issue form fields of TIB Conference, which ships no Ukrainian locale.
+
+msgid "plugins.generic.conference.metadata.conferenceDate.title"
+msgstr "Дати конференції"
+
+msgid "plugins.generic.conference.metadata.conferenceDateBegin"
+msgstr "Дата початку"
+
+msgid "plugins.generic.conference.metadata.conferenceDateEnd"
+msgstr "Дата завершення"
+
+msgid "plugins.generic.conference.metadata.conferencePlace.title"
+msgstr "Місце проведення конференції"
+
+msgid "plugins.generic.conference.metadata.conferencePlaceStreet"
+msgstr "Вулиця / місце"
+
+msgid "plugins.generic.conference.metadata.conferencePlaceCity"
+msgstr "Місто"
+
+msgid "plugins.generic.conference.metadata.conferencePlaceCountry"
+msgstr "Країна"
+
+msgid "plugins.generic.conference.metadata.conferenceOnline.title"
+msgstr "Онлайн-конференція"
+
+msgid "plugins.generic.conference.metadata.conferenceOnline.checkBox"
+msgstr "Це онлайн-конференція"

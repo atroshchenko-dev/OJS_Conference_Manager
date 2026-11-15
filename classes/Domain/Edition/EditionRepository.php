@@ -14,6 +14,9 @@ interface EditionRepository
 
     public function findByPath(int $contextId, string $path): ?Edition;
 
+    /** EDN-10: the edition linked to an OJS issue of the context. */
+    public function findByIssueId(int $contextId, int $issueId): ?Edition;
+
     /**
      * @param list<EditionStatus> $statuses empty means all
      * @return list<Edition> newest first (by start date)

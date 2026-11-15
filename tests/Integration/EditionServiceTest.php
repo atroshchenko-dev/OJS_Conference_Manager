@@ -7,6 +7,7 @@ namespace APP\plugins\generic\conferenceManager\tests\Integration;
 use APP\plugins\generic\conferenceManager\classes\Application\ContextInfo;
 use APP\plugins\generic\conferenceManager\classes\Application\EditionService;
 use APP\plugins\generic\conferenceManager\classes\Application\IssueProvisioner;
+use APP\plugins\generic\conferenceManager\classes\Application\TibIssueFields;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionStatus;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEditionRepository;
@@ -171,5 +172,90 @@ final class EditionServiceTest extends TestCase
         $this->db->table('journals')->where('journal_id', 2)->delete();
         self::assertSame(0, $this->db->table('conf_editions')->count());
         self::assertSame(0, $this->db->table('conf_participants')->count());
+    }
+
+    /** EDN-10: with TIB Conference on, the issue fields follow the edition and the other way round. */
+    public function testTibConferenceFields(): void
+    {
+        $tib = new class () implements TibIssueFields {
+            public bool $on = true;
+            /** @var array<int, array<string, string>> */
+            public array $issues = [];
+            public int $writes = 0;
+
+            public function enabled(int $contextId): bool
+            {
+                return $this->on;
+            }
+
+            public function write(int $contextId, int $issueId, array $fields): void
+            {
+                $this->writes++;
+                $this->issues[$issueId] = array_merge($this->issues[$issueId] ?? [], $fields);
+            }
+        };
+        $service = new EditionService(
+            new DbEditionRepository($this->db),
+            JurisdictionRegistry::withBuiltIns(),
+            new DbInstitutionRepository($this->db),
+            $this->issues,
+            new AuditLogger($this->db),
+            $tib,
+        );
+        self::assertTrue($service->tibEnabled($this->a));
+
+        // An edition with its own issue writes the fields at once.
+        [$saved] = $service->create($this->a, EditionTest::validInput(['publicationMode' => 'ojs_issue', 'venue' => ['uk' => 'Київ, вул. Хрещатик, 1', 'en' => 'Kyiv']]));
+        $id = (int) $saved?->id;
+        $issueId = (int) $saved?->issueId;
+        self::assertSame([
+            'conferenceDateBegin' => '2027-05-20',
+            'conferenceDateEnd' => '2027-05-21',
+            'conferencePlaceStreet' => 'Київ, вул. Хрещатик, 1',
+            'conferenceOnline' => '',
+        ], $tib->issues[$issueId]);
+
+        // An edition without an issue writes nothing.
+        $service->create($this->a, EditionTest::validInput(['path' => 'no-issue']));
+        self::assertCount(1, $tib->issues);
+
+        // Edited in the issue form: new dates keep the times of day, the venue and the format follow.
+        $writes = $tib->writes;
+        $errors = $service->syncFromIssue($this->a, $issueId, [
+            'conferenceDateBegin' => '2027-06-02',
+            'conferenceDateEnd' => '2027-06-03',
+            'conferencePlaceStreet' => 'Львів',
+            'conferenceOnline' => '1',
+        ]);
+        self::assertNotNull($errors);
+        self::assertSame([], $errors->toArray());
+        $edition = $service->get($this->a, $id);
+        self::assertSame('2027-06-02T09:00', $edition?->toArray()['local']['startsAt']);
+        self::assertSame('2027-06-03T18:00', $edition?->toArray()['local']['endsAt']);
+        self::assertEquals(['uk' => 'Львів', 'en' => 'Kyiv'], $edition?->text('venue')->toArray());
+        self::assertSame('online', $edition?->format->value);
+        self::assertSame($writes, $tib->writes, 'a change from the issue is not written back');
+        self::assertSame(1, $this->db->table('conf_audit_log')->where('entity_id', $id)->where('action', 'tib_sync')->count());
+
+        // Nothing differs, empty or bad dates: nothing changes.
+        self::assertNull($service->syncFromIssue($this->a, $issueId, ['conferenceDateBegin' => '2027-06-02', 'conferenceDateEnd' => '', 'conferencePlaceStreet' => 'Львів', 'conferenceOnline' => '1']));
+        self::assertNull($service->syncFromIssue($this->a, $issueId, ['conferenceDateBegin' => '02.06.2027']));
+        self::assertNull($service->syncFromIssue($this->a, $issueId + 50, ['conferenceDateBegin' => '2027-07-01']));
+        self::assertNull($service->syncFromIssue($this->b, $issueId, ['conferenceDateBegin' => '2027-07-01']), 'another context');
+
+        // An end before the start is refused and the edition stays.
+        $errors = $service->syncFromIssue($this->a, $issueId, ['conferenceDateEnd' => '2027-05-01']);
+        self::assertArrayHasKey('endsAt', $errors?->toArray() ?? []);
+        self::assertSame('2027-06-03T18:00', $service->get($this->a, $id)?->toArray()['local']['endsAt']);
+
+        // Edited in the plugin: the issue follows; off in the context: nothing is written or read.
+        $service->update($this->a, $id, array_merge($edition?->toArray() ?? [], ['endsAt' => '2027-06-04 17:00', 'format' => 'hybrid']));
+        self::assertSame('2027-06-04', $tib->issues[$issueId]['conferenceDateEnd']);
+        self::assertSame('', $tib->issues[$issueId]['conferenceOnline']);
+        $tib->on = false;
+        $writes = $tib->writes;
+        $service->update($this->a, $id, array_merge($edition?->toArray() ?? [], ['endsAt' => '2027-06-05 17:00']));
+        self::assertSame($writes, $tib->writes);
+        self::assertNull($service->syncFromIssue($this->a, $issueId, ['conferenceDateBegin' => '2027-07-01']));
     }
 }

@@ -9,6 +9,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionReposito
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionValidator;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\PublicationMode;
+use APP\plugins\generic\conferenceManager\classes\Domain\Edition\TibFields;
 use APP\plugins\generic\conferenceManager\classes\Domain\Institution\InstitutionRepository;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\DateInput;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\ValidationErrors;
@@ -29,7 +30,42 @@ final class EditionService
         private readonly ?InstitutionRepository $institutions = null,
         private readonly ?IssueProvisioner $issues = null,
         private readonly ?AuditLogger $audit = null,
+        private readonly ?TibIssueFields $tib = null,
     ) {
+    }
+
+    /** EDN-10: true when the edition dates, format and venue are kept in step with TIB Conference. */
+    public function tibEnabled(ContextInfo $context): bool
+    {
+        return $this->tib !== null && $this->tib->enabled($context->id);
+    }
+
+    /**
+     * EDN-10: the TIB fields of an issue were edited in OJS; the linked
+     * edition takes the new dates, format and venue. A change that the
+     * edition would refuse (an end before the start…) is not applied.
+     *
+     * @param array<string, mixed> $tib values of the TIB fields
+     * @return ?ValidationErrors null when no edition changed
+     */
+    public function syncFromIssue(ContextInfo $context, int $issueId, array $tib): ?ValidationErrors
+    {
+        if (!$this->tibEnabled($context)) {
+            return null;
+        }
+        $edition = $this->editions->findByIssueId($context->id, $issueId);
+        if ($edition === null || $edition->id === null) {
+            return null;
+        }
+        $changes = TibFields::changes($edition, $tib, $context->primaryLocale);
+        if ($changes === []) {
+            return null;
+        }
+        $input = $edition->toArray();
+        unset($input['id'], $input['local']);
+        // The dates in the changes are local times in the edition's zone.
+        $result = $this->update($context, $edition->id, array_merge($input, $changes), null, null, false);
+        return $result === null ? null : $result[1];
     }
 
     /**
@@ -93,7 +129,7 @@ final class EditionService
      * @param array<string, mixed> $input
      * @return array{0: ?Edition, 1: ValidationErrors}|null null when the edition is not found
      */
-    public function update(ContextInfo $context, int $id, array $input, ?int $actorUserId = null, ?string $ip = null): ?array
+    public function update(ContextInfo $context, int $id, array $input, ?int $actorUserId = null, ?string $ip = null, bool $toTib = true): ?array
     {
         $current = $this->editions->find($context->id, $id);
         if ($current === null) {
@@ -105,8 +141,8 @@ final class EditionService
         if (!$errors->isEmpty()) {
             return [null, $errors];
         }
-        $saved = $this->persist($context, $edition, $current);
-        $this->audit?->log($context->id, $actorUserId, 'edition', $saved->id, 'update', $current->toArray(), $saved->toArray(), $ip);
+        $saved = $this->persist($context, $edition, $current, $toTib);
+        $this->audit?->log($context->id, $actorUserId, 'edition', $saved->id, $toTib ? 'update' : 'tib_sync', $current->toArray(), $saved->toArray(), $ip);
         return [$saved, $errors];
     }
 
@@ -201,7 +237,7 @@ final class EditionService
         return [$edition, $errors];
     }
 
-    private function persist(ContextInfo $context, Edition $edition, ?Edition $current): Edition
+    private function persist(ContextInfo $context, Edition $edition, ?Edition $current, bool $toTib = true): Edition
     {
         $saved = $this->editions->save($edition);
         // EDN-04: in the "ojs_issue" mode the edition gets its own unpublished
@@ -212,6 +248,9 @@ final class EditionService
             $year = $saved->date('startsAt') !== null ? (int) $saved->date('startsAt')->format('Y') : null;
             $issueId = $this->issues->createUnpublishedIssue($context->id, $saved->text('name')->toArray(), $year);
             $saved = $this->editions->save($saved->withIssueId($issueId));
+        }
+        if ($toTib && $saved->issueId !== null && $this->tibEnabled($context)) {
+            $this->tib?->write($context->id, $saved->issueId, TibFields::fromEdition($saved, $context->primaryLocale));
         }
         return $saved;
     }
