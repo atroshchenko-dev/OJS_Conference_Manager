@@ -483,6 +483,9 @@ for key in CONF_PARTICIPATION_CONFIRM CONF_INVOICE_ISSUED CONF_REMINDER_PAYMENT 
   [ "$(curl -s -b "$jar" "$B/confa/api/v1/emailTemplates/$key" | j 'd["key"], bool(d["body"]["uk"]), bool(d["body"]["en"])')" = "('$key', True, True)" ] || fail "COM-01 letter $key"
 done
 ok "COM-01: participant letters are editable templates"
+lc new-user confa payer4 payer4@example.org >/dev/null
+pj4="$(mktemp)"; login "$pj4" payer4
+[ "$(curl -s -L -b "$pj4" "$B/confa/uk/conference/pay-2027/register" | grep -c payer4@example.org)" -ge 1 ] || fail "reader session for the access checks"
 
 i1="$(curl -s -b "$jar" "$api/editions/$did/invoices" | j '[i["id"] for i in d["items"] if i["status"] == "issued" and i["total"]["minor"] == 30000][0]')"
 [ "$(post "$api/invoices/$i1/reissue" '{}' | tail -1)" = 400 ] || fail "FEE-08: nothing to reissue"
@@ -513,7 +516,7 @@ python3 -c "import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); assert 'xl/works
 curl -s -b "$jar" -o "$body" "$api/exports/accounting?format=csv&editionId=$did"
 [ "$(sed -n 1p "$body" | tr -d '\r\357\273\277' | awk -F';' '{print NF}')" = 3 ] || fail "chosen columns in the file: $(head -1 "$body")"
 [ "$(put "$api/exports/accounting/columns" '{"columns":[]}' | tail -1)" = 400 ] || fail "no columns"
-[ "$(curl -s -b "$pj1" "$api/exports/accounting?format=csv" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no export"
+[ "$(curl -s -b "$pj4" "$api/exports/accounting?format=csv" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no export"
 rm -f "$hd" "$body"
 ok "FEE-12 export to CSV and XLSX with chosen columns"
 
@@ -525,14 +528,12 @@ rother="$(post "$api/editions/$rid/fees/presets" '{"institutionType":"university
 post "$api/editions/$rid/fees/tariffs" "{\"categoryId\":$rother,\"material\":\"listener\",\"pricing\":\"flat\",\"amount\":\"100\",\"currency\":\"UAH\"}" >/dev/null
 post "$api/editions/$rid/payment-rules" '{"mode":"treasury_transfer","paymentAccountId":'"$acc"'}' >/dev/null
 rregp="$B/confa/uk/conference/remind/register"
-lc new-user confa payer4 payer4@example.org >/dev/null
-pj4="$(mktemp)"; login "$pj4" payer4
 rtok="$(curl -s -L -c "$pj4" -b "$pj4" "$rregp" | sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' | head -1)"
 rcab="$(curl -s -L -c "$pj4" -b "$pj4" "$rregp" --data "csrfToken=$rtok&categoryId=$rother&participationForm=online&consent=1")"
 grep -q '100.00 UAH' <<<"$rcab" || fail "listener of the reminder edition: $(sed 's/<[^>]*>/ /g' <<<"$rcab" | tr -s ' \n' | grep -iE 'помил|error|обов' | head -3)"
 [ "$(curl -s -b "$jar" "$api/reminders" | j 'd["settings"]["payment"]["enabled"]')" = False ] || fail "COM-03: off by default"
 [ "$(put "$api/reminders" '{"payment":{"enabled":true,"days":99}}' | tail -1)" = 400 ] || fail "days out of range"
-[ "$(curl -s -b "$pj1" -X PUT -H "X-Csrf-Token: $csrf" -H 'Content-Type: application/json' "$api/reminders" -d '{}' -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader cannot change reminders"
+[ "$(curl -s -b "$pj4" -X PUT -H "X-Csrf-Token: $csrf" -H 'Content-Type: application/json' "$api/reminders" -d '{}' -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader cannot change reminders"
 [ "$(put "$api/reminders" '{"payment":{"enabled":true,"days":7}}' | head -1 | j 'd["settings"]["payment"]')" = "{'enabled': True, 'days': 7}" ] || fail "save reminders"
 rout="$(lc run-reminders-task)"
 grep -q 'OK reminders task' <<<"$rout" || fail "reminders task: $rout"
@@ -566,13 +567,13 @@ ok "COM-02 mailing of $cnt letters through the queue, test letter, variables"
 db="$(curl -s -b "$jar" "$api/editions/$did/dashboard")"
 [ "$(j 'd["submissions"]["total"], d["submissions"]["accepted"], d["submissions"]["declined"], d["submissions"]["waiting"]' <<<"$db")" = "(5, 4, 1, 0)" ] || fail "RPT-01 submissions: $db"
 [ "$(j '[p for p in d["payments"] if p["currency"] == "UAH"][0]["paid"]["count"] >= 1' <<<"$db")" = True ] || fail "RPT-01 payments: $db"
-[ "$(curl -s -b "$pj1" "$api/editions/$did/dashboard" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no summary"
+[ "$(curl -s -b "$pj4" "$api/editions/$did/dashboard" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no summary"
 ok "RPT-01 summary of the edition"
 
 al="$(curl -s -b "$jar" "$api/audit-log?count=200")"
 [ "$(j 'all(e in d["entities"] for e in ["campaign", "reminders", "export", "invoice", "edition"]) and d["itemsMax"] > 10' <<<"$al")" = True ] || fail "DAT-05 audit log: $(head -c 400 <<<"$al")"
 [ "$(curl -s -b "$jar" "$api/audit-log?entity=campaign" | j 'd["items"][0]["action"], d["items"][0]["actor"]')" = "('started', 'admin')" ] || fail "audit filter"
-[ "$(curl -s -b "$pj1" "$api/audit-log" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no audit log"
+[ "$(curl -s -b "$pj4" "$api/audit-log" -o /dev/null -w '%{http_code}')" != 200 ] || fail "a reader has no audit log"
 cv="$(curl -s -b "$jar" "$api/consent-versions")"
 [ "$(j 'len(d["items"]) >= 1 and sum(v["agreements"] for v in d["items"]) >= 3 and all(v["texts"] for v in d["items"])' <<<"$cv")" = True ] || fail "DAT-01 consent versions: $(head -c 400 <<<"$cv")"
 ok "DAT-05 audit log; DAT-01 consent versions with their texts"
