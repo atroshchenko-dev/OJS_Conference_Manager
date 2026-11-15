@@ -22,6 +22,7 @@ use APP\plugins\generic\conferenceManager\classes\Application\ParticipantMailer;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
 use APP\plugins\generic\conferenceManager\classes\Application\ProgramBuilderService;
 use APP\plugins\generic\conferenceManager\classes\Application\ProgramService;
+use APP\plugins\generic\conferenceManager\classes\Application\PublicScheduleService;
 use APP\plugins\generic\conferenceManager\classes\Application\ReminderService;
 use APP\plugins\generic\conferenceManager\classes\Application\SettingsStore;
 use APP\plugins\generic\conferenceManager\classes\Application\SubmissionInfo;
@@ -687,6 +688,33 @@ final class DecisionFlowTest extends TestCase
         self::assertNotSame([], $o['sessions'][1]['conflicts']);
         self::assertSame([1, 2], array_column($o['sessions'][0]['paperItems'], 'submissionId'));
         self::assertSame(15, $o['sessions'][0]['overrun'], '45 + 30 minutes in one hour');
+
+        // PRG-04 – PRG-08: the program as visitors see it.
+        $ed = (new DbEditionRepository($this->db))->find($this->ctx->id, $edition);
+        self::assertNotNull($ed);
+        $schedule = new PublicScheduleService(new DbProgramRepository($this->db), new ProgramService(new DbEditionRepository($this->db), new DbRegistrationRepository($this->db), $this->editorial));
+        $days = $schedule->days($this->ctx, $ed, 'uk', false, $this->now);
+        self::assertCount(1, $days);
+        self::assertSame('2027-05-20', $days[0]['date']);
+        [$d1, $d2] = $days[0]['sessions'];
+        self::assertSame(['10:00', '11:00', 'Аудиторія 101'], [$d1['start'], $d1['end'], $d1['room']]);
+        self::assertSame(['10:00', '10:45'], array_column($d1['items'], 'start'));
+        self::assertNull($d1['stream'], 'no stream link for this room');
+        self::assertSame(PublicScheduleService::STREAM_REGISTER, $d2['stream']['state']);
+        self::assertNull($d2['stream']['url']);
+        $later = $schedule->days($this->ctx, $ed, 'uk', true, $this->now)[0]['sessions'][1]['stream'];
+        self::assertSame(PublicScheduleService::STREAM_LATER, $later['state'], 'before the day of the session');
+        $open = $schedule->days($this->ctx, $ed, 'uk', true, new \DateTimeImmutable('2027-05-20 06:00', new \DateTimeZone('UTC')))[0]['sessions'][1]['stream'];
+        self::assertSame([PublicScheduleService::STREAM_OPEN, 'https://meet.example.org/x'], [$open['state'], $open['url']], 'the link of the room');
+        $place = $schedule->ofSubmission($this->ctx, $ed, 2, 'uk');
+        self::assertSame([(int) $s1?->id, '10:45', '11:15', 'Аудиторія 101'], [$place['sessionId'] ?? null, $place['start'] ?? null, $place['end'] ?? null, $place['room'] ?? null]);
+        self::assertNull($schedule->ofSubmission($this->ctx, $ed, 4, 'uk'));
+        $ics = (string) $schedule->ical($this->ctx, $ed, 'uk', null, 'https://example.org/program', 'example.org', $this->now);
+        self::assertSame(2, substr_count($ics, 'BEGIN:VEVENT'));
+        self::assertStringContainsString('SUMMARY:Секція 1', $ics);
+        self::assertStringNotContainsString('meet.example.org', $ics, 'stream links stay private');
+        self::assertSame(1, substr_count((string) $schedule->ical($this->ctx, $ed, 'uk', (int) $s2?->id, 'https://example.org/program', 'example.org', $this->now), 'BEGIN:VEVENT'));
+        self::assertNull($schedule->ical($this->ctx, $ed, 'uk', 999, 'https://example.org/program', 'example.org', $this->now));
 
         // Taking out, a break, deleting a room and a session.
         self::assertSame([], $builder->move($this->ctx, $edition, 3, null, 0)?->toArray());

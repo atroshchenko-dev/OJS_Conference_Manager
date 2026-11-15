@@ -3572,3 +3572,51 @@ msgstr "Зал"
 
 msgid "plugins.generic.conferenceManager.audit.entity.program_session"
 msgstr "Сесія програми"
+
+msgid "plugins.generic.conferenceManager.program.download.ics"
+msgstr "Додати до календаря (iCal)"
+
+msgid "plugins.generic.conferenceManager.program.download.pdf"
+msgstr "Завантажити PDF"
+
+msgid "plugins.generic.conferenceManager.program.timezone.label"
+msgstr "Показувати час:"
+
+msgid "plugins.generic.conferenceManager.program.timezone.event"
+msgstr "час заходу ({$tz})"
+
+msgid "plugins.generic.conferenceManager.program.timezone.mine"
+msgstr "мій час"
+
+msgid "plugins.generic.conferenceManager.program.timezone.note"
+msgstr "Час указано за часовим поясом заходу: {$tz}."
+
+msgid "plugins.generic.conferenceManager.program.days"
+msgstr "Дні програми"
+
+msgid "plugins.generic.conferenceManager.program.chairs"
+msgstr "Модератори"
+
+msgid "plugins.generic.conferenceManager.program.hours"
+msgstr "Обсяг: {$n} год"
+
+msgid "plugins.generic.conferenceManager.program.ects"
+msgstr "ЄКТС: {$ects}"
+
+msgid "plugins.generic.conferenceManager.program.outcomes"
+msgstr "Результати навчання"
+
+msgid "plugins.generic.conferenceManager.program.stream.open"
+msgstr "Приєднатися до трансляції"
+
+msgid "plugins.generic.conferenceManager.program.stream.later"
+msgstr "Посилання на трансляцію з’явиться {$date}."
+
+msgid "plugins.generic.conferenceManager.program.stream.register"
+msgstr "Посилання на трансляцію бачать зареєстровані учасники."
+
+msgid "plugins.generic.conferenceManager.program.session.ics"
+msgstr "Додати сесію до календаря"
+
+msgid "plugins.generic.conferenceManager.program.article.title"
+msgstr "У програмі конференції"

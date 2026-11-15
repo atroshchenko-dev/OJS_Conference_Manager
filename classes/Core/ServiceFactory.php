@@ -255,6 +255,20 @@ final class ServiceFactory
         );
     }
 
+    public static function participantRepository(): DbParticipantRepository
+    {
+        return new DbParticipantRepository(DB::connection());
+    }
+
+    /** PRG-04 – PRG-08: the program by days, as visitors see it. */
+    public static function schedule(): \APP\plugins\generic\conferenceManager\classes\Application\PublicScheduleService
+    {
+        return new \APP\plugins\generic\conferenceManager\classes\Application\PublicScheduleService(
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbProgramRepository(DB::connection()),
+            self::program(),
+        );
+    }
+
     /** Plan, section 15.2: the load profile of the installation. */
     public static function loadPolicy(): \APP\plugins\generic\conferenceManager\classes\Application\LoadPolicy
     {

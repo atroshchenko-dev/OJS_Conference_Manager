@@ -75,6 +75,7 @@ jobs:
       - run: ci/integration/isolation.sh
       - run: ci/integration/load.sh
       - run: ci/integration/themes.sh
+      - run: ci/integration/program.sh
       - run: ci/integration/segments.sh
       - if: failure()
         run: docker logs ojs 2>&1 | tail -200

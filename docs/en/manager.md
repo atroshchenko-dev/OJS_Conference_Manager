@@ -276,16 +276,35 @@ For each, tick **Send**, set **Days before** (1 to 60) and save. Reminders are o
 
 "Full text uploaded" means the author uploaded a file after the acceptance decision. If an editor uploads the file, the plugin does not count it.
 
-## How to publish the program
+## How to build and publish the program
+
+### Schedule in the builder
+
+1. In **Conferences**, click **Program** next to the edition.
+2. Open **Rooms** and add rooms: a name and, if you like, capacity and a link to an online room (Zoom, Teams, Meet). The link of an online room becomes the stream link of all its sessions.
+3. Click **Add session** (or **Add session on this day**) and fill in the type, title, start and end, room, chairs and the default length of one paper. A seminar can have hours, ECTS credits and learning outcomes. A session can have its own stream link and the time from which participants see it.
+4. Drag accepted papers from **Unassigned papers** into a session, or pick a session in **Move to**. The arrows change the order; the "min" field sets the length of one paper.
+
+Times are in the time zone of the edition. The builder computes the time of each paper and warns when:
+- the room is already taken by another session (such a session is not saved);
+- the papers do not fit into the session;
+- the same presenter speaks in two sessions at the same time.
+
+Breaks cannot hold papers. A paper declined or withdrawn after it was placed is shown struck through and can only be taken out.
+
+### Publishing
 
 1. Click **Edit** next to the edition and go to **Program of the event**.
 2. If needed, fill in **Introduction to the program (schedule, rules, links)**.
 3. Click **View the program** to see the draft. Visitors cannot see it yet.
 4. Tick **Publish the program on the event page** and save.
 
-The program is built from accepted papers: by journal section, and within a section by presentation type (oral, online, poster, without presentation) and alphabetically. Papers with published articles link to the article. The address is `/{journal}/conference/{path}/program`.
+The address is `/{journal}/conference/{path}/program`. Without sessions, the program lists accepted papers by journal section, then by presentation type and alphabetically. With sessions, it goes by days and time, and a visitor in another time zone can switch it to their own time.
 
-**Limit:** there is no schedule with rooms, sessions and times yet. You can describe the schedule in the introduction text.
+A published program also gives:
+- **Add to calendar (iCal)** and **Download PDF**, and **Add this session to calendar** in each session;
+- stream links only for registered participants of the event and managers, and only from the time set in the session or, by default, from the start of the session's day. iCal and PDF files never contain stream links;
+- an **In the conference program** block with the date, time, session and room on the page of a published article.
 
 ## How to mark attendance
 

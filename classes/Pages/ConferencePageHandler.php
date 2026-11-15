@@ -65,8 +65,17 @@ class ConferencePageHandler extends Handler
         if (($args[0] ?? null) === 'register') {
             return $this->register($edition, $info, $request);
         }
-        if (($args[0] ?? null) === 'program' && !isset($args[1])) {
-            return $this->program($edition, $info, $request);
+        if (($args[0] ?? null) === 'program') {
+            $format = $args[1] ?? null;
+            if ($format === null && !isset($args[2])) {
+                return $this->program($edition, $info, $request);
+            }
+            if ($format === 'ics' && (!isset($args[2]) || ctype_digit((string) $args[2])) && !isset($args[3])) {
+                return $this->programIcs($edition, $info, $request, isset($args[2]) ? (int) $args[2] : null);
+            }
+            if ($format === 'pdf' && !isset($args[2])) {
+                return $this->program($edition, $info, $request, true);
+            }
         }
         if (isset($args[0])) {
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
@@ -608,46 +617,140 @@ class ConferencePageHandler extends Handler
     }
 
     /**
-     * PRG-01: `/{journal}/conference/{edition}/program`. Public once the
-     * journal publishes the program; managers see a preview before that.
+     * PRG-01, PRG-04: `/{journal}/conference/{edition}/program`. Public once
+     * the journal publishes the program; managers see a preview before
+     * that. With sessions the program goes by days and time; without
+     * them, by section. `program/pdf` gives the same as a PDF (PRG-06).
      */
-    private function program(Edition $edition, ContextInfo $info, \APP\core\Request $request): mixed
+    private function program(Edition $edition, ContextInfo $info, \APP\core\Request $request, bool $pdf = false): mixed
+    {
+        $public = ProgramService::isPublic($edition);
+        $manager = $this->canManage($request);
+        if (!$public && !$manager) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $locale = Locale::getLocale();
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $dispatcher = $request->getDispatcher();
+        $contextPath = (string) $request->getContext()?->getPath();
+        $articleUrl = fn (int $id): string => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, 'article', 'view', [$id]);
+        $programUrl = $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program']);
+
+        $days = ServiceFactory::schedule()->days($info, $edition, $locale, !$pdf && ($manager || $this->isRegistered($info, $edition, $request)), $now);
+        $dayFormatter = class_exists(\IntlDateFormatter::class) ? new \IntlDateFormatter($locale, \IntlDateFormatter::FULL, \IntlDateFormatter::NONE, $edition->timezone) : null;
+        $numbers = class_exists(\NumberFormatter::class) ? new \NumberFormatter($locale, \NumberFormatter::DECIMAL) : null;
+        foreach ($days as $d => &$day) {
+            $date = new DateTimeImmutable($day['date'] . ' 12:00', new DateTimeZone($edition->timezone));
+            $label = $dayFormatter?->format($date);
+            $day['label'] = is_string($label) ? $label : $day['date'];
+            $day['anchor'] = 'cm-day-' . ($d + 1);
+            foreach ($day['sessions'] as &$session) {
+                $session['typeLabel'] = __($session['labelKey']);
+                $session['chairsText'] = implode(', ', $session['chairs']);
+                $session['icsUrl'] = $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program', 'ics', $session['id']]);
+                if ($session['ectsX100'] !== null) {
+                    $ects = $session['ectsX100'] / 100;
+                    $numbers?->setAttribute(\NumberFormatter::MAX_FRACTION_DIGITS, 2);
+                    $session['ects'] = $numbers?->format($ects) ?: (string) $ects;
+                }
+                if (($session['stream']['from'] ?? null) !== null) {
+                    $session['stream']['fromLabel'] = $this->formatDate(new DateTimeImmutable($session['stream']['from']), $edition->timezone, $locale);
+                }
+                foreach ($session['items'] as &$item) {
+                    $item['url'] = $item['published'] ? $articleUrl((int) $item['submissionId']) : null;
+                }
+                unset($item);
+            }
+            unset($session);
+        }
+        unset($day);
+
+        $program = ['sections' => [], 'count' => 0];
+        if ($days === []) {
+            $program = ServiceFactory::program()->program($info, (int) $edition->id, $locale) ?? $program;
+            foreach ($program['sections'] as &$section) {
+                foreach ($section['groups'] as &$group) {
+                    $group['label'] = __($group['labelKey']);
+                    foreach ($group['items'] as &$item) {
+                        $item['url'] = $item['published'] ? $articleUrl((int) $item['submissionId']) : null;
+                    }
+                    unset($item);
+                }
+                unset($group);
+            }
+            unset($section);
+        }
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $vm = $this->viewModel($edition, $locale, $info->primaryLocale, $request);
+        $templateMgr->assign([
+            'edition' => $vm,
+            'program' => $program,
+            'programDays' => $days,
+            'programTimezone' => $edition->timezone,
+            'programIntro' => (string) $edition->text('programText')->resolve($locale, $info->primaryLocale),
+            'programPreview' => !$public,
+            'programIcsUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program', 'ics']),
+            'programPdfUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program', 'pdf']),
+            'programUrl' => $programUrl,
+            'editionUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path),
+            'pageTitleTranslated' => __('plugins.generic.conferenceManager.program.title') . ': ' . $vm['name'],
+        ]);
+        if ($pdf) {
+            $html = $templateMgr->fetch($this->plugin->getTemplateResource('frontend/programPdf.tpl'));
+            $content = (new \APP\plugins\generic\conferenceManager\classes\Core\MpdfRenderer())->render($html, __('plugins.generic.conferenceManager.program.title') . ': ' . $vm['name']);
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="program-' . $edition->path . '.pdf"');
+            header('Content-Length: ' . strlen($content));
+            header('Cache-Control: ' . ($public ? 'public, max-age=300' : 'private, no-store'));
+            echo $content;
+            exit;
+        }
+        $base = $request->getBaseUrl() . '/' . $this->plugin->getPluginPath();
+        $templateMgr->addStyleSheet('conferenceEditionPage', $base . '/css/public.css', ['contexts' => 'frontend']);
+        if ($days !== []) {
+            $templateMgr->addJavaScript('conferenceProgramTime', $base . '/js/programTime.js', ['contexts' => 'frontend']);
+        }
+        if (!$public) {
+            $templateMgr->addHeader('conferenceEditionNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
+        }
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/program.tpl'));
+    }
+
+    /** PRG-06: `program/ics` (all sessions) and `program/ics/{session}`. */
+    private function programIcs(Edition $edition, ContextInfo $info, \APP\core\Request $request, ?int $sessionId): mixed
     {
         $public = ProgramService::isPublic($edition);
         if (!$public && !$this->canManage($request)) {
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
-        $locale = Locale::getLocale();
-        $program = ServiceFactory::program()->program($info, (int) $edition->id, $locale) ?? ['sections' => [], 'count' => 0];
-        $dispatcher = $request->getDispatcher();
         $contextPath = (string) $request->getContext()?->getPath();
-        foreach ($program['sections'] as &$section) {
-            foreach ($section['groups'] as &$group) {
-                $group['label'] = __($group['labelKey']);
-                foreach ($group['items'] as &$item) {
-                    $item['url'] = $item['published'] ? $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, 'article', 'view', [$item['submissionId']]) : null;
-                }
-                unset($item);
+        $programUrl = $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program']);
+        $ics = ServiceFactory::schedule()->ical($info, $edition, Locale::getLocale(), $sessionId, $programUrl, (string) parse_url($request->getBaseUrl(), PHP_URL_HOST), new DateTimeImmutable('now', new DateTimeZone('UTC')));
+        if ($ics === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        header('Content-Type: text/calendar; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $edition->path . ($sessionId !== null ? '-session-' . $sessionId : '') . '.ics"');
+        header('Content-Length: ' . strlen($ics));
+        header('Cache-Control: ' . ($public ? 'public, max-age=300' : 'private, no-store'));
+        echo $ics;
+        exit;
+    }
+
+    /** PRG-05: the viewer takes part in the edition (an active participation). */
+    private function isRegistered(ContextInfo $info, Edition $edition, PKPRequest $request): bool
+    {
+        $user = $request->getUser();
+        if ($user === null) {
+            return false;
+        }
+        foreach (ServiceFactory::participantRepository()->ofPerson($info->id, (int) $user->getId(), (string) $user->getEmail()) as $p) {
+            if ($p['editionId'] === $edition->id && $p['status'] === \APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationStatus::Active->value) {
+                return true;
             }
-            unset($group);
         }
-        unset($section);
-        $this->setupTemplate($request);
-        $templateMgr = TemplateManager::getManager($request);
-        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
-        if (!$public) {
-            $templateMgr->addHeader('conferenceEditionNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
-        }
-        $vm = $this->viewModel($edition, $locale, $info->primaryLocale, $request);
-        $templateMgr->assign([
-            'edition' => $vm,
-            'program' => $program,
-            'programIntro' => (string) $edition->text('programText')->resolve($locale, $info->primaryLocale),
-            'programPreview' => !$public,
-            'editionUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path),
-            'pageTitleTranslated' => __('plugins.generic.conferenceManager.program.title') . ': ' . $vm['name'],
-        ]);
-        return $templateMgr->display($this->plugin->getTemplateResource('frontend/program.tpl'));
+        return false;
     }
 
     /**

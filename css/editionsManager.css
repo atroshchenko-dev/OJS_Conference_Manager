@@ -205,7 +205,7 @@
 .cmProgram__itemTime { font-variant-numeric: tabular-nums; color: #333; }
 .cmProgram__itemTools { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; font-size: .75rem; grid-column: 2; }
 @media (min-width: 700px) { .cmProgram__itemTools { grid-column: auto; } }
-.cmProgram__itemTools input { width: 3.5rem; }
+.cmProgram__itemTools input { width: 3.5rem; padding: .125rem .25rem; border: 1px solid #bbb; border-radius: 3px; font: inherit; }
 .cmProgram__itemTools select { max-width: 11rem; }
 .cmProgram__item--conflict { background: #fff5f9; }
 .cmProgram__item--gone .cmProgram__paperTitle { text-decoration: line-through; color: #6b6b6b; }

@@ -3572,3 +3572,51 @@ msgstr "Room"
 
 msgid "plugins.generic.conferenceManager.audit.entity.program_session"
 msgstr "Program session"
+
+msgid "plugins.generic.conferenceManager.program.download.ics"
+msgstr "Add to calendar (iCal)"
+
+msgid "plugins.generic.conferenceManager.program.download.pdf"
+msgstr "Download PDF"
+
+msgid "plugins.generic.conferenceManager.program.timezone.label"
+msgstr "Show times in:"
+
+msgid "plugins.generic.conferenceManager.program.timezone.event"
+msgstr "event time ({$tz})"
+
+msgid "plugins.generic.conferenceManager.program.timezone.mine"
+msgstr "my time"
+
+msgid "plugins.generic.conferenceManager.program.timezone.note"
+msgstr "Times are in the time zone of the event: {$tz}."
+
+msgid "plugins.generic.conferenceManager.program.days"
+msgstr "Days of the program"
+
+msgid "plugins.generic.conferenceManager.program.chairs"
+msgstr "Chairs"
+
+msgid "plugins.generic.conferenceManager.program.hours"
+msgstr "Workload: {$n} h"
+
+msgid "plugins.generic.conferenceManager.program.ects"
+msgstr "ECTS: {$ects}"
+
+msgid "plugins.generic.conferenceManager.program.outcomes"
+msgstr "Learning outcomes"
+
+msgid "plugins.generic.conferenceManager.program.stream.open"
+msgstr "Join the stream"
+
+msgid "plugins.generic.conferenceManager.program.stream.later"
+msgstr "The stream link will appear on {$date}."
+
+msgid "plugins.generic.conferenceManager.program.stream.register"
+msgstr "The stream link is shown to registered participants."
+
+msgid "plugins.generic.conferenceManager.program.session.ics"
+msgstr "Add this session to calendar"
+
+msgid "plugins.generic.conferenceManager.program.article.title"
+msgstr "In the conference program"

@@ -129,4 +129,32 @@
 .cmProgram__item { margin: 0 0 0.75rem; }
 .cmProgram__title { display: block; font-weight: 600; overflow-wrap: anywhere; }
 .cmProgram__authors { display: block; opacity: 0.8; font-size: 0.95em; }
-@media print { .cmProgram__toc, .cmProgram__back { display: none; } }
+/* PRG-04: program by days */
+.cmProgram__tools { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; margin: 1rem 0; }
+.cmProgram__tool { display: inline-block; border: 1px solid currentColor; border-radius: 3px; padding: 0.25rem 0.75rem; text-decoration: none; }
+.cmProgram__tz { margin: 0; opacity: 0.85; font-size: 0.95em; }
+.cmProgram__tz select { margin-left: 0.25rem; max-width: 100%; }
+.cmProgram__day { margin: 2rem 0; }
+.cmProgram__day h2 { border-bottom: 1px solid rgba(0, 0, 0, 0.15); padding-bottom: 0.25rem; }
+.cmProgram__session { border-left: 4px solid var(--cm-accent, #2f6f9f); padding: 0.5rem 0 0.5rem 1rem; margin: 0 0 1.25rem; }
+.cmProgram__session--plenary { border-left-color: #6a3d9a; }
+.cmProgram__session--poster { border-left-color: #2e7d32; }
+.cmProgram__session--seminar { border-left-color: #b45309; }
+.cmProgram__session--break { border-left-color: rgba(0, 0, 0, 0.2); opacity: 0.85; }
+.cmProgram .cmProgram__when { margin: 0; display: flex; flex-wrap: wrap; gap: 0 0.75rem; font-size: 0.95em; }
+.cmProgram__time { font-weight: 700; font-variant-numeric: tabular-nums; }
+.cmProgram__type, .cmProgram__room { opacity: 0.8; }
+.cmProgram .cmProgram__sessionTitle { margin: 0.25rem 0; font-size: 1.15em; overflow-wrap: anywhere; }
+.cmProgram__chairs, .cmProgram__credits { margin: 0.25rem 0; font-size: 0.95em; }
+.cmProgram__description { margin: 0.25rem 0 0.5rem; }
+.cmProgram__outcomes { margin: 0.25rem 0 0.5rem; }
+.cmProgram__outcomes summary { cursor: pointer; }
+.cmProgram__stream { margin: 0.5rem 0; font-size: 0.95em; }
+.cmProgram__stream--open a { font-weight: 600; }
+.cmProgram__items--timed { list-style: none; padding-left: 0; margin-top: 0.5rem; }
+.cmProgram__items--timed .cmProgram__item { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: 0.5rem; }
+.cmProgram__itemTime { font-variant-numeric: tabular-nums; opacity: 0.85; }
+.cmProgram__sessionIcs { margin: 0.25rem 0 0; font-size: 0.85em; }
+.cmArticleProgram { margin: 1rem 0; padding: 0.75rem 1rem; border-left: 4px solid var(--cm-accent, #2f6f9f); }
+.cmArticleProgram p { margin: 0.25rem 0; }
+@media print { .cmProgram__toc, .cmProgram__back, .cmProgram__tools, .cmProgram__sessionIcs { display: none; } }

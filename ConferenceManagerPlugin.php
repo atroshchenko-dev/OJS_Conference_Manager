@@ -95,6 +95,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         Hook::add('TemplateManager::display', $this->addWizardStep(...));
         Hook::add('TemplateManager::display', $this->addWorkflowScript(...));
         Hook::add('TemplateManager::display', $this->addScholarTags(...));
+        Hook::add('Templates::Article::Details', $this->addArticleProgram(...));
         Hook::add('Submission::validateSubmit', $this->validateSubmit(...));
         Hook::add('Publication::validatePublish', $this->validatePublish(...));
         Event::listen(SubmissionSubmitted::class, $this->onSubmissionSubmitted(...));
@@ -329,6 +330,48 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
             }
         } catch (\Throwable $e) {
             error_log('conferenceManager: scholar tags: ' . $e->getMessage());
+        }
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * PRG-08: the time and room of the paper in the program of the
+     * conference, on the article page, once the program is public.
+     *
+     * @param array{0: array<mixed>, 1: \Smarty_Internal_Template|TemplateManager, 2: string} $args
+     */
+    public function addArticleProgram(string $hookName, array $args): bool
+    {
+        $request = Application::get()->getRequest();
+        $context = $request->getContext();
+        $templateMgr = TemplateManager::getManager($request);
+        $publication = $templateMgr->getTemplateVars('publication');
+        $editionId = (int) ($publication?->getData('conferenceEditionId') ?? 0);
+        if ($context === null || $editionId === 0 || !$this->isEnabledFor((int) $context->getId())) {
+            return Hook::CONTINUE;
+        }
+        try {
+            $info = ContextGateway::fromContext($context);
+            $edition = ServiceFactory::editions()->get($info, $editionId);
+            if ($edition === null || !\APP\plugins\generic\conferenceManager\classes\Application\ProgramService::isPublic($edition)) {
+                return Hook::CONTINUE;
+            }
+            $locale = \PKP\facades\Locale::getLocale();
+            $place = ServiceFactory::schedule()->ofSubmission($info, $edition, (int) $publication->getData('submissionId'), $locale);
+            if ($place === null) {
+                return Hook::CONTINUE;
+            }
+            $date = new \DateTimeImmutable($place['date'] . ' 12:00', new \DateTimeZone($edition->timezone));
+            $day = class_exists(\IntlDateFormatter::class) ? (new \IntlDateFormatter($locale, \IntlDateFormatter::LONG, \IntlDateFormatter::NONE, $edition->timezone))->format($date) : false;
+            $url = $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), 'conference', $edition->path, ['program'], null, 'cm-session-' . $place['sessionId']);
+            $e = static fn (string $v): string => htmlspecialchars($v, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $args[2] .= '<section class="item cmArticleProgram"><h2 class="label">' . $e(__('plugins.generic.conferenceManager.program.article.title')) . '</h2>'
+                . '<p><time datetime="' . $e($place['startsAt']) . '">' . $e((is_string($day) ? $day : $place['date']) . ', ' . $place['start'] . '–' . $place['end']) . '</time>'
+                . ' (' . $e($edition->timezone) . ')</p>'
+                . '<p><a href="' . $e($url) . '">' . $e($place['title']) . '</a>' . ($place['room'] !== null ? ' · ' . $e($place['room']) : '') . '</p>'
+                . '<p>' . $e((string) $edition->text('name')->resolve($locale, $info->primaryLocale)) . '</p></section>';
+        } catch (\Throwable $ex) {
+            error_log('conferenceManager: article program: ' . $ex->getMessage());
         }
         return Hook::CONTINUE;
     }
