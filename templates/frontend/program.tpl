@@ -16,6 +16,14 @@
 		<div class="cmProgram__intro">{$programIntro|escape|nl2br}</div>
 	{/if}
 
+	{if $programSignedIn}
+		<p class="cmProgram__mine">
+			{if $programOnlyMine}<a href="{$programUrl|escape}">{translate key="plugins.generic.conferenceManager.myProgram.all"}</a>
+			{else}<a href="{$programUrl|escape}?mine=1">{translate key="plugins.generic.conferenceManager.myProgram.only" n=$programMineCount}</a>{/if}
+			{if $programMineCount} · <a href="{$programMineIcsUrl|escape}">{translate key="plugins.generic.conferenceManager.myProgram.ics"}</a>{/if}
+		</p>
+	{/if}
+
 	{if $programDays}
 		<div class="cmProgram__tools">
 			<a class="cmProgram__tool" href="{$programIcsUrl|escape}">{translate key="plugins.generic.conferenceManager.program.download.ics"}</a>
@@ -41,6 +49,7 @@
 							<span class="cmProgram__type">{$s.typeLabel|escape}</span>{if $s.room}<span class="cmProgram__room">{$s.room|escape}</span>{/if}
 						</p>
 						<h3 class="cmProgram__sessionTitle">{$s.title|escape}</h3>
+						{if $s.mineText}<p class="cmProgram__mineReason">{$s.mineText|escape}</p>{/if}
 						{if $s.chairs}<p class="cmProgram__chairs">{translate key="plugins.generic.conferenceManager.program.chairs"}: {$s.chairsText|escape}</p>{/if}
 						{if $s.description}<div class="cmProgram__description">{$s.description|escape|nl2br}</div>{/if}
 						{if $s.hours || $s.ects}
@@ -69,7 +78,20 @@
 								{/foreach}
 							</ol>
 						{/if}
-						{if $s.type != 'break'}<p class="cmProgram__sessionIcs"><a href="{$s.icsUrl|escape}">{translate key="plugins.generic.conferenceManager.program.session.ics"}</a></p>{/if}
+						{if $s.type != 'break'}
+							<div class="cmProgram__sessionTools">
+								<a href="{$s.icsUrl|escape}">{translate key="plugins.generic.conferenceManager.program.session.ics"}</a>
+								{if $programSignedIn}
+									<form method="post" action="{$programUrl|escape}" class="cmProgram__pick">
+										{csrf}
+										<input type="hidden" name="sessionId" value="{$s.id|escape}">
+										<input type="hidden" name="pick" value="{if $s.picked}0{else}1{/if}">
+										{if $programOnlyMine}<input type="hidden" name="mine" value="1">{/if}
+										<button type="submit">{if $s.picked}★ {translate key="plugins.generic.conferenceManager.myProgram.remove"}{else}☆ {translate key="plugins.generic.conferenceManager.myProgram.add"}{/if}</button>
+									</form>
+								{/if}
+							</div>
+						{/if}
 					</article>
 				{/foreach}
 			</section>
@@ -100,6 +122,8 @@
 				{/foreach}
 			</section>
 		{/foreach}
+	{elseif $programOnlyMine}
+		<p>{translate key="plugins.generic.conferenceManager.myProgram.empty"}</p>
 	{else}
 		<p>{translate key="plugins.generic.conferenceManager.program.empty"}</p>
 	{/if}

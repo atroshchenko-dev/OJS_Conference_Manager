@@ -352,4 +352,98 @@ final class AttendanceService
     {
         return isset(($this->program?->chairedBy($participantIds) ?? [])[$sessionId]);
     }
+
+    /**
+     * ATT-04: what the person at the entrance sees after scanning a
+     * ticket: who it is, whether they are present, and the sessions of
+     * the edition with the one going on now (or starting within 30
+     * minutes) chosen.
+     *
+     * @return array<string, mixed>|null null when the participation is not of this context
+     */
+    public function checkinCard(ContextInfo $context, int $participationId, string $locale, DateTimeImmutable $now): ?array
+    {
+        $editionId = $this->attendance->editionOf($context->id, $participationId);
+        $edition = $editionId === null ? null : $this->editions->find($context->id, $editionId);
+        if ($edition === null || $editionId === null) {
+            return null;
+        }
+        $person = null;
+        foreach ($this->attendance->ofEdition($context->id, $editionId, $locale) as $p) {
+            if ($p['participationId'] === $participationId) {
+                $person = $p;
+            }
+        }
+        if ($person === null) {
+            return null;
+        }
+        $sessions = [];
+        $current = null;
+        $presence = $this->attendance->sessionPresence($editionId)[$participationId] ?? [];
+        foreach ($this->program?->sessions($editionId) ?? [] as $s) {
+            if ($s->type === SessionType::Break || $s->id === null) {
+                continue;
+            }
+            $soon = $s->startsAt->sub(new \DateInterval('PT30M'));
+            if ($current === null && $soon <= $now && $now < $s->endsAt) {
+                $current = $s->id;
+            }
+            $sessions[] = [
+                'id' => $s->id,
+                'type' => $s->type->value,
+                'title' => (string) $s->text('title')->resolve($locale, $context->primaryLocale),
+                'startsAt' => $s->startsAt,
+                'endsAt' => $s->endsAt,
+                'chairs' => $s->chairs,
+                'present' => in_array($s->id, $presence, true),
+            ];
+        }
+        return [
+            'participationId' => $participationId,
+            'participantId' => $person['participantId'],
+            'editionId' => $editionId,
+            'editionName' => (string) $edition->text('name')->resolve($locale, $context->primaryLocale),
+            'timezone' => $edition->timezone,
+            'name' => $person['name'] !== '' ? $person['name'] : $person['email'],
+            'affiliation' => $person['affiliation'],
+            'role' => $person['role'],
+            'form' => $person['form'],
+            'active' => $person['status'] === ParticipationStatus::Active->value,
+            'attended' => $person['attended'],
+            'sessions' => $sessions,
+            'currentSessionId' => $current,
+        ];
+    }
+
+    /**
+     * ATT-04: marks the person of a ticket present at the edition (when
+     * $atEdition) and at a session. A presence already recorded is kept
+     * as it is, so a report's minutes are not lost.
+     *
+     * @return array{edition: bool, session: bool}|null null when there is nothing to mark
+     */
+    public function checkIn(ContextInfo $context, int $participationId, bool $atEdition, ?int $sessionId, ?int $actorId, DateTimeImmutable $now): ?array
+    {
+        $card = $this->checkinCard($context, $participationId, $context->primaryLocale, $now);
+        if ($card === null || !$card['active']) {
+            return null;
+        }
+        $out = ['edition' => false, 'session' => false];
+        if ($atEdition && !$card['attended']) {
+            $out['edition'] = $this->attendance->mark($card['editionId'], [$participationId], true, null, self::SOURCE_MANUAL, $actorId, $now) > 0;
+        }
+        if ($sessionId !== null) {
+            $known = array_column($card['sessions'], 'present', 'id');
+            if (!array_key_exists($sessionId, $known)) {
+                return null;
+            }
+            if (!$known[$sessionId]) {
+                $out['session'] = $this->attendance->markSession($card['editionId'], $sessionId, [$participationId], true, null, self::SOURCE_MANUAL, $actorId, $now) > 0;
+            }
+        }
+        if ($out['edition'] || $out['session']) {
+            $this->audit?->log($context->id, $actorId, 'attendance', $card['editionId'], 'checked_in', null, ['participation' => $participationId, 'session' => $sessionId]);
+        }
+        return $out;
+    }
 }

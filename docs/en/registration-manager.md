@@ -104,6 +104,15 @@ Participants are matched by email, so a person should join the meeting with the 
 
 Attendance decides whether listeners and speakers receive a certificate.
 
+### How to check participants in by the QR ticket
+
+In-person participants have an entry ticket with a QR code in their cabinet. Scan it with the camera of a phone where you are signed in to the journal. The participant's page opens with the name, institution, role and form of participation.
+
+1. If needed, choose the **Session**: attendance is then marked at the event and at this session. During a session or 30 minutes before it, the session is chosen by itself. The chosen session is remembered for the next tickets for a day.
+2. Press **Mark as present**. The page answers "Marked." or "This person is already marked."
+
+The mark shows in the register as a manual one. The page flags the ticket of a cancelled participation. A session chair who scans a ticket can mark attendance at their own sessions only. Other users cannot open the ticket page.
+
 Attendance at a single session of the programme is marked on the session page: the **Attendance** button in the programme builder opens it, and a session chair reaches it from their cabinet. See the [manager guide](manager.md#attendance-at-single-sessions-of-the-programme).
 
 ## Certificates and mailings

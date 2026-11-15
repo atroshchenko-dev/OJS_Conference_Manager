@@ -398,6 +398,10 @@ A session chair (set in the **Chairs** field of the session) sees their sessions
 
 Attendance at any session counts as attendance at the event.
 
+At in-person events, attendance is easiest to mark by the participants' QR entry tickets: see the [registration manager guide](registration-manager.md#how-to-check-participants-in-by-the-qr-ticket). A chair who scans a ticket marks their own sessions only.
+
+Signed-in participants can build their own programme with **Add to my programme** on the program page and download their sessions to a calendar.
+
 ## How to issue certificates
 
 ### Templates and numbers

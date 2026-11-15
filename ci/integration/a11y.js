@@ -66,6 +66,24 @@ async function signIn(context, user, password) {
       await audit(reader, url, '.pkp_structure_main');
     }
 
+    // ATT-04, PRG-09: the cabinet with the ticket open, the signed-in program, the ticket page.
+    const ownerCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    await signIn(ownerCtx, 'owner1', 'reader12345');
+    const owner = await ownerCtx.newPage();
+    let ticketUrl = null;
+    await owner.goto(B + '/confa/uk/conference/my');
+    if (await owner.locator('.cmTicket__box summary').count()) {
+      await owner.locator('.cmTicket__box summary').first().click();
+      await audit(owner, 'cabinet with the ticket', '.pkp_structure_main');
+      ticketUrl = await owner.locator('a[href*="/conference/checkin/"]').first().getAttribute('href');
+      await owner.goto(ticketUrl);
+      await audit(owner, 'ticket: owner', '.pkp_structure_main');
+    } else {
+      console.log('SKIP ticket: owner1 has none');
+    }
+    await owner.goto(B + '/confa/uk/conference/' + EDITION + '/program');
+    await audit(owner, 'program: signed in', '.pkp_structure_main');
+
     const adminCtx = await browser.newContext({ viewport: { width: 1400, height: 1000 } });
     await signIn(adminCtx, 'admin', 'admin12345');
     const a = await adminCtx.newPage();
@@ -108,6 +126,10 @@ async function signIn(context, user, password) {
       await audit(a, 'session attendance', '.pkp_structure_main');
     } else {
       console.log('SKIP session attendance: no session in ' + EDITION);
+    }
+    if (ticketUrl) {
+      await a.goto(ticketUrl);
+      await audit(a, 'ticket: manager', '.pkp_structure_main');
     }
   } finally {
     await browser.close();

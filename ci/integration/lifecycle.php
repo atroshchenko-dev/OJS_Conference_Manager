@@ -71,7 +71,8 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'assign-reviewer' => $this->assignReviewer((int) $this->argv[1], (int) $this->argv[2]),
                 'set-affiliation' => $this->setAffiliation((int) $this->argv[1], (int) $this->argv[2], $this->argv[3]),
                 'seed-participants' => $this->seedParticipants($this->argv[1], (int) $this->argv[2], (int) $this->argv[3]),
-                'add-listener' => $this->addListener($this->argv[1], (int) $this->argv[2], $this->argv[3], $this->argv[4] ?? null),
+                'add-listener' => $this->addListener($this->argv[1], (int) $this->argv[2], $this->argv[3], ($this->argv[4] ?? '') === '' ? null : $this->argv[4], $this->argv[5] ?? 'online'),
+                'participant-id' => $this->participantId((int) $this->argv[1], $this->argv[2]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
         } catch (Throwable $e) {
@@ -396,13 +397,13 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 ['participant_id' => $pid, 'locale' => 'uk', 'setting_name' => 'givenName', 'setting_value' => 'Учасник'],
                 ['participant_id' => $pid, 'locale' => 'uk', 'setting_name' => 'familyName', 'setting_value' => 'Номер' . $i],
             ]);
-            DB::table('conf_participations')->insert(['participant_id' => $pid, 'role' => 'listener', 'participation_form' => 'online', 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
+            DB::table('conf_participations')->insert(['participant_id' => $pid, 'role' => 'listener', 'participation_form' => $form, 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
         }
         echo "OK seeded {$count}\n";
     }
 
     /** A confirmed listener of an edition, linked to an OJS account when a username is given; prints "participantId participationId". */
-    private function addListener(string $path, int $editionId, string $email, ?string $username): void
+    private function addListener(string $path, int $editionId, string $email, ?string $username, string $form = 'online'): void
     {
         $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
         $now = gmdate('Y-m-d H:i:s');
@@ -415,8 +416,15 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
             ['participant_id' => $pid, 'locale' => 'uk', 'setting_name' => 'givenName', 'setting_value' => 'Ірина'],
             ['participant_id' => $pid, 'locale' => 'uk', 'setting_name' => 'familyName', 'setting_value' => 'Слухач ' . strtok($email, '@')],
         ]);
-        $id = DB::table('conf_participations')->insertGetId(['participant_id' => $pid, 'role' => 'listener', 'participation_form' => 'online', 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
+        $id = DB::table('conf_participations')->insertGetId(['participant_id' => $pid, 'role' => 'listener', 'participation_form' => $form, 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
         echo "{$pid} {$id}\n";
+    }
+
+    /** Prints "participantId participationId" of an e-mail address in an edition (0 0 when none). */
+    private function participantId(int $editionId, string $email): void
+    {
+        $pid = (int) DB::table('conf_participants')->where('edition_id', $editionId)->where('email', $email)->value('id');
+        echo $pid, ' ', (int) DB::table('conf_participations')->where('participant_id', $pid)->min('id'), "\n";
     }
 
     /**

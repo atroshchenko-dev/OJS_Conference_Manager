@@ -27,6 +27,14 @@
 						{if $p.role !== 'listener'}<dt>{translate key="plugins.generic.conferenceManager.participants.confirmation"}</dt><dd>{$p.confirmationLabel|escape}</dd>{/if}
 						<dt>{translate key="plugins.generic.conferenceManager.participants.status"}</dt><dd>{$p.statusLabel|escape}</dd>
 					</dl>
+					{if $p.ticket}
+						<details class="cmTicket__box">
+							<summary>{translate key="plugins.generic.conferenceManager.my.ticket"}</summary>
+							<p>{translate key="plugins.generic.conferenceManager.my.ticketHelp"}</p>
+							<p class="cmTicket">{$p.ticket}</p>
+							{if $p.ticketUrl}<p><a href="{$p.ticketUrl|escape}">{translate key="plugins.generic.conferenceManager.my.ticketOpen"}</a></p>{/if}
+						</details>
+					{/if}
 					{if $p.letterUrl}
 						<p class="cmMy__letter"><a class="cmEdition__button" href="{$p.letterUrl|escape}" target="_blank" rel="noopener">{translate key="plugins.generic.conferenceManager.invitationLetter.download"}</a> <a href="{$p.letterUrlEn|escape}" target="_blank" rel="noopener">{translate key="plugins.generic.conferenceManager.invitationLetter.downloadEn"}</a></p>
 					{/if}
@@ -121,6 +129,19 @@
 				</li>
 			{/foreach}
 		</ul>
+	{/if}
+
+	{if $myProgram}
+		<h2 class="cmMy__section">{translate key="plugins.generic.conferenceManager.myProgram.title"}</h2>
+		{foreach from=$myProgram item=e}
+			<h3 class="cmMy__title">{$e.editionName|escape}</h3>
+			<ul class="cmMy cmMy__program">
+				{foreach from=$e.sessions item=s}
+					<li><a href="{$s.url|escape}">{if $s.title}{$s.title|escape}{else}{$s.typeLabel|escape}{/if}</a> · {$s.whenText|escape}{if $s.reasonText} · <span class="cmMy__reason">{$s.reasonText|escape}</span>{/if}</li>
+				{/foreach}
+			</ul>
+			<p><a href="{$e.programUrl|escape}?mine=1">{translate key="plugins.generic.conferenceManager.myProgram.open"}</a> · <a href="{$e.icsUrl|escape}">{translate key="plugins.generic.conferenceManager.myProgram.ics"}</a></p>
+		{/foreach}
 	{/if}
 
 	{if $mySessions}

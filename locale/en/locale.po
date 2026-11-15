@@ -4604,3 +4604,90 @@ msgstr "Applied: {$rows} rows, {$matched} found, {$present} present, {$unmatched
 
 msgid "plugins.generic.conferenceManager.sessionAttendance.reportTable"
 msgstr "Meeting report (threshold {$threshold} min)"
+
+msgid "plugins.generic.conferenceManager.myProgram.title"
+msgstr "My programme"
+
+msgid "plugins.generic.conferenceManager.myProgram.add"
+msgstr "Add to my programme"
+
+msgid "plugins.generic.conferenceManager.myProgram.remove"
+msgstr "In my programme (remove)"
+
+msgid "plugins.generic.conferenceManager.myProgram.only"
+msgstr "Only my programme ({$n})"
+
+msgid "plugins.generic.conferenceManager.myProgram.all"
+msgstr "Whole programme"
+
+msgid "plugins.generic.conferenceManager.myProgram.ics"
+msgstr "My programme to a calendar (iCal)"
+
+msgid "plugins.generic.conferenceManager.myProgram.empty"
+msgstr "Your programme has no sessions yet. Add them with \"Add to my programme\" in the whole programme."
+
+msgid "plugins.generic.conferenceManager.myProgram.open"
+msgstr "Open my programme"
+
+msgid "plugins.generic.conferenceManager.myProgram.reason.picked"
+msgstr "chosen by you"
+
+msgid "plugins.generic.conferenceManager.myProgram.reason.talk"
+msgstr "your talk"
+
+msgid "plugins.generic.conferenceManager.myProgram.reason.chair"
+msgstr "you chair it"
+
+msgid "plugins.generic.conferenceManager.checkin.title"
+msgstr "Entry ticket"
+
+msgid "plugins.generic.conferenceManager.checkin.ticketAlt"
+msgstr "QR code of the entry ticket"
+
+msgid "plugins.generic.conferenceManager.checkin.affiliation"
+msgstr "Affiliation"
+
+msgid "plugins.generic.conferenceManager.checkin.atEdition"
+msgstr "Attendance at the event"
+
+msgid "plugins.generic.conferenceManager.checkin.present"
+msgstr "marked"
+
+msgid "plugins.generic.conferenceManager.checkin.notYet"
+msgstr "not marked yet"
+
+msgid "plugins.generic.conferenceManager.checkin.cancelled"
+msgstr "The participation is cancelled. Do not mark attendance."
+
+msgid "plugins.generic.conferenceManager.checkin.session"
+msgstr "Session"
+
+msgid "plugins.generic.conferenceManager.checkin.noSession"
+msgstr "Attendance at the event only"
+
+msgid "plugins.generic.conferenceManager.checkin.mark"
+msgstr "Mark as present"
+
+msgid "plugins.generic.conferenceManager.checkin.chairOnly"
+msgstr "You are a chair: you mark attendance at your own sessions only."
+
+msgid "plugins.generic.conferenceManager.checkin.done.yes"
+msgstr "Marked."
+
+msgid "plugins.generic.conferenceManager.checkin.done.already"
+msgstr "This person is already marked."
+
+msgid "plugins.generic.conferenceManager.checkin.done.no"
+msgstr "Not marked: the participation is cancelled or the session was not found."
+
+msgid "plugins.generic.conferenceManager.checkin.ownerHelp"
+msgstr "This is your entry ticket. Show the QR code at the registration desk. The code is personal: do not share it."
+
+msgid "plugins.generic.conferenceManager.my.ticket"
+msgstr "Entry ticket (QR code)"
+
+msgid "plugins.generic.conferenceManager.my.ticketOpen"
+msgstr "Open the ticket full screen"
+
+msgid "plugins.generic.conferenceManager.my.ticketHelp"
+msgstr "Show this code at the registration desk: it is scanned to mark your attendance. The code is personal."

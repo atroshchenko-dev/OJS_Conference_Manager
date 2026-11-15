@@ -387,6 +387,56 @@ final class AttendanceCertificateFlowTest extends TestCase
         self::assertSame(3, $cand['a@example.org']['hours']);
     }
 
+    /** ATT-04: an entry ticket; PRG-09: the person's own program. */
+    public function testEntryTicketAndPersonalProgram(): void
+    {
+        $program = new DbProgramRepository($this->db);
+        $at = static fn (string $t): DateTimeImmutable => new DateTimeImmutable('2027-05-22T' . $t . ':00Z');
+        $s1 = (int) $program->saveSession(new ProgramSession(null, $this->edition, SessionType::Plenary, $at('09:00'), $at('11:00'), texts: ['title' => new LocalizedText(['uk' => 'Пленарне'])]))->id;
+        $s2 = (int) $program->saveSession(new ProgramSession(null, $this->edition, SessionType::Section, $at('12:00'), $at('13:00'), texts: ['title' => new LocalizedText(['uk' => 'Секція 2'])]))->id;
+        $pause = (int) $program->saveSession(new ProgramSession(null, $this->edition, SessionType::Break, $at('11:00'), $at('12:00')))->id;
+        $a = $this->pids['a@example.org'];
+
+        $token = \APP\plugins\generic\conferenceManager\classes\Domain\Attendance\CheckinToken::make($a, 'salt');
+        self::assertSame($a, \APP\plugins\generic\conferenceManager\classes\Domain\Attendance\CheckinToken::read($token, 'salt'));
+        // At 10:00 the plenary goes on; the break is not offered.
+        $card = $this->attendance->checkinCard($this->ctx, $a, 'uk', $this->now) ?? [];
+        self::assertSame(['Олена Андрієнко', $s1, false], [$card['name'], $card['currentSessionId'], $card['attended']]);
+        self::assertSame([$s1, $s2], array_column($card['sessions'], 'id'));
+        self::assertSame($s2, ($this->attendance->checkinCard($this->ctx, $a, 'uk', $at('11:40')) ?? [])['currentSessionId'], '30 minutes before the start');
+        self::assertNull($this->attendance->checkinCard(new ContextInfo(2, 'uk', ['uk']), $a, 'uk', $this->now), 'another journal');
+
+        self::assertSame(['edition' => true, 'session' => true], $this->attendance->checkIn($this->ctx, $a, true, $s1, 1, $this->now));
+        self::assertSame(['edition' => false, 'session' => false], $this->attendance->checkIn($this->ctx, $a, true, $s1, 1, $this->now), 'a second scan changes nothing');
+        self::assertSame(['edition' => false, 'session' => true], $this->attendance->checkIn($this->ctx, $a, false, $s2, 1, $this->now), 'a chair marks only the session');
+        self::assertNull($this->attendance->checkIn($this->ctx, $a, true, $pause, 1, $this->now));
+        $this->participants->cancel($this->ctx, $this->pids['b@example.org'], 2, 'b@example.org', false, new DateTimeImmutable('2027-05-01T10:00:00Z'), '127.0.0.1');
+        self::assertNull($this->attendance->checkIn($this->ctx, $this->pids['b@example.org'], true, null, 1, $this->now), 'a cancelled participation is not marked');
+
+        // PRG-09: only a published program.
+        $personal = new \APP\plugins\generic\conferenceManager\classes\Application\PersonalProgramService($program, new DbEditionRepository($this->db));
+        self::assertFalse($personal->pick($this->ctx, $this->edition, $s2, 7, true, $this->now));
+        $this->db->table('conf_editions')->where('id', $this->edition)->update(['program_published' => 1]);
+        self::assertTrue($personal->pick($this->ctx, $this->edition, $s2, 7, true, $this->now));
+        self::assertTrue($personal->pick($this->ctx, $this->edition, $s2, 7, true, $this->now), 'twice is once');
+        self::assertFalse($personal->pick($this->ctx, $this->edition, $pause, 7, true, $this->now));
+        self::assertFalse($personal->pick($this->ctx, 999, $s2, 7, true, $this->now));
+        $participant = (int) $this->db->table('conf_participations')->where('id', $a)->value('participant_id');
+        $this->db->table('conf_session_chairs')->insert(['session_id' => $s1, 'participant_id' => $participant, 'created_at' => '2027-01-01 00:00:00', 'updated_at' => '2027-01-01 00:00:00']);
+        $edition = (new DbEditionRepository($this->db))->find(1, $this->edition) ?? throw new \RuntimeException();
+        self::assertSame([$s2 => ['picked'], $s1 => ['chair']], $personal->mine($edition, 7, [$participant]));
+        $upcoming = $personal->upcoming($this->ctx, 7, [$participant], [], 'uk', $at('11:30'));
+        self::assertSame([$s2], array_column($upcoming[0]['sessions'], 'id'), 'the ended plenary is gone');
+        self::assertTrue($personal->pick($this->ctx, $this->edition, $s2, 7, false, $this->now));
+        self::assertSame([$s1 => ['chair']], $personal->mine($edition, 7, [$participant]));
+
+        // The iCal of the person's program has only their sessions.
+        $ics = (string) (new \APP\plugins\generic\conferenceManager\classes\Application\PublicScheduleService($program, new \APP\plugins\generic\conferenceManager\classes\Application\ProgramService(new DbEditionRepository($this->db), new DbRegistrationRepository($this->db), $this->editorial)))
+            ->ical($this->ctx, $edition, 'uk', null, 'https://j.example/program', 'j.example', $this->now, [$s1]);
+        self::assertSame(1, substr_count($ics, 'BEGIN:VEVENT'));
+        self::assertStringContainsString('Пленарне', $ics);
+    }
+
     public function testRevokeAndReissue(): void
     {
         $this->attendance->mark($this->ctx, $this->edition, [$this->pids['a@example.org']], true, 1, $this->now);

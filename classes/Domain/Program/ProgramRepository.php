@@ -48,4 +48,14 @@ interface ProgramRepository
      * @return array<int, int> session id => edition id
      */
     public function chairedBy(array $participantIds): array;
+
+    /**
+     * PRG-09: sessions the user put into their own program.
+     *
+     * @return array<int, int> session id => edition id, by start
+     */
+    public function pickedBy(int $userId): array;
+
+    /** PRG-09: puts a session of the edition into the user's program or takes it out. */
+    public function pick(int $userId, int $editionId, int $sessionId, bool $on, \DateTimeImmutable $now): bool;
 }

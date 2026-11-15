@@ -133,15 +133,16 @@ final class PublicScheduleService
      * PRG-06: the program, or one session of it, as an iCalendar file.
      * Stream links are never written there: the file can be shared.
      *
+     * @param list<int>|null $only PRG-09: only these sessions (the person's own program)
      * @return string|null null when there is no such session
      */
-    public function ical(ContextInfo $context, Edition $edition, string $locale, ?int $sessionId, string $programUrl, string $host, DateTimeImmutable $now): ?string
+    public function ical(ContextInfo $context, Edition $edition, string $locale, ?int $sessionId, string $programUrl, string $host, DateTimeImmutable $now, ?array $only = null): ?string
     {
         $days = $this->days($context, $edition, $locale, false, $now);
         $events = [];
         foreach ($days as $day) {
             foreach ($day['sessions'] as $s) {
-                if ($sessionId !== null && $s['id'] !== $sessionId) {
+                if (($sessionId !== null && $s['id'] !== $sessionId) || ($only !== null && !in_array($s['id'], $only, true))) {
                     continue;
                 }
                 $lines = [];

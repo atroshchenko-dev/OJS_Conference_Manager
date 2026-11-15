@@ -339,6 +339,19 @@ final class ServiceFactory
         );
     }
 
+    /** PRG-09: the person's own program. */
+    public static function personalProgram(): \APP\plugins\generic\conferenceManager\classes\Application\PersonalProgramService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\PersonalProgramService(new DbProgramRepository($db), new DbEditionRepository($db));
+    }
+
+    /** ATT-04: the secret that signs entry tickets: the salt of this OJS installation. */
+    public static function checkinSecret(): string
+    {
+        return (string) Config::getVar('security', 'salt');
+    }
+
     public static function settings(): PluginSettingsStore
     {
         $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'conferencemanagerplugin');

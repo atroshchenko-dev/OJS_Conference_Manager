@@ -53,4 +53,7 @@ interface AttendanceRepository
      * @return int rows changed
      */
     public function markSession(int $editionId, int $sessionId, array $participationIds, bool $attended, ?int $minutes, string $source, ?int $actorId, DateTimeImmutable $now): int;
+
+    /** ATT-04: the edition of a participation of this context, or null. */
+    public function editionOf(int $contextId, int $participationId): ?int;
 }

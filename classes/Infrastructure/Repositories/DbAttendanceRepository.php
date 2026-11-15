@@ -189,4 +189,12 @@ final class DbAttendanceRepository implements AttendanceRepository
             return $changed;
         });
     }
+
+    public function editionOf(int $contextId, int $participationId): ?int
+    {
+        $id = $this->db->table('conf_participations as pn')
+            ->join('conf_participants as p', 'p.id', '=', 'pn.participant_id')
+            ->where('p.context_id', $contextId)->where('pn.id', $participationId)->value('p.edition_id');
+        return $id === null ? null : (int) $id;
+    }
 }

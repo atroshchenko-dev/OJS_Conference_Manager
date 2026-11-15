@@ -70,6 +70,9 @@ class ConferencePageHandler extends Handler
             if ($format === null && !isset($args[2])) {
                 return $this->program($edition, $info, $request);
             }
+            if ($format === 'ics' && ($args[2] ?? null) === 'mine' && !isset($args[3])) {
+                return $this->programIcs($edition, $info, $request, null, true);
+            }
             if ($format === 'ics' && (!isset($args[2]) || ctype_digit((string) $args[2])) && !isset($args[3])) {
                 return $this->programIcs($edition, $info, $request, isset($args[2]) ? (int) $args[2] : null);
             }
@@ -363,7 +366,11 @@ class ConferencePageHandler extends Handler
         $letters = ServiceFactory::invitationLetters();
         foreach ($service->myParticipations($info, (int) $user->getId(), $email, $locale, $now) as $p) {
             $letterUrl = $letters->isAvailable($info, $p) ? $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'invitationLetter', [(string) $p['participationId']]) : null;
+            $ended = $p['endsAt'] !== null && new DateTimeImmutable((string) $p['endsAt']) < $now->sub(new \DateInterval('P1D'));
+            $hasTicket = $p['status'] === 'active' && $p['participationForm'] !== 'online' && $p['editionFormat'] !== 'online' && !$ended;
             $items[] = $p + [
+                'ticket' => $hasTicket ? $this->ticketImage((int) $p['participationId']) : null,
+                'ticketUrl' => $hasTicket ? $this->ticketUrl((int) $p['participationId']) : null,
                 'letterUrl' => $letterUrl,
                 'letterUrlEn' => $letterUrl === null ? null : $letterUrl . (str_contains($letterUrl, '?') ? '&' : '?') . 'lang=en',
                 'editionUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, (string) $p['editionPath']),
@@ -414,6 +421,23 @@ class ConferencePageHandler extends Handler
             ];
         }
 
+        // PRG-09: the person's own program, sessions that have not ended.
+        $myProgram = [];
+        $editionIds = array_values(array_unique(array_map(static fn (array $p): int => (int) $p['editionId'], array_filter($items, static fn (array $p): bool => $p['status'] === 'active'))));
+        foreach (ServiceFactory::personalProgram()->upcoming($info, (int) $user->getId(), $participantIds, $editionIds, $locale, $now) as $e) {
+            $programUrl = $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, $e['editionPath'], ['program']);
+            $e['programUrl'] = $programUrl;
+            $e['icsUrl'] = $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, $e['editionPath'], ['program', 'ics', 'mine']);
+            foreach ($e['sessions'] as &$s) {
+                $s['url'] = $programUrl . '#cm-session-' . $s['id'];
+                $s['whenText'] = $this->formatDate($s['startsAt'], $e['timezone'], $locale) . ' – ' . $s['endsAt']->setTimezone(new DateTimeZone($e['timezone']))->format('H:i');
+                $s['reasonText'] = implode(', ', array_map(static fn (string $r): string => __('plugins.generic.conferenceManager.myProgram.reason.' . $r), $s['reasons']));
+                $s['typeLabel'] = __('plugins.generic.conferenceManager.program.session.' . $s['type']);
+            }
+            unset($s);
+            $myProgram[] = $e;
+        }
+
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
         $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
@@ -425,6 +449,7 @@ class ConferencePageHandler extends Handler
             'myDataUrl' => $dispatcher->url($request, Application::ROUTE_API, $context->getPath(), 'conference/me/personal-data'),
             'myCertificates' => $certificates,
             'mySessions' => $chaired,
+            'myProgram' => $myProgram,
             'myMessage' => $message,
             'myUrl' => $myUrl,
             'pageTitle' => 'plugins.generic.conferenceManager.my.title',
@@ -728,6 +753,121 @@ class ConferencePageHandler extends Handler
     }
 
     /**
+     * ATT-04: the page a QR entry ticket leads to, conference/checkin/{code}.
+     * A registration manager marks the person present at the event and,
+     * if chosen, at a session; a chair only at the sessions they chair.
+     * The owner sees their own ticket; anyone else gets 404.
+     *
+     * @param array $args
+     * @param \APP\core\Request $request
+     */
+    public function checkin($args, $request)
+    {
+        $context = $request->getContext();
+        $user = $request->getUser();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $token = (string) ($args[0] ?? '');
+        $dispatcher = $request->getDispatcher();
+        $pageUrl = $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'checkin', [$token]);
+        if ($user === null) {
+            $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), 'login', null, null, ['source' => $pageUrl]));
+        }
+        $info = ContextGateway::fromContext($context);
+        $locale = Locale::getLocale();
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $service = ServiceFactory::attendance();
+        $pid = \APP\plugins\generic\conferenceManager\classes\Domain\Attendance\CheckinToken::read($token, ServiceFactory::checkinSecret());
+        $card = $pid === null ? null : $service->checkinCard($info, $pid, $locale, $now);
+        if ($card === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $manager = (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId());
+        $mine = $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail());
+        $chaired = array_values(array_filter($card['sessions'], static fn (array $s): bool => array_intersect($s['chairs'], $mine) !== []));
+        $owner = in_array($card['participantId'], $mine, true);
+        if (!$manager && $chaired === [] && !$owner) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $staff = $manager || $chaired !== [];
+        $choices = $manager ? $card['sessions'] : $chaired;
+        $k = 'plugins.generic.conferenceManager.checkin.';
+        // The session chosen last stays chosen for the next ticket.
+        $cookie = 'cmCheckinSession' . $card['editionId'];
+        $remembered = (int) ($_COOKIE[$cookie] ?? 0);
+        $ids = array_column($choices, 'id');
+        $chosen = in_array($remembered, $ids, true) ? $remembered : (in_array($card['currentSessionId'], $ids, true) ? $card['currentSessionId'] : null);
+        $message = null;
+        if ($staff && $request->isPost()) {
+            if (!$request->checkCSRF()) {
+                $message = ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.confirm.retry')];
+            } else {
+                $sessionId = (int) $request->getUserVar('sessionId');
+                $sessionId = in_array($sessionId, $ids, true) ? $sessionId : null;
+                setcookie($cookie, (string) ($sessionId ?? 0), ['expires' => time() + 86400, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => $request->getProtocol() === 'https']);
+                $done = $card['active'] ? $service->checkIn($info, $card['participationId'], $manager, $sessionId, (int) $user->getId(), $now) : null;
+                $request->redirectUrl($pageUrl . (str_contains($pageUrl, '?') ? '&' : '?') . 'done=' . ($done === null ? 'no' : (($done['edition'] || $done['session']) ? 'yes' : 'already')));
+            }
+        } elseif ($staff && is_string($request->getUserVar('done'))) {
+            $done = $request->getUserVar('done');
+            $message = ['type' => $done === 'no' ? 'alert' : 'status', 'text' => __($k . 'done.' . ($done === 'yes' ? 'yes' : ($done === 'already' ? 'already' : 'no')))];
+        }
+        $tz = $card['timezone'];
+        $sessions = [];
+        foreach ($choices as $s) {
+            $sessions[] = [
+                'id' => $s['id'],
+                'label' => $s['startsAt']->setTimezone(new DateTimeZone($tz))->format('d.m H:i') . '–' . $s['endsAt']->setTimezone(new DateTimeZone($tz))->format('H:i')
+                    . ' · ' . ($s['title'] !== '' ? $s['title'] : __('plugins.generic.conferenceManager.program.session.' . $s['type'])),
+                'present' => $s['present'],
+            ];
+        }
+        $role = \APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRole::tryFrom($card['role']);
+        $form = \APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationForm::tryFrom($card['form']);
+
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $templateMgr->addHeader('conferenceCheckinNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
+        $templateMgr->assign([
+            'ciUrl' => $pageUrl,
+            'ciCard' => $card,
+            'ciStaff' => $staff,
+            'ciManager' => $manager,
+            'ciSessions' => $sessions,
+            'ciChosen' => $chosen,
+            'ciRole' => $role === null ? $card['role'] : __($role->labelKey()),
+            'ciForm' => $form === null ? $card['form'] : __($form->labelKey()),
+            'ciMessage' => $message,
+            'ciTicket' => !$staff ? $this->ticketImage($card['participationId']) : null,
+            'pageTitleTranslated' => __($k . 'title') . ': ' . $card['name'],
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/checkin.tpl'));
+    }
+
+    /** ATT-04: the link of an entry ticket (conference/checkin/{code}), null without a secret. */
+    private function ticketUrl(int $participationId): ?string
+    {
+        $request = \APP\core\Application::get()->getRequest();
+        $context = $request->getContext();
+        $secret = ServiceFactory::checkinSecret();
+        if ($context === null || $secret === '') {
+            return null;
+        }
+        return $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'checkin', [
+            \APP\plugins\generic\conferenceManager\classes\Domain\Attendance\CheckinToken::make($participationId, $secret),
+        ]);
+    }
+
+    /** ATT-04: the QR code of an entry ticket as an <img>. */
+    private function ticketImage(int $participationId): ?string
+    {
+        $url = $this->ticketUrl($participationId);
+        return $url === null ? null : \APP\plugins\generic\conferenceManager\classes\Domain\Certificate\QrCode::encode($url)->toImgTag(__('plugins.generic.conferenceManager.checkin.ticketAlt'), '48mm');
+    }
+
+    /**
      * CRT-07: public check of a certificate by the code in its QR link.
      * At most 30 checks a minute from one address.
      */
@@ -823,6 +963,20 @@ class ConferencePageHandler extends Handler
         $articleUrl = fn (int $id): string => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, 'article', 'view', [$id]);
         $programUrl = $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program']);
 
+        // PRG-09: the signed-in person's own program.
+        $user = $pdf ? null : $request->getUser();
+        $mine = [];
+        if ($user !== null && $public) {
+            $personal = ServiceFactory::personalProgram();
+            if ($request->isPost() && $request->checkCSRF()) {
+                $sid = (int) $request->getUserVar('sessionId');
+                $personal->pick($info, (int) $edition->id, $sid, (int) $user->getId(), $request->getUserVar('pick') === '1', $now);
+                $request->redirectUrl($programUrl . ($request->getUserVar('mine') ? '?mine=1' : '') . '#cm-session-' . $sid);
+            }
+            $mine = $personal->mine($edition, (int) $user->getId(), $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail()));
+        }
+        $onlyMine = $user !== null && $public && (bool) $request->getUserVar('mine');
+
         $days = ServiceFactory::schedule()->days($info, $edition, $locale, !$pdf && ($manager || $this->isRegistered($info, $edition, $request)), $now);
         $dayFormatter = class_exists(\IntlDateFormatter::class) ? new \IntlDateFormatter($locale, \IntlDateFormatter::FULL, \IntlDateFormatter::NONE, $edition->timezone) : null;
         $numbers = class_exists(\NumberFormatter::class) ? new \NumberFormatter($locale, \NumberFormatter::DECIMAL) : null;
@@ -832,6 +986,10 @@ class ConferencePageHandler extends Handler
             $day['label'] = is_string($label) ? $label : $day['date'];
             $day['anchor'] = 'cm-day-' . ($d + 1);
             foreach ($day['sessions'] as &$session) {
+                $reasons = $mine[$session['id']] ?? [];
+                $session['mine'] = $reasons;
+                $session['picked'] = in_array(\APP\plugins\generic\conferenceManager\classes\Application\PersonalProgramService::REASON_PICKED, $reasons, true);
+                $session['mineText'] = implode(', ', array_map(static fn (string $r): string => __('plugins.generic.conferenceManager.myProgram.reason.' . $r), array_diff($reasons, [\APP\plugins\generic\conferenceManager\classes\Application\PersonalProgramService::REASON_PICKED])));
                 $session['typeLabel'] = __($session['labelKey']);
                 $session['chairsText'] = implode(', ', $session['chairs']);
                 $session['icsUrl'] = $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program', 'ics', $session['id']]);
@@ -851,9 +1009,15 @@ class ConferencePageHandler extends Handler
             unset($session);
         }
         unset($day);
+        if ($onlyMine) {
+            foreach ($days as $d => $day) {
+                $days[$d]['sessions'] = array_values(array_filter($day['sessions'], static fn (array $s): bool => $s['mine'] !== []));
+            }
+            $days = array_values(array_filter($days, static fn (array $day): bool => $day['sessions'] !== []));
+        }
 
         $program = ['sections' => [], 'count' => 0];
-        if ($days === []) {
+        if ($days === [] && !$onlyMine) {
             $program = ServiceFactory::program()->program($info, (int) $edition->id, $locale) ?? $program;
             foreach ($program['sections'] as &$section) {
                 foreach ($section['groups'] as &$group) {
@@ -880,6 +1044,10 @@ class ConferencePageHandler extends Handler
             'programIcsUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program', 'ics']),
             'programPdfUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program', 'pdf']),
             'programUrl' => $programUrl,
+            'programSignedIn' => $user !== null && $public,
+            'programOnlyMine' => $onlyMine,
+            'programMineCount' => count($mine),
+            'programMineIcsUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program', 'ics', 'mine']),
             'editionUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path),
             'pageTitleTranslated' => __('plugins.generic.conferenceManager.program.title') . ': ' . $vm['name'],
         ]);
@@ -905,20 +1073,27 @@ class ConferencePageHandler extends Handler
     }
 
     /** PRG-06: `program/ics` (all sessions) and `program/ics/{session}`. */
-    private function programIcs(Edition $edition, ContextInfo $info, \APP\core\Request $request, ?int $sessionId): mixed
+    private function programIcs(Edition $edition, ContextInfo $info, \APP\core\Request $request, ?int $sessionId, bool $mine = false): mixed
     {
         $public = ProgramService::isPublic($edition);
         if (!$public && !$this->canManage($request)) {
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
+        $only = null;
+        if ($mine) {
+            // PRG-09: the person's own program; private, so never cached.
+            $user = $request->getUser() ?? throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+            $only = array_keys(ServiceFactory::personalProgram()->mine($edition, (int) $user->getId(), $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail())));
+            $public = false;
+        }
         $contextPath = (string) $request->getContext()?->getPath();
         $programUrl = $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $contextPath, self::PAGE, $edition->path, ['program']);
-        $ics = ServiceFactory::schedule()->ical($info, $edition, Locale::getLocale(), $sessionId, $programUrl, (string) parse_url($request->getBaseUrl(), PHP_URL_HOST), new DateTimeImmutable('now', new DateTimeZone('UTC')));
+        $ics = ServiceFactory::schedule()->ical($info, $edition, Locale::getLocale(), $sessionId, $programUrl, (string) parse_url($request->getBaseUrl(), PHP_URL_HOST), new DateTimeImmutable('now', new DateTimeZone('UTC')), $only);
         if ($ics === null) {
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
         header('Content-Type: text/calendar; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $edition->path . ($sessionId !== null ? '-session-' . $sessionId : '') . '.ics"');
+        header('Content-Disposition: attachment; filename="' . $edition->path . ($sessionId !== null ? '-session-' . $sessionId : '') . ($mine ? '-mine' : '') . '.ics"');
         header('Content-Length: ' . strlen($ics));
         header('Cache-Control: ' . ($public ? 'public, max-age=300' : 'private, no-store'));
         echo $ics;

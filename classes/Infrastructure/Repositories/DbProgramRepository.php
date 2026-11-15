@@ -111,7 +111,7 @@ final class DbProgramRepository implements ProgramRepository
             if (!$this->db->table('conf_sessions')->where('edition_id', $editionId)->where('id', $id)->exists()) {
                 return false;
             }
-            foreach (['conf_session_items', 'conf_session_chairs', 'conf_session_settings', 'conf_session_attendance'] as $table) {
+            foreach (['conf_session_items', 'conf_session_chairs', 'conf_session_settings', 'conf_session_attendance', 'conf_personal_program'] as $table) {
                 $this->db->table($table)->where('session_id', $id)->delete();
             }
             return $this->db->table('conf_sessions')->where('id', $id)->delete() > 0;
@@ -191,6 +191,32 @@ final class DbProgramRepository implements ProgramRepository
             $out[(int) $r->id] = (int) $r->edition_id;
         }
         return $out;
+    }
+
+    public function pickedBy(int $userId): array
+    {
+        $out = [];
+        foreach ($this->db->table('conf_personal_program as m')->join('conf_sessions as s', 's.id', '=', 'm.session_id')
+            ->where('m.user_id', $userId)->orderBy('s.starts_at')->orderBy('s.id')->get(['s.id', 's.edition_id'])->all() as $r) {
+            $out[(int) $r->id] = (int) $r->edition_id;
+        }
+        return $out;
+    }
+
+    public function pick(int $userId, int $editionId, int $sessionId, bool $on, \DateTimeImmutable $now): bool
+    {
+        if (!$this->db->table('conf_sessions')->where('edition_id', $editionId)->where('id', $sessionId)->exists()) {
+            return false;
+        }
+        $q = $this->db->table('conf_personal_program')->where('user_id', $userId)->where('session_id', $sessionId);
+        if (!$on) {
+            $q->delete();
+            return true;
+        }
+        if (!$q->exists()) {
+            $this->db->table('conf_personal_program')->insert(['user_id' => $userId, 'session_id' => $sessionId, 'created_at' => DateInput::toStorage($now)]);
+        }
+        return true;
     }
 
     /**

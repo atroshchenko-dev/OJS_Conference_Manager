@@ -71,6 +71,12 @@ After registering you land in your cabinet. If participation is paid, the invoic
 
 Open `/{journal}/conference/my`. It shows all your participations in events of this journal, as a listener, presenter or co-author, with the role, category, form of participation, confirmation state and submission.
 
+### Entry ticket
+
+If you take part in person, the cabinet shows a collapsible **Entry ticket** block, **Entry ticket (QR code)**, next to the participation. Show it at the registration desk or at the door of the room: a registrar or the session chair scans it with a phone and marks you present. The link **Open the ticket full screen** opens the ticket as a separate page that suits a phone. You can also print the ticket with the cabinet page.
+
+The code is personal: it shows your name and institution, so do not forward it. Only you, the journal's managers and the chairs of the event's sessions can open the ticket page. Online participation has no ticket. A cancelled participation invalidates the ticket.
+
 ### Letter of invitation
 
 Under a participation there is **Letter of invitation (PDF)** and **in English**. The letter on the institution's letterhead is for your employer or place of study, for example to arrange a business trip. Presenters and co-authors get it once their paper is accepted.
@@ -158,4 +164,14 @@ If the journal uses the Ukrainian profile, `/{journal}/conference/documents` is 
 
 ## The event program
 
-When the organizers publish the program, the event page shows the link **Program of the event: papers by section**. The program lists accepted papers by section and presentation type. There is no schedule with rooms and times in it yet: the organizers may give details in the program introduction.
+When the organizers publish the program, the event page shows the link **Program of the event: papers by section**. The program lists accepted papers by section and presentation type. If the organizers made a schedule, the program shows days, sessions with times and rooms, and buttons for a calendar (iCal) and PDF.
+
+### My programme
+
+Sign in to the journal, and each session of the program gets the button **Add to my programme**. Sessions where you present or chair are in your program by themselves, marked "your talk" or "you chair it".
+
+- The link **Only my programme** at the top of the program shows your sessions only; **Whole programme** returns to the full schedule.
+- **My programme to a calendar (iCal)** downloads a file with your sessions only.
+- In the cabinet, the section **My programme** shows the coming sessions you chose for each event. Sessions that have ended drop out of it.
+
+To remove a session, press **In my programme (remove)** next to it.

@@ -157,7 +157,7 @@
 .cmProgram__sessionIcs { margin: 0.25rem 0 0; font-size: 0.85em; }
 .cmArticleProgram { margin: 1rem 0; padding: 0.75rem 1rem; border-left: 4px solid var(--cm-accent, #2f6f9f); }
 .cmArticleProgram p { margin: 0.25rem 0; }
-@media print { .cmProgram__toc, .cmProgram__back, .cmProgram__tools, .cmProgram__sessionIcs { display: none; } }
+@media print { .cmProgram__toc, .cmProgram__back, .cmProgram__tools, .cmProgram__sessionIcs, .cmProgram__sessionTools, .cmProgram__mine { display: none; } }
 
 /* INS-04: co-organisers and partners */
 .cmEdition__partners h3 { font-size: 1rem; margin: 1.25rem 0 .5rem; }
@@ -173,3 +173,18 @@
 .cmSessionAttendance__meta { font-size: .85em; opacity: .8; overflow-wrap: anywhere; }
 .cmSessionAttendance__import label { display: inline-block; margin: 0 1rem .5rem 0; }
 .cmSessionAttendance .cmBadge { display: inline-block; margin-left: .4em; padding: 0 .45em; border-radius: 3px; font-size: .8em; background: var(--cm-surface); border: 1px solid var(--cm-border); }
+.cmTicket img { display: block; max-width: 100%; height: auto; background: #fff; }
+.cmTicket__box { margin: .75rem 0; }
+.cmTicket__box summary { cursor: pointer; font-weight: 600; }
+.cmCheckin select { max-width: 100%; }
+.cmCheckin__button { font-size: 1.15em; padding: .6em 1.4em; }
+.cmCheckin__result { font-size: 1.15em; font-weight: 600; padding: .6em .8em; border-radius: 4px; }
+.cmCheckin__result--status { background: #e6f4ea; color: #0d5323; }
+.cmCheckin__result--alert { background: #fdecea; color: #8a1c13; }
+.cmProgram__sessionTools { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; margin: .25rem 0 0; font-size: .85em; }
+.cmProgram__pick { margin: 0; }
+.cmProgram__pick button { font-size: 1em; padding: .2em .6em; cursor: pointer; }
+.cmProgram__mine { margin: .5rem 0 1rem; }
+.cmProgram__mineReason { margin: 0 0 .25rem; font-size: .9em; font-weight: 600; color: var(--cm-accent, #1f4e79); }
+.cmMy__program li { padding: .25rem 0; }
+.cmMy__reason { font-weight: 600; }

@@ -282,6 +282,8 @@ final class ParticipantService
                 'editionName' => (string) $edition->text('name')->resolve($locale, $context->primaryLocale),
                 'editionPath' => $edition->path,
                 'startsAt' => DateInput::toIsoUtc($edition->date('startsAt')),
+                'endsAt' => DateInput::toIsoUtc($edition->date('endsAt')),
+                'editionFormat' => $edition->format->value,
                 'timezone' => $edition->timezone,
                 'categoryName' => $p['categoryId'] === null ? '' : ($categories[$editionId][$p['categoryId']] ?? ''),
                 'submissionTitle' => $title,
