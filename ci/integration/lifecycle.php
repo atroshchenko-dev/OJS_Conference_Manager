@@ -285,7 +285,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
     {
         $context = Application::getContextDAO()->getByPath($path) ?? throw new RuntimeException('no context');
         $c = (int) $context->getId();
-        $pluck = static fn ($q): array => array_map('intval', $q->limit(5)->pluck('id')->all());
+        $pluck = static fn ($q): array => array_map('intval', $q->orderBy('id')->limit(5)->pluck('id')->all());
         $editions = $pluck(DB::table('conf_editions')->where('context_id', $c)->select('id as id'));
         $participants = DB::table('conf_participants')->where('context_id', $c)->pluck('id')->all();
         echo json_encode([
@@ -296,7 +296,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
             'certificates' => $pluck(DB::table('conf_certificates')->where('context_id', $c)->select('id')),
             'campaigns' => $pluck(DB::table('conf_campaigns')->where('context_id', $c)->select('id')),
             'batches' => $pluck(DB::table('conf_decision_batches')->where('context_id', $c)->select('id')),
-            'submissions' => array_map('intval', DB::table('submissions')->where('context_id', $c)->limit(5)->pluck('submission_id')->all()),
+            'submissions' => array_map('intval', DB::table('submissions')->where('context_id', $c)->orderBy('submission_id')->limit(5)->pluck('submission_id')->all()),
         ]), "\n";
     }
 
