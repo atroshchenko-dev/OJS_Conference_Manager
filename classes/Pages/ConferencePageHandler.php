@@ -299,7 +299,7 @@ class ConferencePageHandler extends Handler
             'registerCategories' => $categories,
             'registerHasPromo' => $hasPromo,
             'registerSeatsFull' => $full,
-            'registerQueue' => $full ? count($seats['queue'] ?? []) : 0,
+            'registerQueue' => $full && $seats !== null ? count($seats['queue']) : 0,
             'registerPerson' => [
                 'name' => $person === null ? '' : trim(($person['givenName'][$locale] ?? (array_values($person['givenName'])[0] ?? '')) . ' ' . ($person['familyName'][$locale] ?? (array_values($person['familyName'])[0] ?? ''))),
                 'email' => $person['email'] ?? '',

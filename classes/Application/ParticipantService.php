@@ -647,7 +647,8 @@ final class ParticipantService
             $errors->add('promoCode', 'plugins.generic.conferenceManager.promo.error.late');
             return [false, $errors];
         }
-        $current = $this->invoices?->currentFor($participationId);
+        $invoices = $this->invoices;
+        $current = $invoices?->currentFor($participationId);
         if ($current !== null && (!$current->status->isOpen() || !$current->paidAmount()->isZero())) {
             $errors->add('promoCode', 'plugins.generic.conferenceManager.promo.error.paid');
             return [false, $errors];
@@ -662,9 +663,9 @@ final class ParticipantService
             return [false, $errors];
         }
         $this->audit?->log($context->id, $userId, 'participation', $participationId, 'promo_applied', null, ['promoCode' => $promo->code]);
-        if ($current !== null && $current->id !== null) {
+        if ($invoices !== null && $current !== null && $current->id !== null) {
             try {
-                $this->invoices?->reissue($context, $current->id, null, $userId, $now);
+                $invoices->reissue($context, $current->id, null, $userId, $now);
             } catch (\Throwable $e) {
                 error_log('conferenceManager: invoice with a promo code failed: ' . $e->getMessage());
             }
