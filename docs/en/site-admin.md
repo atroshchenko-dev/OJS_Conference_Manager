@@ -40,7 +40,7 @@ Some features work for the whole site rather than one journal. Only the site adm
 1. Open **Administration → Site Settings → Plugins**.
 2. Enable "Conference Manager".
 
-This turns on the "Upcoming events" page. The site overview page is always available to the site administrator.
+This turns on the "Upcoming events" and "Conferences: site overview" pages.
 
 ## The "Upcoming events" page
 
@@ -55,7 +55,7 @@ To add the page to the site menu, create an ordinary OJS navigation menu item wi
 
 ## The "Conferences: site overview" page
 
-The page is in the site administrator's menu as **Conferences: site overview**. The link next to the plugin in the site-level plugin list opens it too. The address is `/index/conferenceSite`. Only the site administrator sees it.
+The link **Conferences: site overview** next to the plugin in the site-level plugin list (**Administration → Site settings → Plugins**) opens the page. The address is `/index/conferenceSite`. Only the site administrator sees it, and it works once the plugin is enabled at site level.
 
 What it shows:
 
