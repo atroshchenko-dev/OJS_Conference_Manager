@@ -115,10 +115,8 @@ out="$(curl -s -w '\n%{http_code}' "$cb" --data "$(report "$PRIV" sandbox)")"
 [ "$(curl -s -o /dev/null -w '%{http_code}' "$cb" --data "$(report "$PRIV" failure)")" = 200 ] || fail "PAY-09 a late failure"
 att="$(curl -s -b "$jar" "$api/invoices/$iid/gateway-payments")"
 py "assert [a['status'] for a in d['items']] == ['success'] and d['items'][0]['transactionId'] == '424242', d" <<<"$att" || fail "PAY-09 the attempts: $att"
-paid="$(docker exec ojsdb psql -U ojs -d ojs -tAc "select paid_minor from conf_invoices where id = $iid" 2>/dev/null || docker exec ojsdb mariadb -uojs -pojs ojs -N -e "select paid_minor from conf_invoices where id = $iid")"
-[ "$paid" = 10050 ] || fail "PAY-09 paid once: $paid"
-details="$(docker exec ojsdb psql -U ojs -d ojs -tAc "select details from conf_gateway_payments where order_id = '$order'" 2>/dev/null || docker exec ojsdb mariadb -uojs -pojs ojs -N -e "select details from conf_gateway_payments where order_id = '$order'")"
-grep -q "sender_card\|4242\*42" <<<"$details" && fail "PAY-09 card data kept: $details"
+gp="$(lc gateway-payment "$order")"
+py "assert d['paidMinor'] == 10050 and d['status'] == 'success', d; assert 'sender_card' not in d['details'] and '4242*42' not in d['details'], d['details']" <<<"$gp" || fail "PAY-09 paid once, no card data kept: $gp"
 echo "OK PAY-09 signed reports: forged ones refused, the invoice paid once, no card data kept"
 
 # Back from LiqPay: to the cabinet with the result; the button is gone.

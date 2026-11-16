@@ -76,6 +76,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'review-of' => $this->reviewOf((int) $this->argv[1], $this->argv[2]),
                 'plugin-enabled' => $this->pluginEnabled($this->argv[1], $this->argv[2], $this->argv[3] === '1'),
                 'issue-data' => $this->issueData((int) $this->argv[1]),
+                'gateway-payment' => $this->gatewayPayment($this->argv[1]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
         } catch (Throwable $e) {
@@ -562,6 +563,16 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
             echo $r->step, ' ', $r->applied_at, "\n";
         }
     }
+
+    /** PAY-09: a card-payment attempt and what its invoice got, as JSON. */
+    private function gatewayPayment(string $orderId): void
+    {
+        $p = DB::table('conf_gateway_payments')->where('order_id', $orderId)->first();
+        $p !== null || throw new RuntimeException("no attempt {$orderId}");
+        $paid = DB::table('conf_invoices')->where('id', $p->invoice_id)->value('paid_minor');
+        echo json_encode(['status' => $p->status, 'details' => (string) $p->details, 'paidMinor' => (int) $paid]), "\n";
+    }
+
 }
 
 (new ConferenceLifecycleTool($argv ?? []))->execute();
