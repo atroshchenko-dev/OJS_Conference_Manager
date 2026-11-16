@@ -8,6 +8,24 @@
 (function () {
 	'use strict';
 
+	/**
+	 * A date or local date-time of a form field ("2027-01-15" or
+	 * "2027-01-15T09:30") in the language of the page; the time only when
+	 * it is not midnight.
+	 */
+	function localDate(value) {
+		var m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(String(value || ''));
+		if (!m) {
+			return value ? String(value) : '';
+		}
+		var withTime = m[4] !== undefined && (m[4] !== '00' || m[5] !== '00');
+		var d = new Date(+m[1], +m[2] - 1, +m[3], withTime ? +m[4] : 0, withTime ? +m[5] : 0);
+		var options = withTime
+			? { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }
+			: { day: 'numeric', month: 'long', year: 'numeric' };
+		return d.toLocaleString(document.documentElement.lang || undefined, options);
+	}
+
 	if (!window.pkp || !pkp.registry) {
 		return;
 	}
@@ -43,6 +61,11 @@
 			},
 		},
 		methods: {
+			/** A UTC time stamp of the server ("2027-01-15 09:30:00") in the language of the page. */
+			stamp: function (value) {
+				var d = value ? new Date(String(value).replace(' ', 'T').slice(0, 19) + 'Z') : null;
+				return d && !isNaN(d.getTime()) ? d.toLocaleString(document.documentElement.lang || undefined, { dateStyle: 'medium', timeStyle: 'short' }) : (value || '');
+			},
 			t: function (key, params) {
 				var s = this.i18n[key] || key;
 				Object.keys(params || {}).forEach(function (p) { s = s.split('{$' + p + '}').join(params[p]); });
@@ -144,7 +167,7 @@
 				if (!c.validFrom && !c.validUntil) {
 					return this.t('promo.always');
 				}
-				return (c.validFrom || '…') + ' – ' + (c.validUntil || '…');
+				return (localDate(c.validFrom) || '…') + ' – ' + (localDate(c.validUntil) || '…');
 			},
 			fieldError: function (field) {
 				return (this.errors[field] || []).join(' ');
@@ -172,7 +195,7 @@
 		<template v-if="queue.length">\
 			<h4>{{ t(\'waitlist.title\') }}</h4>\
 			<ol class="cmPromos__queue">\
-				<li v-for="w in queue" :key="w.participationId">{{ (w.givenName + \' \' + w.familyName).trim() || w.email }} <span class="cmEditions__path">{{ w.email }} · {{ w.waitlistedAt }}</span></li>\
+				<li v-for="w in queue" :key="w.participationId">{{ (w.givenName + \' \' + w.familyName).trim() || w.email }} <span class="cmEditions__path">{{ w.email }} · {{ stamp(w.waitlistedAt) }}</span></li>\
 			</ol>\
 		</template>\
 		<h3>{{ t(\'promo.codes\') }}</h3>\

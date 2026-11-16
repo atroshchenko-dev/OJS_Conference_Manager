@@ -524,6 +524,14 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
                     'consentMissing' => __('plugins.generic.conferenceManager.registration.consent.missing'),
                 ],
             ]);
+            // The wizard saves a step only when the author leaves it; the
+            // answers of this step are also saved as soon as they change.
+            $templateMgr->addJavaScript('conferenceWizardConfig', 'window.conferenceManagerWizard = ' . json_encode([
+                'saveUrl' => $config['sections'][0]['form']['action'] ?? '',
+                'csrfToken' => $request->getSession()->token(),
+            ], JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) . ';', [
+                'inline' => true, 'contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST,
+            ]);
             $templateMgr->addJavaScript(
                 'conferenceWizardReview',
                 $request->getBaseUrl() . '/' . $this->getPluginPath() . '/js/wizardReview.js',

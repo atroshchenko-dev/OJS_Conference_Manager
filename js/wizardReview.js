@@ -16,6 +16,63 @@
 		return value === null || value === undefined || value === '' || (Array.isArray(value) && !value.length);
 	}
 
+	/*
+	 * The OJS wizard sends a step's form only when the author leaves the
+	 * step or presses "Save for later". An author who closes the tab or
+	 * leaves through the menu lost the answers of this step, while the
+	 * prefilled ones came back. So the answers are also sent as soon as
+	 * they change (the same request the wizard makes).
+	 */
+	var config = window.conferenceManagerWizard || {};
+	if (config.saveUrl && window.fetch && window.URLSearchParams) {
+		var timer = null;
+		var formOf = function (el) {
+			return el && el.closest ? el.closest('form') : null;
+		};
+		var save = function () {
+			var form = formOf(document.querySelector('select[name="' + EDITION + '"]'));
+			if (!form) {
+				return;
+			}
+			var body = new URLSearchParams();
+			form.querySelectorAll('input[name^="conference"], select[name^="conference"]').forEach(function (el) {
+				if (el.type === 'radio') {
+					if (el.checked) {
+						body.set(el.name, el.value);
+					}
+				} else if (el.type === 'checkbox') {
+					// One box per field; an unticked one is sent empty, as the wizard does.
+					if (el.checked) {
+						body.append(el.name + '[]', el.value);
+					} else {
+						body.set(el.name, '');
+					}
+				} else {
+					body.set(el.name, el.value);
+				}
+			});
+			if (!body.has(EDITION)) {
+				return;
+			}
+			fetch(config.saveUrl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'X-Csrf-Token': config.csrfToken, 'X-Http-Method-Override': 'PUT' },
+				body: body,
+			}).catch(function () {});
+		};
+		var changed = function (e) {
+			var el = e.target;
+			if (!el || !el.name || el.name.indexOf('conference') !== 0
+				|| formOf(el) !== formOf(document.querySelector('select[name="' + EDITION + '"]'))) {
+				return;
+			}
+			clearTimeout(timer);
+			timer = setTimeout(save, 800);
+		};
+		document.addEventListener('change', changed, true);
+	}
+
 	pkp.registry.registerComponent('ConferenceRegistrationReview', {
 		name: 'ConferenceRegistrationReview',
 		props: {
