@@ -435,6 +435,9 @@ msgstr "For the whole journal"
 msgid "plugins.generic.conferenceManager.editions.nav.sections"
 msgstr "Edition sections"
 
+msgid "plugins.generic.conferenceManager.editions.siteOverview"
+msgstr "Site overview (administrator)"
+
 msgid "plugins.generic.conferenceManager.editions.issue"
 msgstr "OJS issue"
 

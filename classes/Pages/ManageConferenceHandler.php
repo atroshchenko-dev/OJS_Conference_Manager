@@ -220,6 +220,11 @@ class ManageConferenceHandler extends Handler
             ],
             'i18n' => self::strings(),
             'canEditEditions' => $isManager,
+            // OJS 3.5 shows plugin actions on the site level only to journal
+            // managers, so the site administrator reaches the overview from here.
+            'siteOverviewUrl' => \PKP\security\Validation::isSiteAdmin()
+                ? $dispatcher->url($request, Application::ROUTE_PAGE, 'index', \APP\plugins\generic\conferenceManager\classes\Pages\SiteOverviewHandler::PAGE)
+                : '',
             'tibSync' => $isManager && ServiceFactory::editions()->tibEnabled($info),
             'initialItems' => $isManager ? null : $this->editionsForRegister($info),
             'participantOptions' => [
@@ -268,7 +273,7 @@ class ManageConferenceHandler extends Handler
             'field.registrationClosesAt', 'field.paymentDeadline', 'field.dates.description',
             'field.isbn', 'field.udc', 'field.vectorProgramId', 'field.hours', 'field.ects',
             'column.dates', 'column.status', 'column.type', 'submissionsOpen', 'submissionsClosed', 'fees', 'participants', 'payments', 'invoices', 'proofs', 'decisions', 'back',
-            'dashboard', 'campaigns', 'reminders', 'audit', 'certificates', 'certificateTemplates',
+            'dashboard', 'campaigns', 'reminders', 'audit', 'certificates', 'certificateTemplates', 'siteOverview',
         ] as $key) {
             $out[$key] = __('plugins.generic.conferenceManager.editions.' . $key);
         }

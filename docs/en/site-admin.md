@@ -42,6 +42,8 @@ Some features work for the whole site rather than one journal. Only the site adm
 
 This turns on the "Upcoming events" and "Conferences: site overview" pages.
 
+On a site with one journal OJS shows no site-level plugin list. There the plugin turns itself on at site level together with the journal.
+
 ## The "Upcoming events" page
 
 The address is `/index/conference/upcoming`. It lists events from all journals of the site where the plugin is enabled.
@@ -55,7 +57,7 @@ To add the page to the site menu, create an ordinary OJS navigation menu item wi
 
 ## The "Conferences: site overview" page
 
-The link **Conferences: site overview** next to the plugin in the site-level plugin list (**Administration → Site settings → Plugins**) opens the page. The address is `/index/conferenceSite`. Only the site administrator sees it, and it works once the plugin is enabled at site level.
+The address is `/index/conferenceSite`. The site administrator sees the link **Site overview (administrator)** on the **Conferences** page of any journal, in the **For the whole journal** row. Only the site administrator sees the page, and it works once the plugin is enabled at site level.
 
 What it shows:
 

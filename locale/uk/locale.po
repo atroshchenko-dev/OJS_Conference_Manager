@@ -435,6 +435,9 @@ msgstr "Для всього журналу"
 msgid "plugins.generic.conferenceManager.editions.nav.sections"
 msgstr "Розділи видання"
 
+msgid "plugins.generic.conferenceManager.editions.siteOverview"
+msgstr "Огляд сайту (адміністратор)"
+
 msgid "plugins.generic.conferenceManager.editions.issue"
 msgstr "Випуск OJS"
 

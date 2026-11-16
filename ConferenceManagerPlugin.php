@@ -151,6 +151,14 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         $contextId = $this->getCurrentContextId();
         if ($enabled && is_numeric($contextId) && (int) $contextId > 0) {
             $this->ensureUserGroups((int) $contextId);
+            // OJS shows no site-level plugin list on a site with one journal
+            // (AdminHandler hides it), so the site pages (overview, upcoming
+            // events) could never be turned on there. Turn them on with the
+            // only journal.
+            if (app()->get('context')->getCount() === 1
+                && !$this->getSetting(Application::SITE_CONTEXT_ID, 'enabled')) {
+                $this->updateSetting(Application::SITE_CONTEXT_ID, 'enabled', true, 'bool');
+            }
         }
     }
 

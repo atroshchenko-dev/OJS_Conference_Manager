@@ -41,6 +41,8 @@
 			i18n: { type: Object, required: true },
 			/** false for registration managers: only the register of participants */
 			canEditEditions: { type: Boolean, default: true },
+			/** the site overview, given only to the site administrator */
+			siteOverviewUrl: { type: String, default: '' },
 			/** editions given by the page when the editions API is not open to the user */
 			initialItems: { type: Array, default: null },
 			participantOptions: { type: Object, default: function () { return { roles: [], statuses: [], confirmations: [] }; } },
@@ -535,6 +537,7 @@
 			<button type="button" class="cmEditions__link" v-if="canEditEditions" @click="openAudit">{{ t(\'audit\') }}</button>\
 			<button type="button" class="cmEditions__link" v-if="canEditEditions" @click="openPrivacy">{{ t(\'privacy.title\') }}</button>\
 			<button type="button" class="cmEditions__link" v-if="canEditEditions" @click="openLegacy">{{ t(\'legacy.title\') }}</button>\
+			<a v-if="siteOverviewUrl" class="cmEditions__link" :href="siteOverviewUrl">{{ t(\'siteOverview\') }}</a>\
 		</div>\
 		<div v-if="isLoading" class="cmEditions__loading"><spinner></spinner> {{ t(\'loading\') }}</div>\
 		<p v-else-if="!items.length" class="cmEditions__empty">{{ t(\'empty\') }}</p>\
