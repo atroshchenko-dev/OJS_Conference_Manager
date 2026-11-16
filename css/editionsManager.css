@@ -14,6 +14,9 @@
 .cmEditions__name:hover, .cmEditions__name:focus { text-decoration: underline; }
 .cmEditions__create { display: flex; gap: .5rem; flex-wrap: wrap; }
 .cmEditions__journalTools { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1rem; margin: -.25rem 0 1rem; font-size: .875rem; }
+.cmEditions__siteMode { border: 1px solid var(--cm-border); border-radius: var(--cm-radius); padding: .75rem 1rem; margin: 0 0 1rem; font-size: .875rem; }
+.cmEditions__siteMode label { font-weight: 700; }
+.cmEditions__siteMode p { margin: .5rem 0 0; }
 .cmEditions__groupLabel { color: var(--cm-text-secondary); font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
 .cmEditions__link { background: none; border: 0; padding: .25rem 0; font: inherit; color: var(--cm-primary); cursor: pointer; text-decoration: underline; }
 .cmEditions__sections { background: var(--cm-bg); box-shadow: var(--cm-ring); padding: .75rem 1rem; margin-bottom: 1rem; }
@@ -191,6 +194,7 @@
 .cmSetup__warning { border-left: 4px solid var(--cm-warning); background: var(--cm-warning-surface); padding: .5rem .75rem; margin: .5rem 0; }
 .cmSetup__warnings { list-style: none; padding: 0; }
 .cmSetup__note { color: var(--cm-text-secondary); font-size: .875rem; }
+.cmSetup__check { display: block; margin-top: 1rem; font-weight: 700; }
 .cmSetup__buttons { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1rem; }
 
 /* PRG-02, PRG-03: program builder */

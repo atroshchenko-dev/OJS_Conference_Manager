@@ -19,7 +19,6 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EventFormat;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EventType;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\PublicationMode;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\SubmissionMode;
-use APP\plugins\generic\conferenceManager\classes\Domain\Site\ThemeAccent;
 use APP\plugins\generic\conferenceManager\ConferenceManagerPlugin;
 use APP\template\TemplateManager;
 use DateTimeImmutable;
@@ -93,7 +92,7 @@ class ConferencePageHandler extends Handler
         $locale = Locale::getLocale();
         $vm = $this->viewModel($edition, $locale, $info->primaryLocale, $request);
         $partners = ServiceFactory::partners()->publicGroups($info, (int) $edition->id, $locale, ServiceFactory::partnerLogoUrl());
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         $templateMgr->addHeader('conferenceEditionJsonLd', '<script type="application/ld+json">'
             . json_encode($this->jsonLd($edition, $vm, $request, $partners), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG)
             . '</script>', ['contexts' => 'frontend']);
@@ -109,6 +108,80 @@ class ConferencePageHandler extends Handler
             'myUrl' => $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $request->getContext()?->getPath(), self::PAGE, 'my'),
         ]);
         return $templateMgr->display($this->plugin->getTemplateResource('frontend/edition.tpl'));
+    }
+
+    /**
+     * PUB-05: the events of the journal, at /{journal}/conference: the
+     * coming and current ones first, then the past ones. Drafts are not
+     * listed.
+     *
+     * @param array $args
+     * @param \APP\core\Request $request
+     */
+    public function index($args, $request)
+    {
+        $context = $request->getContext();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        [$coming, $past] = $this->journalEditions(ContextGateway::fromContext($context), $request);
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
+        $templateMgr->assign([
+            'pageTitle' => 'plugins.generic.conferenceManager.editionsPage.title',
+            'comingEditions' => $coming,
+            'pastEditions' => $past,
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/editions.tpl'));
+    }
+
+    /**
+     * PUB-05: the coming events on the home page of a journal in the
+     * conference site mode; empty when there are none.
+     */
+    public function homeBlock(PKPRequest $request): string
+    {
+        $context = $request->getContext();
+        if ($context === null) {
+            return '';
+        }
+        [$coming] = $this->journalEditions(ContextGateway::fromContext($context), $request);
+        if ($coming === []) {
+            return '';
+        }
+        $templateMgr = TemplateManager::getManager($request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
+        $templateMgr->assign([
+            'homeEditions' => array_slice($coming, 0, 5),
+            'homeEditionsUrl' => $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE),
+        ]);
+        return (string) $templateMgr->fetch($this->plugin->getTemplateResource('frontend/homeEditions.tpl'));
+    }
+
+    /**
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>} coming (by start), past (latest first)
+     */
+    private function journalEditions(ContextInfo $info, PKPRequest $request): array
+    {
+        $statuses = array_values(array_filter(EditionStatus::cases(), static fn (EditionStatus $s): bool => $s !== EditionStatus::Draft));
+        $locale = Locale::getLocale();
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $coming = $past = [];
+        foreach (ServiceFactory::editions()->list($info, $statuses, 100)['items'] as $edition) {
+            $end = $edition->date('endsAt') ?? $edition->date('startsAt');
+            $isPast = $edition->status === EditionStatus::Archived || ($end !== null && $end < $now);
+            $vm = $this->viewModel($edition, $locale, $info->primaryLocale, $request);
+            $vm['sortKey'] = $edition->date('startsAt')?->getTimestamp() ?? 0;
+            if ($isPast) {
+                $past[] = $vm;
+            } else {
+                $coming[] = $vm;
+            }
+        }
+        usort($coming, static fn (array $a, array $b): int => $a['sortKey'] <=> $b['sortKey']);
+        usort($past, static fn (array $a, array $b): int => $b['sortKey'] <=> $a['sortKey']);
+        return [$coming, $past];
     }
 
     /**
@@ -153,7 +226,7 @@ class ConferencePageHandler extends Handler
 
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         $templateMgr->assign([
             'pageTitle' => 'plugins.generic.conferenceManager.upcoming.title',
             'items' => $items,
@@ -203,7 +276,7 @@ class ConferencePageHandler extends Handler
 
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         // The address holds the token: keep it out of search engines and referrers.
         $templateMgr->addHeader('conferenceConfirmNoIndex', '<meta name="robots" content="noindex"><meta name="referrer" content="no-referrer">', ['contexts' => 'frontend']);
         $templateMgr->assign([
@@ -293,7 +366,7 @@ class ConferencePageHandler extends Handler
 
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         $templateMgr->addHeader('conferenceRegisterNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
         $vm = $this->viewModel($edition, $locale, $info->primaryLocale, $request);
         $templateMgr->assign([
@@ -480,7 +553,7 @@ class ConferencePageHandler extends Handler
 
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         $templateMgr->addHeader('conferenceMyNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
         $templateMgr->assign([
             'myItems' => $items,
@@ -546,7 +619,7 @@ class ConferencePageHandler extends Handler
 
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         $templateMgr->addHeader('conferenceBidsNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
         $templateMgr->assign([
             'bidsEditionName' => (string) $edition->text('name')->resolve($locale, $info->primaryLocale),
@@ -682,7 +755,7 @@ class ConferencePageHandler extends Handler
         }
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         $templateMgr->addHeader('conferencePayNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
         $templateMgr->assign([
             'payForm' => $form,
@@ -909,7 +982,7 @@ class ConferencePageHandler extends Handler
 
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         $templateMgr->addJavaScript('conferenceSessionAttendance', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/js/sessionAttendance.js', ['contexts' => 'frontend']);
         $templateMgr->addHeader('conferenceSessionNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
         $templateMgr->assign([
@@ -1014,7 +1087,7 @@ class ConferencePageHandler extends Handler
 
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         $templateMgr->addHeader('conferenceCheckinNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
         $templateMgr->assign([
             'ciUrl' => $pageUrl,
@@ -1083,7 +1156,7 @@ class ConferencePageHandler extends Handler
         }
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         $templateMgr->addHeader('conferenceVerifyNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
         $templateMgr->assign([
             'verifyCode' => $code,
@@ -1117,7 +1190,7 @@ class ConferencePageHandler extends Handler
         $url = $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'documents');
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         $templateMgr->assign([
             'documents' => $list['items'],
             'documentsTotal' => $list['itemsMax'],
@@ -1248,7 +1321,7 @@ class ConferencePageHandler extends Handler
             exit;
         }
         $base = $request->getBaseUrl() . '/' . $this->plugin->getPluginPath();
-        $this->addPublicStyles($templateMgr, $request);
+        $this->plugin->addPublicStyles($templateMgr, $request);
         if ($days !== []) {
             $templateMgr->addJavaScript('conferenceProgramTime', $base . '/js/programTime.js', ['contexts' => 'frontend']);
         }
@@ -1499,21 +1572,5 @@ class ConferencePageHandler extends Handler
             }
         }
         return $local->format('Y-m-d H:i');
-    }
-
-    /**
-     * The plugin's public stylesheet, and the journal theme's brand colour as
-     * its accent (DESIGN.md), so conference pages match the journal.
-     */
-    private function addPublicStyles(TemplateManager $templateMgr, PKPRequest $request): void
-    {
-        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
-        $theme = $templateMgr->getTemplateVars('activeTheme');
-        $accent = is_object($theme) && method_exists($theme, 'getOption') ? ThemeAccent::fromColour($theme->getOption('baseColour')) : null;
-        if ($accent !== null) {
-            $templateMgr->addStyleSheet('conferenceThemeAccent', $accent->css(), [
-                'contexts' => 'frontend', 'inline' => true, 'priority' => TemplateManager::STYLE_SEQUENCE_LATE,
-            ]);
-        }
     }
 }

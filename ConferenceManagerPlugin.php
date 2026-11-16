@@ -32,6 +32,7 @@ use APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway;
 use APP\plugins\generic\conferenceManager\classes\Domain\Decision\AcceptanceDecision;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\ScholarTags;
+use APP\plugins\generic\conferenceManager\classes\Domain\Site\ThemeAccent;
 use APP\plugins\generic\conferenceManager\classes\Forms\InstitutionSettingsForm;
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
 use APP\plugins\generic\conferenceManager\classes\Pages\ConferencePageHandler;
@@ -47,6 +48,7 @@ use DateTimeZone;
 use Illuminate\Support\Facades\Event;
 use PKP\core\APIRouter;
 use PKP\core\JSONMessage;
+use PKP\core\PKPRequest;
 use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
 use PKP\observers\events\DecisionAdded;
@@ -58,6 +60,9 @@ use PKP\scheduledTask\PKPScheduler;
 
 class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
 {
+    /** PUB-05: above the texts of OJS (0) and of other plugins. */
+    private const WORDING_PRIORITY = 1000;
+
     public const VERB_INSTITUTION = 'institution';
     public const VERB_SITE = 'siteOverview';
 
@@ -112,8 +117,110 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         // EDN-10: the TIB Conference fields of an issue edited in the issue
         // form of OJS; late, after TIB has put them on the issue.
         Hook::add('issueform::execute', $this->syncFromTib(...), Hook::SEQUENCE_LATE);
+        // PUB-05: a journal in the conference site mode.
+        $this->registerConferenceWording($mainContextId);
+        Hook::add('NavigationMenus::itemTypes', $this->addMenuItemType(...));
+        Hook::add('NavigationMenus::displaySettings', $this->setMenuItemUrl(...));
+        Hook::add('Templates::Index::journal', $this->addHomeEditions(...));
+        Hook::add('TemplateManager::display', $this->addHomeStyles(...));
 
         return true;
+    }
+
+    /**
+     * PUB-05: in the conference site mode the texts of OJS say "conference"
+     * and "proceedings". The folder of these texts is registered with a
+     * priority above OJS and other plugins, so its texts win; other
+     * journals of the site keep theirs. (Locale::registerLoader() cannot
+     * be used: OJS 3.5.0 calls the list of loaders of a priority as one
+     * callable.)
+     */
+    private function registerConferenceWording(?int $mainContextId): void
+    {
+        try {
+            $contextId = $mainContextId ?? Application::get()->getRequest()->getContext()?->getId();
+            if ($contextId !== null && $this->isEnabledFor((int) $contextId)
+                // Not through ServiceFactory: the plugin is not in the registry yet.
+                && \APP\plugins\generic\conferenceManager\classes\Application\SiteModeService::isOn($this->getSetting((int) $contextId, \APP\plugins\generic\conferenceManager\classes\Application\SiteModeService::SETTING))) {
+                \PKP\facades\Locale::registerPath(BASE_SYS_DIR . '/' . $this->getPluginPath() . '/wording', self::WORDING_PRIORITY);
+            }
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: wording: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * PUB-05: "Conferences" as a type of item in the navigation menus of OJS.
+     *
+     * @param array{0: array<string, array<string, string>>} $args
+     */
+    public function addMenuItemType(string $hookName, array $args): bool
+    {
+        $types = &$args[0];
+        $types[\APP\plugins\generic\conferenceManager\classes\Application\ConferenceMenu::ITEM_TYPE] = [
+            'title' => __('plugins.generic.conferenceManager.menu.editions'),
+            'description' => __('plugins.generic.conferenceManager.menu.editions.description'),
+        ];
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * @param array{0: \PKP\navigationMenu\NavigationMenuItem, 1: mixed} $args
+     */
+    public function setMenuItemUrl(string $hookName, array $args): bool
+    {
+        $item = $args[0];
+        if ($item->getType() !== \APP\plugins\generic\conferenceManager\classes\Application\ConferenceMenu::ITEM_TYPE) {
+            return Hook::CONTINUE;
+        }
+        $request = Application::get()->getRequest();
+        $context = $request->getContext();
+        if ($context === null || !$this->isEnabledFor((int) $context->getId())) {
+            $item->setIsDisplayed(false);
+            return Hook::CONTINUE;
+        }
+        $item->setUrl($request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), ConferencePageHandler::PAGE));
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * PUB-05: the styles of the events block go to the head of the home
+     * page, before the block itself is rendered.
+     *
+     * @param array{0: TemplateManager, 1: string} $args
+     */
+    public function addHomeStyles(string $hookName, array $args): bool
+    {
+        if ($args[1] !== 'frontend/pages/indexJournal.tpl') {
+            return Hook::CONTINUE;
+        }
+        $request = Application::get()->getRequest();
+        $context = $request->getContext();
+        if ($context !== null && $this->isEnabledFor((int) $context->getId()) && ServiceFactory::siteMode()->isConferenceSite((int) $context->getId())) {
+            $this->addPublicStyles($args[0], $request);
+        }
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * PUB-05: the coming events on the home page of a journal in the
+     * conference site mode. call_hook: [&$params, $smarty, &$output].
+     *
+     * @param array{0: mixed, 1: mixed, 2: string} $args
+     */
+    public function addHomeEditions(string $hookName, array $args): bool
+    {
+        $request = Application::get()->getRequest();
+        $context = $request->getContext();
+        if ($context === null || !$this->isEnabledFor((int) $context->getId()) || !ServiceFactory::siteMode()->isConferenceSite((int) $context->getId())) {
+            return Hook::CONTINUE;
+        }
+        try {
+            $args[2] .= (new ConferencePageHandler($this))->homeBlock($request);
+        } catch (\Throwable $e) {
+            error_log('conferenceManager: home events: ' . $e->getMessage());
+        }
+        return Hook::CONTINUE;
     }
 
     public function getDisplayName()
@@ -262,6 +369,12 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
             }
             if ($contextId !== null && in_array($op, ['confirm', 'my', 'invoice', 'receipt', 'certificate', 'verify', 'documents', 'invitationLetter', 'sessionAttendance', 'checkin', 'payment'], true) && $this->isEnabledFor((int) $contextId)) {
                 $handler = new ConferencePageHandler($this);
+                return true;
+            }
+            // PUB-05: /{journal}/conference lists the events of the journal.
+            if ($contextId !== null && ($op === 'index' || $op === '') && $this->isEnabledFor((int) $contextId)) {
+                $handler = new ConferencePageHandler($this);
+                $op = 'index';
                 return true;
             }
             if ($contextId !== null && $op !== 'index' && $this->isEnabledFor((int) $contextId)) {
@@ -884,5 +997,21 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
 
         $form->initData();
         return new JSONMessage(true, $form->fetch($request));
+    }
+
+    /**
+     * The plugin's public stylesheet, and the journal theme's brand colour as
+     * its accent (DESIGN.md), so conference pages match the journal.
+     */
+    public function addPublicStyles(TemplateManager $templateMgr, PKPRequest $request): void
+    {
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $theme = $templateMgr->getTemplateVars('activeTheme');
+        $accent = is_object($theme) && method_exists($theme, 'getOption') ? ThemeAccent::fromColour($theme->getOption('baseColour')) : null;
+        if ($accent !== null) {
+            $templateMgr->addStyleSheet('conferenceThemeAccent', $accent->css(), [
+                'contexts' => 'frontend', 'inline' => true, 'priority' => TemplateManager::STYLE_SEQUENCE_LATE,
+            ]);
+        }
     }
 }

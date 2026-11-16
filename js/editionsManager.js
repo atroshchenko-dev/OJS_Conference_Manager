@@ -52,6 +52,8 @@
 		data: function () {
 			return {
 				view: 'list',
+				siteMode: null,
+				siteModeOpen: false,
 				items: [],
 				itemsMax: 0,
 				statusFilter: '',
@@ -211,6 +213,30 @@
 			openLegacy: function () {
 				this.selected = null;
 				this.view = 'legacy';
+			},
+			/** PUB-05: the public part of the journal as a conference site. */
+			siteModeUrl: function () {
+				return this.apiUrl.replace(/\/editions$/, '') + '/siteMode';
+			},
+			toggleSiteMode: function () {
+				var self = this;
+				self.siteModeOpen = !self.siteModeOpen;
+				if (self.siteModeOpen) {
+					self.request('GET', self.siteModeUrl()).then(function (r) {
+						self.siteMode = r.ok ? r.data : null;
+					});
+				}
+			},
+			saveSiteMode: function (input) {
+				var self = this;
+				self.request('PUT', self.siteModeUrl(), input).then(function (r) {
+					if (r.ok) {
+						self.siteMode = r.data;
+						if (window.pkp && pkp.eventBus) {
+							pkp.eventBus.$emit('notify', self.t('siteMode.saved'), 'success');
+						}
+					}
+				});
 			},
 			openPrivacy: function () {
 				this.selected = null;
@@ -537,7 +563,15 @@
 			<button type="button" class="cmEditions__link" v-if="canEditEditions" @click="openAudit">{{ t(\'audit\') }}</button>\
 			<button type="button" class="cmEditions__link" v-if="canEditEditions" @click="openPrivacy">{{ t(\'privacy.title\') }}</button>\
 			<button type="button" class="cmEditions__link" v-if="canEditEditions" @click="openLegacy">{{ t(\'legacy.title\') }}</button>\
+			<button type="button" class="cmEditions__link" v-if="canEditEditions" :aria-expanded="siteModeOpen ? \'true\' : \'false\'" @click="toggleSiteMode">{{ t(\'siteMode.title\') }}</button>\
 			<a v-if="siteOverviewUrl" class="cmEditions__link" :href="siteOverviewUrl">{{ t(\'siteOverview\') }}</a>\
+		</div>\
+		<div v-if="siteModeOpen && siteMode" class="cmEditions__siteMode">\
+			<label><input type="checkbox" :checked="siteMode.conferenceSite" @change="saveSiteMode({ conferenceSite: $event.target.checked })"> {{ t(\'siteMode.conferenceSite\') }}</label>\
+			<p class="cmEditions__note">{{ t(\'siteMode.description\') }}</p>\
+			<p v-if="siteMode.menuItem">{{ t(\'siteMode.menuItemPresent\') }}</p>\
+			<p v-else><pkp-button @click="saveSiteMode({ menuItem: true })">{{ t(\'siteMode.addMenuItem\') }}</pkp-button></p>\
+			<p><a :href="publicUrl.replace(\'/__path__\', \'\')" target="_blank" rel="noopener">{{ t(\'siteMode.openPage\') }}</a></p>\
 		</div>\
 		<div v-if="isLoading" class="cmEditions__loading"><spinner></spinner> {{ t(\'loading\') }}</div>\
 		<p v-else-if="!items.length" class="cmEditions__empty">{{ t(\'empty\') }}</p>\

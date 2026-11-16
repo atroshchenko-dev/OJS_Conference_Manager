@@ -55,6 +55,10 @@
 .cmUpcoming__list { list-style: none; padding: 0; margin: 0; }
 .cmUpcoming__item { border-bottom: 1px solid rgba(0,0,0,.12); padding: 1rem 0; }
 .cmUpcoming__item h2 { margin: 0 0 .25rem; font-size: 1.25rem; }
+.cmUpcoming__item h3 { margin: 0 0 .25rem; font-size: 1.125rem; }
+.cmEditionsPage__heading { margin: 1.5rem 0 .5rem; font-size: 1.25rem; }
+.cmHomeEditions { margin: 0 0 2rem; }
+.cmHomeEditions > h2 { margin: 0 0 .5rem; }
 .cmUpcoming__open { color: var(--cm-success); }
 .cmUpcoming__pages { display: flex; gap: 1rem; margin-top: 1rem; }
 @media (max-width: 600px) { .cmEdition__facts { grid-template-columns: 1fr; } .cmEdition__facts dd { margin-bottom: .5rem; } }

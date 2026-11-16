@@ -25,8 +25,11 @@ use PKP\security\Role;
  * The first setup wizard (INS-08) with presets (DST-07). Journal manager:
  *
  * GET  setup    {done, last, editionCount, institutionType, jurisdiction, accounts, presets, labels}
- * POST setup    {preset, name, path, startsAt, endsAt, cfpOpensAt, abstractDeadline, …}
- *               → 201 {edition, warnings[{key, message}]}
+ * POST setup    {preset, name, path, startsAt, endsAt, cfpOpensAt, abstractDeadline, …,
+ *               conferenceSite (default true: PUB-05 mode and the menu item)}
+ *               → 201 {edition, warnings[{key, message}], siteMode}
+ * GET  siteMode {conferenceSite, menuItem}                        PUB-05
+ * PUT  siteMode {conferenceSite?, menuItem?: true} → the same
  */
 final class SetupRoutes implements RouteModule
 {
@@ -43,6 +46,8 @@ final class SetupRoutes implements RouteModule
     {
         Route::get('setup', $this->getSetup(...))->name('conference.setup.get');
         Route::post('setup', $this->applySetup(...))->name('conference.setup.apply');
+        Route::get('siteMode', $this->getSiteMode(...))->name('conference.siteMode.get');
+        Route::put('siteMode', $this->editSiteMode(...))->name('conference.siteMode.edit');
     }
 
     public function getSetup(Request $r): JsonResponse
@@ -85,9 +90,25 @@ final class SetupRoutes implements RouteModule
         if ($edition === null) {
             return ConferenceApiController::errorResponse($errors);
         }
+        // PUB-05: a journal set up by the wizard is a conference site, unless the manager unticks it.
+        $siteMode = filter_var($r->input('conferenceSite', true), FILTER_VALIDATE_BOOLEAN)
+            ? ServiceFactory::siteMode()->save($this->api->contextInfo(), ['conferenceSite' => true, 'menuItem' => true], $this->api->actorId())
+            : ServiceFactory::siteMode()->state($this->api->contextInfo());
         return response()->json([
             'edition' => $edition->toArray(),
             'warnings' => array_map(static fn (array $w): array => ['key' => $w['key'], 'message' => __($w['key'], $w['params'], $locale)], $warnings),
+            'siteMode' => $siteMode,
         ], Response::HTTP_CREATED);
+    }
+
+    public function getSiteMode(Request $r): JsonResponse
+    {
+        return response()->json(ServiceFactory::siteMode()->state($this->api->contextInfo()), Response::HTTP_OK);
+    }
+
+    public function editSiteMode(Request $r): JsonResponse
+    {
+        $input = array_intersect_key((array) $r->input(), ['conferenceSite' => true, 'menuItem' => true]);
+        return response()->json(ServiceFactory::siteMode()->save($this->api->contextInfo(), $input, $this->api->actorId()), Response::HTTP_OK);
     }
 }
