@@ -171,6 +171,7 @@ class ManageConferenceHandler extends Handler
         $templateMgr->addJavaScript('conferenceAbstractBook', $base . '/js/abstractBook.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferenceLegacyUrls', $base . '/js/legacyUrls.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
         $templateMgr->addJavaScript('conferencePrivacyManager', $base . '/js/privacyManager.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
+        $templateMgr->addStyleSheet('conferenceTokens', $base . '/css/backend-tokens.css', ['contexts' => 'backend']);
         $templateMgr->addStyleSheet('conferenceEditionsManager', $base . '/css/editionsManager.css', ['contexts' => 'backend']);
 
         $names = $context->getSupportedFormLocaleNames();

@@ -32,6 +32,7 @@ use APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway;
 use APP\plugins\generic\conferenceManager\classes\Domain\Decision\AcceptanceDecision;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\Edition;
 use APP\plugins\generic\conferenceManager\classes\Domain\Edition\ScholarTags;
+use APP\plugins\generic\conferenceManager\classes\Domain\Site\ThemeAccent;
 use APP\plugins\generic\conferenceManager\classes\Forms\InstitutionSettingsForm;
 use APP\plugins\generic\conferenceManager\classes\Migrations\ConferenceSchemaMigration;
 use APP\plugins\generic\conferenceManager\classes\Pages\ConferencePageHandler;
@@ -47,6 +48,7 @@ use DateTimeZone;
 use Illuminate\Support\Facades\Event;
 use PKP\core\APIRouter;
 use PKP\core\JSONMessage;
+use PKP\core\PKPRequest;
 use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
 use PKP\observers\events\DecisionAdded;
@@ -195,7 +197,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         $request = Application::get()->getRequest();
         $context = $request->getContext();
         if ($context !== null && $this->isEnabledFor((int) $context->getId()) && ServiceFactory::siteMode()->isConferenceSite((int) $context->getId())) {
-            $args[0]->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+            $this->addPublicStyles($args[0], $request);
         }
         return Hook::CONTINUE;
     }
@@ -566,6 +568,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
             'inline' => true, 'contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST,
         ]);
         $templateMgr->addJavaScript('conferenceWorkflow', $base . '/js/workflow.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
+        $templateMgr->addStyleSheet('conferenceTokens', $base . '/css/backend-tokens.css', ['contexts' => 'backend']);
         $templateMgr->addStyleSheet('conferenceWorkflow', $base . '/css/editionsManager.css', ['contexts' => 'backend']);
         return Hook::CONTINUE;
     }
@@ -994,5 +997,21 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
 
         $form->initData();
         return new JSONMessage(true, $form->fetch($request));
+    }
+
+    /**
+     * The plugin's public stylesheet, and the journal theme's brand colour as
+     * its accent (DESIGN.md), so conference pages match the journal.
+     */
+    public function addPublicStyles(TemplateManager $templateMgr, PKPRequest $request): void
+    {
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $theme = $templateMgr->getTemplateVars('activeTheme');
+        $accent = is_object($theme) && method_exists($theme, 'getOption') ? ThemeAccent::fromColour($theme->getOption('baseColour')) : null;
+        if ($accent !== null) {
+            $templateMgr->addStyleSheet('conferenceThemeAccent', $accent->css(), [
+                'contexts' => 'frontend', 'inline' => true, 'priority' => TemplateManager::STYLE_SEQUENCE_LATE,
+            ]);
+        }
     }
 }

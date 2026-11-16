@@ -1,21 +1,41 @@
 /*
- * Public pages of the plugin (DST-05). Colours are CSS variables, so a theme
- * or a child theme can match them to its palette by setting --cm-* on :root
- * or on .cmEdition. Tested with the Default, Manuscript and Health Sciences
+ * Public pages of the plugin (DST-05). Design tokens: see DESIGN.md.
+ * Fonts, headings, links and form controls come from the journal's theme.
+ * --cm-accent (and its text, surface and on-accent variants) is replaced by
+ * the theme's brand colour (`baseColour` of the Default theme and its child
+ * themes) in an inline style; other themes can set --cm-* on :root or on
+ * .cmEdition. Tested with the Default, Manuscript and Health Sciences
  * themes of OJS 3.5.
  */
 :root {
-  --cm-accent: #1a7f37;
-  --cm-on-accent: #fff;
-  --cm-accent-surface: #f4faf4;
-  --cm-danger: #b00020;
+  /* Brand: the journal theme's colour; the default is the OJS Default theme's */
+  --cm-accent: #1e6292;          /* main buttons, programme session borders */
+  --cm-on-accent: #fff;          /* text on --cm-accent */
+  --cm-accent-text: #1e6292;     /* accent used as text (4.5:1 on white) */
+  --cm-accent-surface: #edf2f6;  /* tinted blocks */
+
+  /* States */
+  --cm-success: #1a7f37;         /* open calls, valid certificates, accepted proofs */
+  --cm-success-surface: #e9f6ee;
+  --cm-danger: #b00020;          /* errors, revoked, rejected */
   --cm-danger-surface: #fdf3f3;
-  --cm-warning: #8a6100;
+  --cm-warning: #8a6100;         /* drafts, waiting list, payment instructions */
   --cm-warning-surface: #fff4ce;
-  --cm-muted: #555;
-  --cm-border: #ddd;
-  --cm-border-strong: #999;
-  --cm-surface: #f5f5f5;
+
+  /* Neutrals */
+  --cm-muted: #555;              /* hints and secondary text */
+  --cm-border: #ddd;             /* table rows */
+  --cm-border-strong: #999;      /* decorative frames only */
+  --cm-border-field: #767676;    /* inputs the theme does not style (3:1) */
+  --cm-surface: #f5f5f5;         /* table heads, badges */
+
+  /* Programme session types (same as the back office) */
+  --cm-session-plenary: #6a3d9a;
+  --cm-session-poster: #00796b;
+  --cm-session-seminar: #b45309;
+  --cm-session-break: rgba(0, 0, 0, .2);
+
+  --cm-radius: 3px;              /* buttons and badges, as in the Default theme */
 }
 
 /* Public pages of the Conference Manager plugin; neutral, inherits the theme. */
@@ -26,8 +46,8 @@
 .cmEdition__facts dd { margin: 0; }
 .cmEdition__tz { opacity: .7; font-size: .875em; }
 .cmEdition__call { border-inline-start: 4px solid var(--cm-border-strong); padding: .75rem 1rem; margin: 1rem 0 1.5rem; background: rgba(0,0,0,.03); }
-.cmEdition__call--open { border-color: var(--cm-accent); }
-.cmEdition__button { display: inline-block; padding: .5rem 1rem; border-radius: 3px; background: var(--cm-accent); color: var(--cm-on-accent) !important; text-decoration: none; font-weight: 700; }
+.cmEdition__call--open { border-color: var(--cm-success); }
+.cmEdition__button { display: inline-block; padding: .5rem 1rem; border-radius: var(--cm-radius); background: var(--cm-accent); color: var(--cm-on-accent) !important; text-decoration: none; font-weight: 700; }
 .cmEdition__draft { background: var(--cm-warning-surface); border: 1px solid var(--cm-warning); padding: .5rem .75rem; }
 .cmEdition__section { margin: 1.5rem 0; }
 .cmUpcoming__filters { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end; margin: 1rem 0 1.5rem; }
@@ -39,7 +59,7 @@
 .cmEditionsPage__heading { margin: 1.5rem 0 .5rem; font-size: 1.25rem; }
 .cmHomeEditions { margin: 0 0 2rem; }
 .cmHomeEditions > h2 { margin: 0 0 .5rem; }
-.cmUpcoming__open { color: var(--cm-accent); }
+.cmUpcoming__open { color: var(--cm-success); }
 .cmUpcoming__pages { display: flex; gap: 1rem; margin-top: 1rem; }
 @media (max-width: 600px) { .cmEdition__facts { grid-template-columns: 1fr; } .cmEdition__facts dd { margin-bottom: .5rem; } }
 
@@ -54,7 +74,7 @@
 	padding: 0.5rem 1rem;
 	border: 1px solid currentColor;
 	background: transparent;
-	border-radius: 3px;
+	border-radius: var(--cm-radius);
 	cursor: pointer;
 }
 .cmConfirm__result {
@@ -77,22 +97,22 @@
 .cmRegister__required { color: var(--cm-danger); }
 .cmRegister__consentText { font-size: .9em; max-height: 12rem; overflow: auto; padding: .5rem .75rem; border: 1px solid rgba(0, 0, 0, .15); }
 .cmRegister__trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
-.cmRegister__full { margin: 0 0 1.25rem; padding: .5rem .75rem; border-left: 3px solid var(--cm-warning); background: rgba(178, 107, 0, .06); }
+.cmRegister__full { margin: 0 0 1.25rem; padding: .5rem .75rem; border-left: 3px solid var(--cm-warning); background: var(--cm-warning-surface); }
 .cmMy__promo { margin: .5rem 0; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 .cmMy__promo label { font-weight: 600; }
-.cmMy__promo input[type="text"] { max-width: 12rem; padding: .45rem .5rem; border: 1px solid #767676; border-radius: 3px; }
-.cmMy__waitlist { margin: .25rem 0 .5rem; padding: .5rem .75rem; border-left: 3px solid var(--cm-warning); background: rgba(178, 107, 0, .06); }
+.cmMy__promo input[type="text"] { max-width: 12rem; padding: .45rem .5rem; border: 1px solid var(--cm-border-field); border-radius: var(--cm-radius); }
+.cmMy__waitlist { margin: .25rem 0 .5rem; padding: .5rem .75rem; border-left: 3px solid var(--cm-warning); background: var(--cm-warning-surface); }
 .cmMy { list-style: none; padding: 0; }
 .cmMy__item { border-top: 1px solid rgba(0, 0, 0, .12); padding: 1rem 0; }
 .cmMy__item--cancelled { opacity: .7; }
 .cmMy__title { font-size: 1.15em; margin: 0 0 .5rem; }
 .cmMy__deadline { margin-left: .75rem; font-size: .9em; }
 .cmMy__section { margin-top: 2rem; }
-.cmInvoice__instructions { margin: .5rem 0; padding: .5rem .75rem; border-left: 3px solid var(--cm-warning); background: rgba(178, 107, 0, .06); }
+.cmInvoice__instructions { margin: .5rem 0; padding: .5rem .75rem; border-left: 3px solid var(--cm-warning); background: var(--cm-warning-surface); }
 .cmInvoice__actions .cmEdition__button { margin: 0 .5rem .5rem 0; }
 .cmInvoice__subtitle { margin: .75rem 0 .25rem; font-size: 1rem; }
 .cmInvoice__proofs { margin: 0 0 .5rem; padding-left: 1.2rem; }
-.cmInvoice__proof--accepted strong { color: var(--cm-accent); }
+.cmInvoice__proof--accepted strong { color: var(--cm-success); }
 .cmInvoice__proof--rejected strong { color: var(--cm-danger); }
 .cmInvoice__proofNote { color: var(--cm-muted); font-size: .9em; }
 .cmInvoice__upload { margin: .75rem 0 0; padding: .5rem .75rem; border: 1px dashed var(--cm-border-strong); border-radius: 4px; }
@@ -104,7 +124,7 @@
 .cmRegister__field:has(input[name=minor]:not(:checked)) .cmRegister__guardian { display: none; }
 
 /* Certificate check (CRT-07) */
-.cmVerify { border-left: 4px solid var(--cm-accent); padding: 0.5rem 1rem; margin: 1rem 0; background: var(--cm-accent-surface); }
+.cmVerify { border-left: 4px solid var(--cm-success); padding: 0.5rem 1rem; margin: 1rem 0; background: var(--cm-success-surface); }
 .cmVerify--revoked { border-left-color: var(--cm-danger); background: var(--cm-danger-surface); }
 .cmVerify__status { font-weight: bold; font-size: 1.1em; margin: 0 0 0.5rem; }
 .cmVerify__form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 1.5rem; }
@@ -147,11 +167,11 @@
 .cmProgram__tz select { margin-left: 0.25rem; max-width: 100%; }
 .cmProgram__day { margin: 2rem 0; }
 .cmProgram__day h2 { border-bottom: 1px solid rgba(0, 0, 0, 0.15); padding-bottom: 0.25rem; }
-.cmProgram__session { border-left: 4px solid var(--cm-accent, #2f6f9f); padding: 0.5rem 0 0.5rem 1rem; margin: 0 0 1.25rem; }
-.cmProgram__session--plenary { border-left-color: #6a3d9a; }
-.cmProgram__session--poster { border-left-color: #2e7d32; }
-.cmProgram__session--seminar { border-left-color: #b45309; }
-.cmProgram__session--break { border-left-color: rgba(0, 0, 0, 0.2); opacity: 0.85; }
+.cmProgram__session { border-left: 4px solid var(--cm-accent); padding: 0.5rem 0 0.5rem 1rem; margin: 0 0 1.25rem; }
+.cmProgram__session--plenary { border-left-color: var(--cm-session-plenary); }
+.cmProgram__session--poster { border-left-color: var(--cm-session-poster); }
+.cmProgram__session--seminar { border-left-color: var(--cm-session-seminar); }
+.cmProgram__session--break { border-left-color: var(--cm-session-break); opacity: 0.85; }
 .cmProgram .cmProgram__when { margin: 0; display: flex; flex-wrap: wrap; gap: 0 0.75rem; font-size: 0.95em; }
 .cmProgram__time { font-weight: 700; font-variant-numeric: tabular-nums; }
 .cmProgram__type, .cmProgram__room { opacity: 0.8; }
@@ -166,7 +186,7 @@
 .cmProgram__items--timed .cmProgram__item { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: 0.5rem; }
 .cmProgram__itemTime { font-variant-numeric: tabular-nums; opacity: 0.85; }
 .cmProgram__sessionIcs { margin: 0.25rem 0 0; font-size: 0.85em; }
-.cmArticleProgram { margin: 1rem 0; padding: 0.75rem 1rem; border-left: 4px solid var(--cm-accent, #2f6f9f); }
+.cmArticleProgram { margin: 1rem 0; padding: 0.75rem 1rem; border-left: 4px solid var(--cm-accent); }
 .cmArticleProgram p { margin: 0.25rem 0; }
 @media print { .cmProgram__toc, .cmProgram__back, .cmProgram__tools, .cmProgram__sessionIcs, .cmProgram__sessionTools, .cmProgram__mine { display: none; } }
 
@@ -178,25 +198,25 @@
 .cmPartnerList__logo { display: block; max-width: 10rem; max-height: 5rem; object-fit: contain; }
 .cmPartnerList__name { font-size: .875rem; }
 .cmPartnerList__name--text { font-weight: 700; font-size: 1rem; padding: .75rem 0; }
-.cmPartnerList__fees { font-size: .75rem; color: #3d3d3d; }
+.cmPartnerList__fees { font-size: .75rem; color: var(--cm-muted); }
 @media (max-width: 30em) { .cmPartnerList__item { flex-basis: calc(50% - .5rem); } }
 .cmSessionAttendance__tools { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
 .cmSessionAttendance__meta { font-size: .85em; opacity: .8; overflow-wrap: anywhere; }
 .cmSessionAttendance__import label { display: inline-block; margin: 0 1rem .5rem 0; }
-.cmSessionAttendance .cmBadge { display: inline-block; margin-left: .4em; padding: 0 .45em; border-radius: 3px; font-size: .8em; background: var(--cm-surface); border: 1px solid var(--cm-border); }
+.cmSessionAttendance .cmBadge { display: inline-block; margin-left: .4em; padding: 0 .45em; border-radius: var(--cm-radius); font-size: .8em; background: var(--cm-surface); border: 1px solid var(--cm-border); }
 .cmTicket img { display: block; max-width: 100%; height: auto; background: #fff; }
 .cmTicket__box { margin: .75rem 0; }
 .cmTicket__box summary { cursor: pointer; font-weight: 600; }
 .cmCheckin select { max-width: 100%; }
 .cmCheckin__button { font-size: 1.15em; padding: .6em 1.4em; }
 .cmCheckin__result { font-size: 1.15em; font-weight: 600; padding: .6em .8em; border-radius: 4px; }
-.cmCheckin__result--status { background: #e6f4ea; color: #0d5323; }
-.cmCheckin__result--alert { background: #fdecea; color: #8a1c13; }
+.cmCheckin__result--status { background: var(--cm-success-surface); color: var(--cm-success); }
+.cmCheckin__result--alert { background: var(--cm-danger-surface); color: var(--cm-danger); }
 .cmProgram__sessionTools { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; margin: .25rem 0 0; font-size: .85em; }
 .cmProgram__pick { margin: 0; }
 .cmProgram__pick button { font-size: 1em; padding: .2em .6em; cursor: pointer; }
 .cmProgram__mine { margin: .5rem 0 1rem; }
-.cmProgram__mineReason { margin: 0 0 .25rem; font-size: .9em; font-weight: 600; color: var(--cm-accent, #1f4e79); }
+.cmProgram__mineReason { margin: 0 0 .25rem; font-size: .9em; font-weight: 600; color: var(--cm-accent-text); }
 .cmMy__program li { padding: .25rem 0; }
 .cmMy__reason { font-weight: 600; }
 .cmBids__list { list-style: none; padding-left: 0; }
