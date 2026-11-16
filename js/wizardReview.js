@@ -17,6 +17,37 @@
 	}
 
 	/*
+	 * A link to a step (submission?id=5#conference) should open that step.
+	 * The OJS 3.5 wizard opens the first step when the address names a
+	 * step and writes that step into the address before reading it, so
+	 * every such link opened "Details". This script runs before the wizard,
+	 * keeps the step from the address and asks for it again once the
+	 * wizard is ready: the wizard follows changes of the address itself.
+	 */
+	var wantedStep = (window.location.hash || '').replace(/^#/, '');
+	if (/^[A-Za-z0-9_-]+$/.test(wantedStep)) {
+		var tries = 0;
+		var reopen = function () {
+			var now = (window.location.hash || '').replace(/^#/, '');
+			if (now === wantedStep) {
+				return;
+			}
+			if (now) {
+				window.location.hash = wantedStep;
+			} else if (++tries < 40) {
+				setTimeout(reopen, 100);
+			}
+		};
+		if (document.readyState === 'complete') {
+			setTimeout(reopen, 0);
+		} else {
+			window.addEventListener('load', function () {
+				setTimeout(reopen, 0);
+			});
+		}
+	}
+
+	/*
 	 * The OJS wizard sends a step's form only when the author leaves the
 	 * step or presses "Save for later". An author who closes the tab or
 	 * leaves through the menu lost the answers of this step, while the
