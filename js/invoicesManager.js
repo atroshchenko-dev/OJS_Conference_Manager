@@ -92,9 +92,20 @@
 				personalTaxId: false,
 				template: null,
 				templateErrors: {},
+				/** PAY-09: card payment through the journal's payment gateway */
+				gateway: null,
+				gatewayForm: { gateway: '', sandbox: false, values: {} },
+				gatewayErrors: {},
 			};
 		},
 		computed: {
+			gatewayUrl: function () {
+				return this.templatesUrl.replace(/invoice-templates$/, 'payment-gateway');
+			},
+			gatewayChosen: function () {
+				var self = this;
+				return ((self.gateway && self.gateway.gateways) || []).filter(function (g) { return g.id === self.gatewayForm.gateway; })[0] || null;
+			},
 			ruleMode: function () {
 				var self = this;
 				return (self.options.modes || []).filter(function (m) { return self.rule && m.value === self.rule.mode; })[0] || {};
@@ -121,6 +132,32 @@
 						self.personalTaxId = !!r.data.personalTaxId;
 					}
 				});
+				self.api('GET', self.gatewayUrl).then(function (r) {
+					if (r.ok) {
+						self.setGateway(r.data);
+					}
+				});
+			},
+			setGateway: function (data) {
+				this.gateway = data;
+				this.gatewayForm = { gateway: data.gateway || '', sandbox: !!data.sandbox, values: Object.assign({}, data.values || {}) };
+				this.gatewayErrors = {};
+			},
+			saveGateway: function () {
+				var self = this;
+				self.api('PUT', self.gatewayUrl, self.gatewayForm).then(function (r) {
+					if (r.ok) {
+						self.setGateway(r.data);
+						notify(self.t('fee.saved'));
+					} else {
+						self.gatewayErrors = (r.data && r.data.errors) || r.data || {};
+						notify(firstError(r.data), 'warning');
+					}
+				});
+			},
+			gatewayError: function (name) {
+				var e = this.gatewayErrors['values.' + name];
+				return e ? [].concat(e).join(' ') : '';
 			},
 			/** JUR-05: off by default; only when the accounting needs it. */
 			savePersonalTaxId: function () {
@@ -241,6 +278,21 @@
 			</div>\
 			<p class="cmEditions__note" v-if="rule.mode !== \'free\'">{{ t(\'payment.instructions.description\') }}</p>\
 			<div class="cmEditions__buttons"><pkp-button :is-primary="true" @click="saveRule">{{ t(\'save\') }}</pkp-button><pkp-button @click="rule = null">{{ t(\'cancel\') }}</pkp-button></div>\
+		</form>\
+	</section>\
+	<section class="cmEditions__form cmFees__block" v-if="gateway">\
+		<h3>{{ t(\'gateway.title\') }}</h3>\
+		<p class="cmEditions__note">{{ t(\'gateway.help\') }}</p>\
+		<form class="cmFees__edit" @submit.prevent="saveGateway" novalidate>\
+			<div class="cmEditions__row">\
+				<label class="cmEditions__field" :class="{ \'cmEditions__field--error\': gatewayErrors.gateway }"><span>{{ t(\'gateway.service\') }}</span>\
+					<select class="pkpFormField__input" v-model="gatewayForm.gateway"><option value="">{{ t(\'gateway.none\') }}</option><option v-for="g in gateway.gateways" :key="g.id" :value="g.id">{{ g.name }}</option></select></label>\
+				<label class="cmEditions__field" v-for="f in (gatewayChosen ? gatewayChosen.fields : [])" :key="f.name" :class="{ \'cmEditions__field--error\': gatewayError(f.name) }"><span>{{ t(f.label.replace(\'plugins.generic.conferenceManager.\', \'\')) }} *</span>\
+					<input class="pkpFormField__input" :type="f.secret ? \'password\' : \'text\'" v-model="gatewayForm.values[f.name]" maxlength="500" autocomplete="off" :placeholder="f.secret && gateway.gateway === gatewayForm.gateway && gateway.secretsSet[f.name] ? t(\'gateway.secretSet\') : \'\'"><em v-if="gatewayError(f.name)">{{ gatewayError(f.name) }}</em></label>\
+			</div>\
+			<label class="cmEditions__check" v-if="gatewayChosen"><input type="checkbox" v-model="gatewayForm.sandbox"> {{ t(\'gateway.sandbox\') }}</label>\
+			<p class="cmEditions__note" v-if="gatewayChosen">{{ t(\'gateway.currencies\') }} {{ gatewayChosen.currencies.join(\', \') }}. {{ t(\'gateway.ruleHint\') }}</p>\
+			<div class="cmEditions__buttons"><pkp-button :is-primary="true" @click="saveGateway">{{ t(\'save\') }}</pkp-button></div>\
 		</form>\
 	</section>\
 	<section class="cmEditions__form cmFees__block">\

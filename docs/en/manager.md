@@ -226,12 +226,38 @@ A code that was used cannot be deleted, and its name and discount cannot change,
 Click **Payment** next to the edition. In **How participant categories pay**, click **Add a rule**.
 
 1. Choose a category or "All other categories". A category rule wins over the general one. There can be only one general rule.
-2. Choose the **Payment mode**: "Free", "Bank transfer by invoice", "Treasury transfer", "Paid by a co-organizer" or "Payment on an external page".
+2. Choose the **Payment mode**: "Free", "Bank transfer by invoice", "Treasury transfer", "Paid by a co-organizer", "Payment on an external page" or "Online card payment". "Online card payment" can be saved only after a payment service is set up (see below).
 3. For a transfer, choose the **Recipient account** from the institution profile. Bank transfer accepts only a bank account, treasury transfer only a treasury account.
 4. For an external page, enter the **Payment page link** (`https://` only).
 5. If needed, write **Instructions for the payer**. If empty, the participant sees the default instructions for the mode. For Ukraine the instructions always warn that a transfer to a card number is not a payment to the institution's account.
 
 Without rules, with "Free", or with a zero tariff no invoices are issued.
+
+### Online card payment (LiqPay)
+
+A participant can pay an invoice by card, Apple Pay or Google Pay on the payment service's page. The money goes to your own merchant account; the plugin never sees or stores card data. LiqPay (PrivatBank) is supported now. Other services can be added by separate plugins.
+
+Before you turn it on:
+- sign an agreement with LiqPay for the institution and get the shop keys in the LiqPay account ("Settings" → "API");
+- agree fiscalisation with the accounting office: card payments need a fiscal receipt (PRRO in Ukraine). LiqPay can issue it (its PRRO service) or you use your own. The plugin does not issue fiscal receipts;
+- a budget institution should check with the treasury whether it may take acquiring payments to its account.
+
+To set it up:
+1. On the **Payment** page of any edition, find **Online card payment**. The setting is shared by the whole journal.
+2. Choose **Payment service** "LiqPay" and paste the **LiqPay public key** and the **LiqPay private key**. The private key is never shown again after saving. Leave the field empty to keep it.
+3. To try it out, tick **Test mode (sandbox)** and use the test keys (they start with `sandbox_`). No money is taken, and test payments mark invoices paid. Before taking real payments, untick it and paste the live keys. Without test mode, test payments do not count.
+4. Click **Save**.
+5. In the edition's **payment rules**, choose "Online card payment" for the categories you want.
+
+How it works:
+- In the participant's cabinet an open invoice gets a **Pay by card** button with the amount due. It appears only while the invoice is open, the amount is above zero and the service supports the currency (LiqPay: UAH, USD, EUR).
+- An invoice becomes paid only from a report signed with your LiqPay private key. Repeated reports do not count twice; forged reports are refused.
+- If a report is lost, the plugin asks LiqPay itself: right after the participant comes back from LiqPay, and hourly for attempts from 10 minutes to 7 days old. The OJS scheduler must be running for this.
+- Each attempt has its own order number, `{journal}-{invoice number}-{attempt}`, which you can find in the LiqPay account. The attempts of an invoice are available through the API: `GET …/invoices/{id}/gateway-payments`.
+- If a participant pays an invoice that is already closed (for instance twice in two tabs) or in another currency, the invoice does not change. The audit log gets a `gateway_paid_unmatched` entry and you refund in the LiqPay account. A refund made in LiqPay is logged as `gateway_reversed` but does not change the invoice: change it by hand if needed.
+- To turn card payment off, choose the service "Off". Rules with this mode stay, but the button disappears.
+
+The address for reports (`server_url`) is sent to LiqPay with each payment: `…/conference/payment/callback/liqpay`. The site must be reachable from the internet over HTTPS.
 
 ### Invoice templates
 

@@ -252,7 +252,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
                 $handler = new ConferencePageHandler($this);
                 return true;
             }
-            if ($contextId !== null && in_array($op, ['confirm', 'my', 'invoice', 'receipt', 'certificate', 'verify', 'documents', 'invitationLetter', 'sessionAttendance', 'checkin'], true) && $this->isEnabledFor((int) $contextId)) {
+            if ($contextId !== null && in_array($op, ['confirm', 'my', 'invoice', 'receipt', 'certificate', 'verify', 'documents', 'invitationLetter', 'sessionAttendance', 'checkin', 'payment'], true) && $this->isEnabledFor((int) $contextId)) {
                 $handler = new ConferencePageHandler($this);
                 return true;
             }
@@ -783,6 +783,10 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
         $scheduler->addSchedule(new ReminderTask())
             ->hourly()
             ->name(ReminderTask::class)
+            ->withoutOverlapping();
+        $scheduler->addSchedule(new \APP\plugins\generic\conferenceManager\classes\Tasks\GatewayStatusTask())
+            ->hourly()
+            ->name(\APP\plugins\generic\conferenceManager\classes\Tasks\GatewayStatusTask::class)
             ->withoutOverlapping();
         $scheduler->addSchedule(new RetentionTask())
             ->daily()

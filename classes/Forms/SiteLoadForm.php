@@ -100,7 +100,7 @@ class SiteLoadForm extends Form
             array_unshift($advice, __('plugins.generic.conferenceManager.scheduler.stale', ['minutes' => $health['minutes']]));
         }
         $runs = [];
-        foreach (['EditionWindowsTask', 'ReminderTask', 'RetentionTask'] as $task) {
+        foreach (['EditionWindowsTask', 'ReminderTask', 'RetentionTask', 'GatewayStatusTask'] as $task) {
             $run = $o['taskRuns'][$task] ?? null;
             $runs[] = [
                 'name' => __(self::K . 'task.' . $task),

@@ -5064,6 +5064,101 @@ msgstr "Reviewers: assigned by choice"
 msgid "plugins.generic.conferenceManager.mailable.bidAssigned.description"
 msgstr "Sent to a reviewer who was assigned a submission they chose."
 
+# PAY-09: online card payment
+
+msgid "plugins.generic.conferenceManager.payment.mode.acquiring"
+msgstr "Online card payment"
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.acquiring"
+msgstr "Pay by card on the secure page of the payment service: press \"Pay by card\". The invoice is marked paid as soon as the service confirms the payment."
+
+msgid "plugins.generic.conferenceManager.gateway.title"
+msgstr "Online card payment"
+
+msgid "plugins.generic.conferenceManager.gateway.help"
+msgstr "Participants pay by card on the payment service's page through your own merchant account. An invoice is marked paid only from a report signed by the service. Before turning it on, agree fiscalisation (cash register, receipts) and the contract with the service with your accounting."
+
+msgid "plugins.generic.conferenceManager.gateway.service"
+msgstr "Payment service"
+
+msgid "plugins.generic.conferenceManager.gateway.none"
+msgstr "Off"
+
+msgid "plugins.generic.conferenceManager.gateway.secretSet"
+msgstr "key saved"
+
+msgid "plugins.generic.conferenceManager.gateway.sandbox"
+msgstr "Test mode (sandbox): no money is taken, test payments count"
+
+msgid "plugins.generic.conferenceManager.gateway.currencies"
+msgstr "Currencies of the service:"
+
+msgid "plugins.generic.conferenceManager.gateway.ruleHint"
+msgstr "For participants to pay by card, choose the \"Online card payment\" mode in the payment rules of the edition."
+
+msgid "plugins.generic.conferenceManager.gateway.liqpay.publicKey"
+msgstr "LiqPay public key"
+
+msgid "plugins.generic.conferenceManager.gateway.liqpay.privateKey"
+msgstr "LiqPay private key"
+
+msgid "plugins.generic.conferenceManager.gateway.error.unknown"
+msgstr "There is no such payment service."
+
+msgid "plugins.generic.conferenceManager.gateway.error.required"
+msgstr "Fill in this field."
+
+msgid "plugins.generic.conferenceManager.gateway.error.tooLong"
+msgstr "The value is too long."
+
+msgid "plugins.generic.conferenceManager.gateway.error.notSetUp"
+msgstr "First set up online card payment for the journal (Payment → Online card payment)."
+
+msgid "plugins.generic.conferenceManager.gateway.error.notFound"
+msgstr "The invoice is not found."
+
+msgid "plugins.generic.conferenceManager.gateway.error.notPayable"
+msgstr "This invoice cannot be paid by card now."
+
+msgid "plugins.generic.conferenceManager.gateway.payCard"
+msgstr "Pay by card {$amount} {$currency}"
+
+msgid "plugins.generic.conferenceManager.gateway.description"
+msgstr "Participation fee, invoice No. {$number}"
+
+msgid "plugins.generic.conferenceManager.gateway.pay.title"
+msgstr "Going to payment"
+
+msgid "plugins.generic.conferenceManager.gateway.pay.help"
+msgstr "The secure payment page of {$gateway} opens now. Card details are entered only there; the journal neither sees nor stores them."
+
+msgid "plugins.generic.conferenceManager.gateway.pay.go"
+msgstr "Go to payment at {$gateway}"
+
+msgid "plugins.generic.conferenceManager.gateway.pay.back"
+msgstr "Back to my cabinet"
+
+msgid "plugins.generic.conferenceManager.gateway.my.paid"
+msgstr "The payment is received and the invoice is paid. Thank you!"
+
+msgid "plugins.generic.conferenceManager.gateway.my.pending"
+msgstr "The payment is still being processed. The invoice will be marked paid as soon as the service confirms it; reload the page in a few minutes."
+
+msgid "plugins.generic.conferenceManager.gateway.my.error"
+msgstr "The card payment could not be started. Try again later or contact the organisers."
+
+msgid "plugins.generic.conferenceManager.audit.entity.payment_gateway"
+msgstr "Online card payment"
+
+msgid "plugins.generic.conferenceManager.task.gateway"
+msgstr "Conferences: card payment check"
+
+msgid "plugins.generic.conferenceManager.task.gateway.changed"
+msgstr "Card payments updated: {$count}"
+
+msgid "plugins.generic.conferenceManager.site.task.GatewayStatusTask"
+msgstr "Card payment check"
+
 # EDN-10: the issue form fields of TIB Conference, which ships no Ukrainian locale.
 
 msgid "plugins.generic.conference.metadata.conferenceDate.title"

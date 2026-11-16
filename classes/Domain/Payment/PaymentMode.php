@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\generic\conferenceManager\classes\Domain\Payment;
 
 /**
- * How participants of a category pay (PAY-01…05). The plugin decides no
+ * How participants of a category pay (PAY-01…05, PAY-09). The plugin decides no
  * legal questions: it only issues documents and shows instructions.
  */
 enum PaymentMode: string
@@ -15,6 +15,8 @@ enum PaymentMode: string
     case TreasuryTransfer = 'treasury_transfer';
     case ExternalOrganizer = 'external_organizer';
     case ExternalLink = 'external_link';
+    /** PAY-09: card payment through the journal's payment gateway (LiqPay…). */
+    case Acquiring = 'acquiring';
 
     public function labelKey(): string
     {
@@ -52,6 +54,7 @@ enum PaymentMode: string
             self::TreasuryTransfer => 'treasury',
             self::ExternalOrganizer => 'organizer',
             self::ExternalLink => 'link',
+            self::Acquiring => 'card',
         };
     }
 }

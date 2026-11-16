@@ -5064,6 +5064,101 @@ msgstr "Рецензенти: призначено за вибором"
 msgid "plugins.generic.conferenceManager.mailable.bidAssigned.description"
 msgstr "Лист рецензентові, якому за його вибором призначено подання на рецензію."
 
+# PAY-09: online card payment
+
+msgid "plugins.generic.conferenceManager.payment.mode.acquiring"
+msgstr "Оплата карткою онлайн"
+
+msgid "plugins.generic.conferenceManager.invoice.instructions.acquiring"
+msgstr "Сплатіть карткою на захищеній сторінці платіжного сервісу: натисніть «Оплатити карткою». Рахунок позначиться оплаченим, щойно сервіс підтвердить платіж."
+
+msgid "plugins.generic.conferenceManager.gateway.title"
+msgstr "Онлайн-оплата карткою"
+
+msgid "plugins.generic.conferenceManager.gateway.help"
+msgstr "Учасники платять карткою на сторінці платіжного сервісу через ваш власний мерчант-рахунок. Рахунок позначається оплаченим лише за підписаним повідомленням сервісу. Перед увімкненням погодьте з бухгалтерією фіскалізацію (ПРРО, чеки) і договір із сервісом."
+
+msgid "plugins.generic.conferenceManager.gateway.service"
+msgstr "Платіжний сервіс"
+
+msgid "plugins.generic.conferenceManager.gateway.none"
+msgstr "Вимкнено"
+
+msgid "plugins.generic.conferenceManager.gateway.secretSet"
+msgstr "ключ збережено"
+
+msgid "plugins.generic.conferenceManager.gateway.sandbox"
+msgstr "Тестовий режим (пісочниця): гроші не списуються, тестові платежі зараховуються"
+
+msgid "plugins.generic.conferenceManager.gateway.currencies"
+msgstr "Валюти сервісу:"
+
+msgid "plugins.generic.conferenceManager.gateway.ruleHint"
+msgstr "Щоб учасники могли платити карткою, у правилах оплати видання оберіть режим «Оплата карткою онлайн»."
+
+msgid "plugins.generic.conferenceManager.gateway.liqpay.publicKey"
+msgstr "Публічний ключ LiqPay"
+
+msgid "plugins.generic.conferenceManager.gateway.liqpay.privateKey"
+msgstr "Приватний ключ LiqPay"
+
+msgid "plugins.generic.conferenceManager.gateway.error.unknown"
+msgstr "Такого платіжного сервісу немає."
+
+msgid "plugins.generic.conferenceManager.gateway.error.required"
+msgstr "Заповніть це поле."
+
+msgid "plugins.generic.conferenceManager.gateway.error.tooLong"
+msgstr "Задовге значення."
+
+msgid "plugins.generic.conferenceManager.gateway.error.notSetUp"
+msgstr "Спершу налаштуйте онлайн-оплату карткою в журналі (Оплата → Онлайн-оплата карткою)."
+
+msgid "plugins.generic.conferenceManager.gateway.error.notFound"
+msgstr "Рахунок не знайдено."
+
+msgid "plugins.generic.conferenceManager.gateway.error.notPayable"
+msgstr "Цей рахунок зараз не можна сплатити карткою."
+
+msgid "plugins.generic.conferenceManager.gateway.payCard"
+msgstr "Оплатити карткою {$amount} {$currency}"
+
+msgid "plugins.generic.conferenceManager.gateway.description"
+msgstr "Оргвнесок, рахунок № {$number}"
+
+msgid "plugins.generic.conferenceManager.gateway.pay.title"
+msgstr "Перехід до оплати"
+
+msgid "plugins.generic.conferenceManager.gateway.pay.help"
+msgstr "Зараз відкриється захищена сторінка оплати {$gateway}. Дані картки вводяться лише там, журнал їх не бачить і не зберігає."
+
+msgid "plugins.generic.conferenceManager.gateway.pay.go"
+msgstr "Перейти до оплати в {$gateway}"
+
+msgid "plugins.generic.conferenceManager.gateway.pay.back"
+msgstr "Повернутися до кабінету"
+
+msgid "plugins.generic.conferenceManager.gateway.my.paid"
+msgstr "Оплату отримано, рахунок оплачено. Дякуємо!"
+
+msgid "plugins.generic.conferenceManager.gateway.my.pending"
+msgstr "Оплата ще обробляється. Рахунок позначиться оплаченим, щойно сервіс її підтвердить; оновіть сторінку за кілька хвилин."
+
+msgid "plugins.generic.conferenceManager.gateway.my.error"
+msgstr "Не вдалося почати оплату карткою. Спробуйте пізніше або зверніться до організаторів."
+
+msgid "plugins.generic.conferenceManager.audit.entity.payment_gateway"
+msgstr "Онлайн-оплата карткою"
+
+msgid "plugins.generic.conferenceManager.task.gateway"
+msgstr "Конференції: перевірка карткових платежів"
+
+msgid "plugins.generic.conferenceManager.task.gateway.changed"
+msgstr "Оновлено карткових платежів: {$count}"
+
+msgid "plugins.generic.conferenceManager.site.task.GatewayStatusTask"
+msgstr "Перевірка карткових платежів"
+
 # EDN-10: the issue form fields of TIB Conference, which ships no Ukrainian locale.
 
 msgid "plugins.generic.conference.metadata.conferenceDate.title"

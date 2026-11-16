@@ -166,6 +166,33 @@ final class ServiceFactory
         );
     }
 
+    /** PAY-09: card payment through the journal's payment gateway. */
+    public static function onlinePayments(): \APP\plugins\generic\conferenceManager\classes\Application\OnlinePaymentService
+    {
+        $db = DB::connection();
+        return new \APP\plugins\generic\conferenceManager\classes\Application\OnlinePaymentService(
+            self::settings(),
+            self::gateways(),
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbGatewayPaymentRepository($db),
+            self::invoices(),
+            new OjsGatewayHttp(),
+            new AuditLogger($db),
+        );
+    }
+
+    /**
+     * PAY-09: LiqPay is built in; other plugins add gateways to the list
+     * through the ConferenceManager::paymentGateways hook.
+     */
+    public static function gateways(): \APP\plugins\generic\conferenceManager\classes\Application\GatewayRegistry
+    {
+        $gateways = new \ArrayObject([new \APP\plugins\generic\conferenceManager\classes\Domain\Payment\Gateway\LiqPayGateway()]);
+        // Hook ConferenceManager::paymentGateways [$gateways]: a callback appends
+        // its PaymentGateway to the ArrayObject and returns Hook::CONTINUE.
+        Hook::run('ConferenceManager::paymentGateways', [$gateways]);
+        return new \APP\plugins\generic\conferenceManager\classes\Application\GatewayRegistry($gateways);
+    }
+
     public static function proofs(): ProofService
     {
         $files = (string) Config::getVar('files', 'files_dir');

@@ -383,6 +383,9 @@ class ConferencePageHandler extends Handler
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.payer.saved')];
         } elseif ($request->getUserVar('promo')) {
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.promo.applied')];
+        } elseif (in_array($request->getUserVar('card'), ['paid', 'pending', 'error'], true)) {
+            // PAY-09: back from the payment page of the gateway.
+            $message = ['type' => $request->getUserVar('card') === 'error' ? 'alert' : 'status', 'text' => __('plugins.generic.conferenceManager.gateway.my.' . $request->getUserVar('card'))];
         } elseif ($request->getUserVar('cancelled')) {
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.participation.cancelled')];
         } elseif ($request->getUserVar('proof')) {
@@ -409,6 +412,8 @@ class ConferencePageHandler extends Handler
 
         $invoices = [];
         $proofs = ServiceFactory::proofs();
+        $online = ServiceFactory::onlinePayments();
+        $cardOn = $online->isOn($info);
         foreach ($proofs->withProofs($info, ServiceFactory::invoices()->mine($info, (int) $user->getId(), $email, $locale), $locale) as $i) {
             $i['proofs'] = array_map(fn (array $p): array => $p + [
                 'url' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'receipt', [(string) $p['id']]),
@@ -420,6 +425,8 @@ class ConferencePageHandler extends Handler
                 'dueAtText' => $this->formatDate($i['dueAt'] === null ? null : new DateTimeImmutable((string) $i['dueAt']), (string) $i['timezone'], $locale),
                 'instructionsHtml' => nl2br(htmlspecialchars((string) $i['instructions'])),
                 'canEditPayer' => $i['isOpen'] && $i['hasDocument'] && (int) ($i['paid']['minor'] ?? 0) === 0,
+                'cardPayUrl' => $cardOn && $i['mode'] === 'acquiring' && $i['isOpen'] && $online->canPayInvoice($info, (int) $i['id'])
+                    ? $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'payment', [(string) $i['id']]) : null,
             ];
         }
         $payerFields = ServiceFactory::invoices()->payerFields($info);
@@ -597,6 +604,84 @@ class ConferencePageHandler extends Handler
         header('Cache-Control: private, no-store');
         echo $file['content'];
         exit;
+    }
+
+    /**
+     * PAY-09: card payment of an invoice.
+     *   POST payment/{invoiceId}          the payer starts an attempt: a form to the gateway's page
+     *   GET|POST payment/{invoiceId}/return  back from the gateway: to the cabinet with the result
+     *   POST payment/callback/{gateway}   the gateway's signed report, server to server
+     *
+     * @param array $args
+     * @param \APP\core\Request $request
+     */
+    public function payment($args, $request)
+    {
+        $context = $request->getContext();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $info = ContextGateway::fromContext($context);
+        $dispatcher = $request->getDispatcher();
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $online = ServiceFactory::onlinePayments();
+        $my = static fn (string $result): string => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my', null, ['card' => $result]);
+
+        if (($args[0] ?? null) === 'callback' && isset($args[1]) && !isset($args[2])) {
+            $ok = $request->isPost() && $online->callback($info, (string) $args[1], $_POST, (string) file_get_contents('php://input'), $now);
+            http_response_code($ok ? 200 : 400);
+            header('Content-Type: text/plain; charset=utf-8');
+            header('Cache-Control: no-store');
+            echo $ok ? 'OK' : 'Bad request';
+            exit;
+        }
+        if (!ctype_digit((string) ($args[0] ?? ''))) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        $invoiceId = (int) $args[0];
+        if (($args[1] ?? null) === 'return' && !isset($args[2])) {
+            $online->refreshInvoice($info, $invoiceId, $now);
+            $invoice = ServiceFactory::invoices()->find($info, $invoiceId);
+            $paid = $invoice !== null && $invoice->status === \APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceStatus::Paid;
+            $request->redirectUrl($my($paid ? 'paid' : 'pending'));
+        }
+        $user = $request->getUser();
+        if (isset($args[1]) || !$request->isPost() || $user === null || !$request->checkCSRF()) {
+            $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my'));
+        }
+        $invoice = ServiceFactory::invoices()->find($info, $invoiceId);
+        $locale = Locale::getLocale();
+        $description = __('plugins.generic.conferenceManager.gateway.description', ['number' => (string) ($invoice->number ?? $invoiceId)]);
+        $page = $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'payment', [(string) $invoiceId, 'return']);
+        $callback = $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'payment', ['callback', '__gateway__']);
+        $gatewayId = (string) ($online->settings($info)['gateway'] ?? '');
+        [$form, $error] = $online->start(
+            $info,
+            $invoiceId,
+            (int) $user->getId(),
+            (string) $user->getEmail(),
+            $description,
+            static fn (string $orderId): string => $page,
+            str_replace('__gateway__', rawurlencode($gatewayId), $callback),
+            str_starts_with($locale, 'en') ? 'en' : 'uk',
+            $now,
+        );
+        if ($form === null) {
+            $request->redirectUrl($my('error'));
+        }
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $templateMgr->addHeader('conferencePayNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
+        $templateMgr->assign([
+            'payForm' => $form,
+            'payDescription' => $description,
+            'payAmount' => $invoice === null ? '' : $invoice->due()->decimal() . ' ' . $invoice->due()->currency,
+            'payGateway' => (string) (ServiceFactory::gateways()->get($gatewayId)?->name() ?? ''),
+            'payBackUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my'),
+            'pageTitle' => 'plugins.generic.conferenceManager.gateway.pay.title',
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/pay.tpl'));
     }
 
     /**

@@ -87,6 +87,12 @@
 							{if $i.pdfUrl}<a class="cmEdition__button" href="{$i.pdfUrl|escape}" target="_blank" rel="noopener">{translate key="plugins.generic.conferenceManager.invoice.download"}</a>{/if}
 							{if $i.externalUrl}<a class="cmEdition__button" href="{$i.externalUrl|escape}" target="_blank" rel="noopener noreferrer">{translate key="plugins.generic.conferenceManager.invoice.payExternal"}</a>{/if}
 						</p>
+						{if $i.cardPayUrl}
+							<form method="post" action="{$i.cardPayUrl|escape}" class="cmInvoice__card">
+								{csrf}
+								<button type="submit" class="cmEdition__button">{translate key="plugins.generic.conferenceManager.gateway.payCard" amount=$i.due.decimal|escape currency=$i.due.currency|escape}</button>
+							</form>
+						{/if}
 					{/if}
 					{if $i.proofs}
 						<h4 class="cmInvoice__subtitle">{translate key="plugins.generic.conferenceManager.proof.mine"}</h4>

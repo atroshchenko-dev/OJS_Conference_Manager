@@ -97,7 +97,16 @@ Under **My invoices**, each invoice shows the amount, the state, the **Payment r
 2. Pay to the account in the invoice at your bank or in online banking. Enter the payment purpose exactly as in the invoice.
 3. If the organizers take payment on an external page, click **Go to payment** and put the invoice number in the comment.
 
-**Note:** a transfer to a card number is not a payment to the institution's account. Pay only to the IBAN in the invoice. There is no online card payment directly on the journal site.
+**Note:** a transfer to a card number is not a payment to the institution's account. Pay only to the IBAN in the invoice.
+
+#### Online card payment
+
+If the organisers have turned on card payment, the invoice has a **Pay by card** button with the amount.
+1. Click it. The secure page of the payment service (for instance LiqPay) opens.
+2. Pay by card, Apple Pay or Google Pay. Card details are entered only on the service's page; the journal never sees them.
+3. After paying you come back to the cabinet. The invoice is marked paid as soon as the service confirms the payment. If it says the payment is still being processed, reload the page in a few minutes.
+
+Do not pay again while an earlier payment is being processed. The receipt comes from the payment service or the organisers.
 
 ### How to say that an organisation pays
 

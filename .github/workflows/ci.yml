@@ -86,6 +86,7 @@ jobs:
       - run: ci/integration/attendance.sh
       - run: ci/integration/checkin.sh
       - run: ci/integration/promo.sh
+      - run: ci/integration/card.sh
       - run: ci/integration/a11y.sh
       - run: ci/integration/segments.sh
       - run: ci/integration/tib.sh

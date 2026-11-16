@@ -100,6 +100,7 @@ The plugin relies on two OJS mechanisms.
 1. **The task scheduler** runs:
    - automatic closing of calls after the deadline (every 15 minutes);
    - reminders to participants (hourly);
+   - checking unfinished card payments with the payment service (hourly, only where card payment is on);
    - retention of personal data (daily).
 2. **The job queue** runs bulk decisions, mailings and batch certificate issue.
 

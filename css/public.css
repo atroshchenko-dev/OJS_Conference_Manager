@@ -94,6 +94,8 @@
 .cmInvoice__upload { margin: .75rem 0 0; padding: .5rem .75rem; border: 1px dashed var(--cm-border-strong); border-radius: 4px; }
 .cmInvoice__upload label { display: block; font-weight: 600; }
 .cmInvoice__upload input[type=file] { display: block; max-width: 100%; margin: .35rem 0 .5rem; }
+.cmInvoice__card { margin: .5rem 0 0; }
+.cmInvoice__card button, .cmPay button { border: 0; font: inherit; font-weight: 700; cursor: pointer; }
 /* The guardian block shows once "under 18" is ticked (browsers without :has() always show it). */
 .cmRegister__field:has(input[name=minor]:not(:checked)) .cmRegister__guardian { display: none; }
 

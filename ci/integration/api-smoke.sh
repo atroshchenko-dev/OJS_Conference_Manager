@@ -259,7 +259,7 @@ post "$api/editions/$pid/fees/tariffs" "{\"categoryId\":$other,\"material\":\"li
 [ "$(post "$api/editions/$pid/payment-rules" '{"mode":"external_link","externalUrl":"javascript:alert(1)"}' | tail -1)" = 400 ] || fail "external link must be https"
 [ "$(post "$api/editions/$pid/payment-rules" '{"mode":"treasury_transfer","paymentAccountId":'"$acc"'}' | tail -1)" = 200 ] || fail "default rule"
 [ "$(post "$api/editions/$pid/payment-rules" '{"mode":"free","categoryId":'"$pstud"'}' | tail -1)" = 200 ] || fail "free rule for students"
-[ "$(curl -s -b "$jar" "$api/editions/$pid/payment-rules" | j 'len(d["rules"]), len(d["options"]["modes"])')" = "(2, 5)" ] || fail "rules list"
+[ "$(curl -s -b "$jar" "$api/editions/$pid/payment-rules" | j 'len(d["rules"]), [m["value"] for m in d["options"]["modes"]][-1]')" = "(2, 'acquiring')" ] || fail "rules list"
 [ "$(curl -s -b "$jar" "$B/confb/api/v1/conference/editions/$pid/payment-rules" -o /dev/null -w '%{http_code}')" = 404 ] || fail "rules context isolation"
 ok "payment rules"
 

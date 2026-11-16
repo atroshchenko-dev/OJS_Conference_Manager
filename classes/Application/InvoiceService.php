@@ -181,6 +181,12 @@ final class InvoiceService
             $errors->add('mode', 'plugins.generic.conferenceManager.validation.required');
             return [null, $errors];
         }
+        // PAY-09: card payment needs the journal's payment gateway first.
+        $gateway = $this->settings?->get($context->id, OnlinePaymentService::SETTING);
+        if ($mode === PaymentMode::Acquiring && (!is_array($gateway) || !is_string($gateway['gateway'] ?? null) || $gateway['gateway'] === '')) {
+            $errors->add('mode', 'plugins.generic.conferenceManager.gateway.error.notSetUp');
+            return [null, $errors];
+        }
         $categoryId = ($input['categoryId'] ?? null) === null || $input['categoryId'] === '' || (int) $input['categoryId'] === 0 ? null : (int) $input['categoryId'];
         if ($categoryId !== null && $this->fees->findCategory($editionId, $categoryId) === null) {
             $errors->add('categoryId', 'plugins.generic.conferenceManager.listener.error.category');
