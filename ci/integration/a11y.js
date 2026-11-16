@@ -108,13 +108,12 @@ async function signIn(context, user, password) {
     await home();
     await audit(a, 'manager: events', '.app__main');
     const toolbar = (await a.locator('.app__main button:not(table button)').allInnerTexts()).map((s) => s.trim()).filter((s) => s && !UNSAFE.test(s));
-    const row = (await a.locator('tr', { hasText: EDITION }).locator('button').allInnerTexts()).map((s) => s.trim()).filter((s) => s && !UNSAFE.test(s));
-    for (const [label, inRow] of [...toolbar.map((t) => [t, false]), ...row.map((t) => [t, true])]) {
+    const openEdition = async (path) => {
       await home();
-      const scope = inRow ? a.locator('tr', { hasText: EDITION }) : a.locator('.app__main');
-      await scope.getByRole('button', { name: label, exact: true }).first().click();
-      await a.waitForTimeout(2000);
-      await audit(a, 'manager: ' + label, '.app__main');
+      await a.locator('tr', { hasText: path }).getByRole('button', { name: 'Відкрити', exact: true }).first().click();
+      await a.waitForSelector('.cmEditions__sections');
+    };
+    const formsOf = async (label) => {
       for (const f of FORMS) {
         const b = a.locator('.app__main').getByRole('button', { name: f, exact: true }).first();
         if ((await b.count()) && (await b.isVisible())) {
@@ -123,10 +122,27 @@ async function signIn(context, user, password) {
           await audit(a, 'manager: ' + label + ' → ' + f, '.app__main');
         }
       }
+    };
+    for (const label of toolbar) {
+      await home();
+      await a.locator('.app__main').getByRole('button', { name: label, exact: true }).first().click();
+      await a.waitForTimeout(2000);
+      await audit(a, 'manager: ' + label, '.app__main');
+      await formsOf(label);
+    }
+    // The sections of one edition, through its navigation.
+    await openEdition(EDITION);
+    const sections = (await a.locator('.cmEditions__sections button').allInnerTexts()).map((s) => s.trim()).filter((s) => s && !UNSAFE.test(s));
+    for (const label of sections) {
+      await openEdition(EDITION);
+      await a.locator('.cmEditions__sections').getByRole('button', { name: label, exact: true }).first().click();
+      await a.waitForTimeout(2000);
+      await audit(a, 'manager: ' + label, '.app__main');
+      await formsOf(label);
     }
     // DEC-10: the manager's bids screen of open-call (dec-2027 may use the light review).
-    await home();
-    const bidsButton = a.locator('tr', { hasText: 'open-call' }).getByRole('button', { name: 'Вибір рецензентами', exact: true });
+    await openEdition('open-call');
+    const bidsButton = a.locator('.cmEditions__sections').getByRole('button', { name: 'Вибір рецензентами', exact: true });
     if (await bidsButton.count()) {
       await bidsButton.first().click();
       await a.waitForTimeout(2000);

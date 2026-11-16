@@ -4,7 +4,7 @@ This guide is for members of the **Registration manager** user group: the people
 
 ## What you can use
 
-Open the **Conferences** item in the journal's side menu. Next to each edition you will see the buttons you work with:
+Open the **Conferences** item in the journal's side menu. Click **Open** in the edition's sections: the **Edition sections** panel shows the sections you work with:
 
 - **Participants:** the register of participants, attendance, invoicing by hand;
 - **Invoices:** the list of invoices, payments, the payment journal, the export for accounting;
@@ -19,7 +19,7 @@ What a registration manager does not do: create or edit editions, change fees, p
 
 ## How to work with the register of participants
 
-Click **Participants** next to the edition.
+Click **Participants** in the edition's sections.
 
 ### Search and filters
 
@@ -56,7 +56,7 @@ Invoices are usually issued automatically: to a listener after registration, to 
 
 ## How to review receipts
 
-Participants send receipts or payment orders from their cabinet (PDF, JPG or PNG up to 5 MB). Click **Receipts** next to the edition.
+Participants send receipts or payment orders from their cabinet (PDF, JPG or PNG up to 5 MB). Click **Receipts** in the edition's sections.
 
 1. Open the **Awaiting review** tab. There are also **Accepted**, **Rejected** and all.
 2. Click **View**: the file opens in a new tab.
@@ -72,7 +72,7 @@ Good to know:
 
 ## How to record a payment, a part payment or a waiver
 
-Click **Invoices** next to the edition. Find the invoice with **Number, reference or email**.
+Click **Invoices** in the edition's sections. Find the invoice with **Number, reference or email**.
 
 - **Full or part payment.** Click **Mark paid** and enter the amount received. If it is less than the amount due, it is recorded as a part payment and the invoice stays open with the balance.
 - **Waiver.** Click **Waive** and enter the reason (the participant sees it). A zero invoice with the reason is created and the old invoice becomes "superseded". A paid invoice cannot be waived.
@@ -94,7 +94,7 @@ In the list of invoices, open **Export for accounting**, choose this event or al
 
 ## How to mark attendance
 
-Click **Participants** next to the edition.
+Click **Participants** in the edition's sections.
 
 - **By hand.** Tick the **Attendance** column. To mark or unmark everyone on the current page of the register, click **Mark everyone on the page** or **Unmark everyone on the page**. It helps to narrow the list with a filter first, for example by the role "listener".
 - **From an online meeting report.** Click **Import meeting report**.

@@ -79,7 +79,7 @@
 		emits: ['back'],
 		data: function () {
 			return {
-				isLoading: true, items: [], issuedList: [], threshold: 30, chosen: [], busy: false, show: 'all',
+				isLoading: true, items: [], issuedList: [], threshold: 30, chosen: [], busy: false, show: 'all', q: '', page: 1, perPage: 50,
 				settings: { vectorEnabled: false, professionalDevelopment: false }, polls: 0, timer: null,
 			};
 		},
@@ -98,15 +98,28 @@
 			issuedCount: function () {
 				return this.items.filter(function (c) { return c.issued; }).length;
 			},
-			shown: function () {
-				var show = this.show;
+			filtered: function () {
+				var show = this.show, q = this.q.trim().toLowerCase();
 				return this.items.filter(function (c) {
-					return show === 'all' || (show === 'eligible' && c.type && !c.issued) || (show === 'issued' && c.issued) || (show === 'none' && !c.type);
+					var kind = show === 'all' || (show === 'eligible' && c.type && !c.issued) || (show === 'issued' && c.issued) || (show === 'none' && !c.type);
+					return kind && (!q || ((c.name || '') + ' ' + (c.email || '') + ' ' + (c.paperTitle || '')).toLowerCase().indexOf(q) !== -1);
 				});
+			},
+			pages: function () {
+				return Math.max(1, Math.ceil(this.filtered.length / this.perPage));
+			},
+			/** One page of the list: an event can have a thousand listeners. */
+			shown: function () {
+				var from = (Math.min(this.page, this.pages) - 1) * this.perPage;
+				return this.filtered.slice(from, from + this.perPage);
 			},
 			allChosen: function () {
 				return this.eligible.length > 0 && this.chosen.length === this.eligible.length;
 			},
+		},
+		watch: {
+			show: function () { this.page = 1; },
+			q: function () { this.page = 1; },
 		},
 		mounted: function () {
 			this.load();
@@ -245,7 +258,8 @@
 				<a class="pkpButton" :href="vectorUrl + \'?all=1\'">{{ t(\'certificate.vectorAll\') }}</a>\
 			</template>\
 		</div>\
-		<p v-if="!items.length" class="cmEditions__empty">{{ t(\'participants.empty\') }}</p>\
+		<label class="cmEditions__filter cmCertificates__search">{{ t(\'participants.search\') }}<input class="pkpFormField__input" type="search" v-model="q"></label>\
+		<p v-if="!filtered.length" class="cmEditions__empty">{{ t(\'participants.empty\') }}</p>\
 		<table v-else class="cmEditions__table">\
 			<thead><tr><th><input type="checkbox" :checked="allChosen" :disabled="!eligible.length" @change="toggleAll" :aria-label="t(\'certificate.chooseAll\')"></th><th>{{ t(\'participants.name\') }}</th><th>{{ t(\'participants.role\') }}</th><th>{{ t(\'attendance.title\') }}</th><th>{{ t(\'certificate.type\') }}</th><th>{{ t(\'certificate.number\') }}</th></tr></thead>\
 			<tbody><tr v-for="c in shown" :key="c.participationId">\
@@ -257,6 +271,11 @@
 				<td><a v-if="c.issued" :href="link(c.issued.id)" target="_blank" rel="noopener">{{ c.issued.number }}</a></td>\
 			</tr></tbody>\
 		</table>\
+		<div class="cmEditions__buttons" v-if="pages > 1">\
+			<pkp-button :disabled="page <= 1" @click="page = page - 1">‹</pkp-button>\
+			<span>{{ t(\'participants.page\', { page: Math.min(page, pages), pages: pages }) }}</span>\
+			<pkp-button :disabled="page >= pages" @click="page = page + 1">›</pkp-button>\
+		</div>\
 		<template v-if="issuedList.length">\
 			<h3 class="cmFees__title">{{ t(\'certificate.issuedList\') }}</h3>\
 			<table class="cmEditions__table cmCertificates__issued">\

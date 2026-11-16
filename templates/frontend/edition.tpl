@@ -67,7 +67,12 @@
 		</div>
 	{/if}
 
-	{if $edition.registrationOpen}
+	{if $myStatus}
+		<div class="cmEdition__call cmEdition__call--open">
+			<p>{if $myStatus == 'waitlisted'}{translate key="plugins.generic.conferenceManager.public.youWaitlisted"}{else}{translate key="plugins.generic.conferenceManager.public.youTakePart"}{/if}</p>
+			<a class="cmEdition__button" href="{$myUrl|escape}">{translate key="plugins.generic.conferenceManager.public.toCabinet"}</a>
+		</div>
+	{elseif $edition.registrationOpen}
 		<div class="cmEdition__call cmEdition__call--open">
 			<p>{translate key="plugins.generic.conferenceManager.public.registrationOpen"}</p>
 			<a class="cmEdition__button" href="{$edition.registerUrl|escape}">{translate key="plugins.generic.conferenceManager.public.registerListener"}</a>

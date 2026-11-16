@@ -230,6 +230,38 @@
 				this.view = 'list';
 				this.load();
 			},
+			/** The sections of one edition, grouped, as the edition's navigation shows them. */
+			sections: function (e) {
+				var edit = this.canEditEditions, subs = e.submissionMode !== 'none';
+				var groups = [
+					{ label: this.t('nav.overview'), items: [['dashboard', 'dashboard', true], ['form', 'edit', edit]] },
+					{ label: this.t('nav.people'), items: [['participants', 'participants', true], ['campaigns', 'campaigns', true], ['certificates', 'certificates', true]] },
+					{ label: this.t('nav.money'), items: [['fees', 'fees', edit], ['payments', 'payments', edit], ['invoices', 'invoices', true], ['proofs', 'proofs', true], ['promos', 'promo.open', edit]] },
+					{ label: this.t('nav.content'), items: [['decisions', 'decisions', edit && subs], ['review', 'review.settings.open', edit && e.reviewMode === 'two_phase'], ['bids', 'bids.open', edit && e.reviewMode !== 'light'], ['program', 'program.builder.open', edit], ['book', 'book.open', edit && subs], ['partners', 'partner.open', edit]] },
+				];
+				var self = this;
+				return groups.map(function (g) {
+					return { label: g.label, items: g.items.filter(function (i) { return i[2]; }).map(function (i) { return { view: i[0], label: self.t(i[1]) }; }) };
+				}).filter(function (g) { return g.items.length; });
+			},
+			openSection: function (edition, view) {
+				if (view === 'form') {
+					this.edit(edition);
+					return;
+				}
+				this.selected = edition;
+				this.view = view;
+				this.$nextTick(function () {
+					var h = document.querySelector('.cmEditions__sections');
+					if (h && h.scrollIntoView) {
+						h.scrollIntoView({ block: 'start' });
+					}
+				});
+			},
+			/** Whether the call window says something the status does not. */
+			windowNote: function (e) {
+				return e.submissionMode !== 'none' && (e.status === 'cfp_open') !== !!e.submissionsOpen;
+			},
 			backToList: function () {
 				this.selected = null;
 				this.view = 'list';
@@ -309,6 +341,7 @@
 				return form;
 			},
 			create: function () {
+				this.selected = null;
 				this.form = this.blankForm();
 				this.editingId = null;
 				this.copyFromId = null;
@@ -316,6 +349,7 @@
 				this.view = 'form';
 			},
 			edit: function (edition) {
+				this.selected = edition;
 				this.form = this.fromEdition(edition);
 				this.editingId = edition.id;
 				this.copyFromId = null;
@@ -324,6 +358,7 @@
 			},
 			copy: function (edition) {
 				var self = this;
+				self.selected = null;
 				var form = self.fromEdition(edition);
 				form.path = '';
 				form.status = 'draft';
@@ -343,6 +378,7 @@
 				self.view = 'form';
 			},
 			cancel: function () {
+				this.selected = null;
 				this.view = 'list';
 				this.form = null;
 				this.errors = {};
@@ -451,10 +487,26 @@
 			publicLink: function (edition) {
 				return this.publicUrl.replace('__path__', encodeURIComponent(edition.path));
 			},
+			/** "20–21.06.2027", "30.06–01.07.2027" or "20.06.2027": days only, times are on the edition's own screens. */
 			dateRange: function (edition) {
-				var s = edition.local && edition.local.startsAt ? edition.local.startsAt.replace('T', ' ') : '';
-				var e = edition.local && edition.local.endsAt ? edition.local.endsAt.replace('T', ' ') : '';
-				return s + (e ? ' – ' + e : '');
+				var day = function (v) {
+					var m = v ? /^(\d{4})-(\d{2})-(\d{2})/.exec(v) : null;
+					return m ? { y: m[1], m: m[2], d: m[3] } : null;
+				};
+				var s = day(edition.local && edition.local.startsAt), e = day(edition.local && edition.local.endsAt);
+				if (!s) {
+					return '';
+				}
+				if (!e || (e.y === s.y && e.m === s.m && e.d === s.d)) {
+					return s.d + '.' + s.m + '.' + s.y;
+				}
+				if (e.y === s.y && e.m === s.m) {
+					return s.d + '–' + e.d + '.' + s.m + '.' + s.y;
+				}
+				if (e.y === s.y) {
+					return s.d + '.' + s.m + '–' + e.d + '.' + e.m + '.' + s.y;
+				}
+				return s.d + '.' + s.m + '.' + s.y + ' – ' + e.d + '.' + e.m + '.' + e.y;
 			},
 			fieldLabel: function (field) {
 				var key = 'field.' + (field === 'ectsX100' ? 'ects' : field);
@@ -471,13 +523,18 @@
 					<option v-for="s in options.statuses" :key="s.value" :value="s.value">{{ s.label }}</option>\
 				</select>\
 			</label>\
-			<pkp-button @click="openReminders">{{ t(\'reminders\') }}</pkp-button>\
-			<pkp-button v-if="canEditEditions" @click="openCertificateTemplates">{{ t(\'certificateTemplates\') }}</pkp-button>\
-			<pkp-button v-if="canEditEditions" @click="openAudit">{{ t(\'audit\') }}</pkp-button>\
-			<pkp-button v-if="canEditEditions" @click="openPrivacy">{{ t(\'privacy.title\') }}</pkp-button>\
-			<pkp-button v-if="canEditEditions" @click="openLegacy">{{ t(\'legacy.title\') }}</pkp-button>\
-			<pkp-button v-if="canEditEditions" @click="openSetup">{{ t(\'setup.open\') }}</pkp-button>\
-			<pkp-button v-if="canEditEditions" :is-primary="true" @click="create">{{ t(\'new\') }}</pkp-button>\
+			<span class="cmEditions__create">\
+				<pkp-button v-if="canEditEditions" @click="openSetup">{{ t(\'setup.open\') }}</pkp-button>\
+				<pkp-button v-if="canEditEditions" :is-primary="true" @click="create">{{ t(\'new\') }}</pkp-button>\
+			</span>\
+		</div>\
+		<div class="cmEditions__journalTools" role="group" :aria-label="t(\'nav.journal\')">\
+			<span class="cmEditions__groupLabel">{{ t(\'nav.journal\') }}:</span>\
+			<button type="button" class="cmEditions__link" @click="openReminders">{{ t(\'reminders\') }}</button>\
+			<button type="button" class="cmEditions__link" v-if="canEditEditions" @click="openCertificateTemplates">{{ t(\'certificateTemplates\') }}</button>\
+			<button type="button" class="cmEditions__link" v-if="canEditEditions" @click="openAudit">{{ t(\'audit\') }}</button>\
+			<button type="button" class="cmEditions__link" v-if="canEditEditions" @click="openPrivacy">{{ t(\'privacy.title\') }}</button>\
+			<button type="button" class="cmEditions__link" v-if="canEditEditions" @click="openLegacy">{{ t(\'legacy.title\') }}</button>\
 		</div>\
 		<div v-if="isLoading" class="cmEditions__loading"><spinner></spinner> {{ t(\'loading\') }}</div>\
 		<p v-else-if="!items.length" class="cmEditions__empty">{{ t(\'empty\') }}</p>\
@@ -487,36 +544,30 @@
 			</tr></thead>\
 			<tbody>\
 				<tr v-for="e in items" :key="e.id">\
-					<td><strong>{{ localized(e.name) }}</strong><div class="cmEditions__path">{{ e.path }}</div></td>\
+					<td><button type="button" class="cmEditions__name" @click="openDashboard(e)">{{ localized(e.name) }}</button><div class="cmEditions__path">{{ e.path }}</div></td>\
 					<td>{{ typeLabels[e.eventType] }}</td>\
-					<td>{{ dateRange(e) }}<div class="cmEditions__tz">{{ e.timezone }}</div></td>\
-					<td>{{ statusLabels[e.status] }}<div class="cmEditions__window" :class="{ \'cmEditions__window--open\': e.submissionsOpen }" v-if="e.submissionMode !== \'none\'">{{ e.submissionsOpen ? t(\'submissionsOpen\') : t(\'submissionsClosed\') }}</div></td>\
+					<td class="cmEditions__dates">{{ dateRange(e) }}</td>\
+					<td>{{ statusLabels[e.status] }}<div class="cmEditions__window" :class="{ \'cmEditions__window--open\': e.submissionsOpen }" v-if="windowNote(e)">{{ e.submissionsOpen ? t(\'submissionsOpen\') : t(\'submissionsClosed\') }}</div></td>\
 					<td class="cmEditions__actions">\
-						<pkp-button @click="openDashboard(e)">{{ t(\'dashboard\') }}</pkp-button>\
-						<pkp-button v-if="canEditEditions" @click="edit(e)">{{ t(\'edit\') }}</pkp-button>\
-						<pkp-button v-if="canEditEditions" @click="openFees(e)">{{ t(\'fees\') }}</pkp-button>\
-						<pkp-button @click="openParticipants(e)">{{ t(\'participants\') }}</pkp-button>\
-						<pkp-button v-if="canEditEditions" @click="openPayments(e)">{{ t(\'payments\') }}</pkp-button>\
-						<pkp-button @click="openInvoices(e)">{{ t(\'invoices\') }}</pkp-button>\
-						<pkp-button @click="openProofs(e)">{{ t(\'proofs\') }}</pkp-button>\
-						<pkp-button @click="openCampaigns(e)">{{ t(\'campaigns\') }}</pkp-button>\
-						<pkp-button @click="openCertificates(e)">{{ t(\'certificates\') }}</pkp-button>\
-						<pkp-button v-if="canEditEditions && e.submissionMode !== \'none\'" @click="openDecisions(e)">{{ t(\'decisions\') }}</pkp-button>\
-						<pkp-button v-if="canEditEditions" @click="openProgram(e)">{{ t(\'program.builder.open\') }}</pkp-button>\
-						<pkp-button v-if="canEditEditions && e.reviewMode === \'two_phase\'" @click="openReview(e)">{{ t(\'review.settings.open\') }}</pkp-button>\
-						<pkp-button v-if="canEditEditions && e.reviewMode !== \'light\'" @click="openBids(e)">{{ t(\'bids.open\') }}</pkp-button>\
-						<pkp-button v-if="canEditEditions" @click="openPartners(e)">{{ t(\'partner.open\') }}</pkp-button>\
-						<pkp-button v-if="canEditEditions" @click="openPromos(e)">{{ t(\'promo.open\') }}</pkp-button>\
-						<pkp-button v-if="canEditEditions && e.submissionMode !== \'none\'" @click="openBook(e)">{{ t(\'book.open\') }}</pkp-button>\
-						<pkp-button v-if="canEditEditions" @click="copy(e)">{{ t(\'copy\') }}</pkp-button>\
+						<pkp-button :is-primary="true" @click="openDashboard(e)">{{ t(\'open\') }}</pkp-button>\
 						<a class="pkpButton" :href="publicLink(e)" target="_blank" rel="noopener">{{ t(\'publicPage\') }}</a>\
+						<pkp-button v-if="canEditEditions" @click="copy(e)">{{ t(\'copy\') }}</pkp-button>\
 						<pkp-button v-if="canEditEditions" :is-warnable="true" @click="remove(e)">{{ t(\'delete\') }}</pkp-button>\
 					</td>\
 				</tr>\
 			</tbody>\
 		</table>\
 	</div>\
-	<conference-fees-editor v-else-if="view === \'fees\'" :api-url="apiUrl + \'/\' + selected.id + \'/fees\'" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :ui-locale="uiLocale" :i18n="i18n" @back="backToList"></conference-fees-editor>\
+	<nav v-if="view !== \'list\' && selected" class="cmEditions__sections" :aria-label="t(\'nav.sections\')">\
+		<div class="cmEditions__sectionsTitle"><strong>{{ localized(selected.name) }}</strong> <a :href="publicLink(selected)" target="_blank" rel="noopener">{{ t(\'publicPage\') }}</a></div>\
+		<div class="cmEditions__sectionsGroups">\
+			<div v-for="g in sections(selected)" :key="g.label" class="cmEditions__sectionsGroup">\
+				<span class="cmEditions__groupLabel">{{ g.label }}</span>\
+				<button v-for="i in g.items" :key="i.view" type="button" class="cmEditions__sectionLink" :class="{ \'cmEditions__sectionLink--active\': view === i.view && (i.view !== \'form\' || editingId === selected.id) }" :aria-current="view === i.view ? \'page\' : null" @click="openSection(selected, i.view)">{{ i.label }}</button>\
+			</div>\
+		</div>\
+	</nav>\
+	<conference-fees-editor v-if="view === \'fees\'" :api-url="apiUrl + \'/\' + selected.id + \'/fees\'" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :ui-locale="uiLocale" :i18n="i18n" @back="backToList"></conference-fees-editor>\
 	<conference-participants-register v-else-if="view === \'participants\'" :api-url="apiUrl + \'/\' + selected.id + \'/participants\'" :cancel-url="apiUrl.replace(/editions$/, \'participations\')" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :primary-locale="primaryLocale" :ui-locale="uiLocale" :options="participantOptions" :edition-url="apiUrl + \'/\' + selected.id" :threshold="attendanceThreshold" :i18n="i18n" @back="backToList"></conference-participants-register>\
 	<conference-payment-settings v-else-if="view === \'payments\'" :api-url="apiUrl + \'/\' + selected.id + \'/payment-rules\'" :templates-url="apiUrl.replace(/editions$/, \'invoice-templates\')" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :locales="locales" :primary-locale="primaryLocale" :i18n="i18n" @back="backToList"></conference-payment-settings>\
 	<conference-proof-queue v-else-if="view === \'proofs\'" :api-url="apiUrl.replace(/editions$/, \'proofs\')" :edition-id="selected.id" :file-url="proofFileUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-proof-queue>\
@@ -537,7 +588,7 @@
 	<conference-personal-data v-else-if="view === \'privacy\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-personal-data>\
 	<conference-audit-log v-else-if="view === \'audit\'" :api-url="apiUrl.replace(/.editions$/, \'\')" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-audit-log>\
 	<conference-invoices-list v-else-if="view === \'invoices\'" :api-url="apiUrl + \'/\' + selected.id + \'/invoices\'" :invoice-api-url="apiUrl.replace(/editions$/, \'invoices\')" :pdf-url="invoicePdfUrl" :edition-name="localized(selected.name)" :csrf-token="csrfToken" :i18n="i18n" @back="backToList"></conference-invoices-list>\
-	<form v-else class="cmEditions__form" @submit.prevent="save" novalidate>\
+	<form v-else-if="view === \'form\'" class="cmEditions__form" @submit.prevent="save" novalidate>\
 		<div v-if="errorCount" class="cmEditions__errors" role="alert">\
 			<strong>{{ t(\'errors\') }}</strong>\
 			<ul><li v-for="(msgs, field) in errors" :key="field">{{ fieldLabel(field) }}: {{ msgs.join(\' \') }}</li></ul>\

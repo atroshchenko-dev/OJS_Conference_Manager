@@ -259,7 +259,7 @@ class ManageConferenceHandler extends Handler
         $out = [];
         foreach ([
             'title', 'new', 'empty', 'edit', 'copy', 'delete', 'deleteConfirm', 'deleted', 'saved', 'save', 'cancel',
-            'publicPage', 'issue', 'filterStatus', 'allStatuses', 'loading', 'errors', 'copyOf', 'copy.partsTitle', 'copy.partsHelp', 'copy.part.fees', 'copy.part.paymentRules', 'copy.part.rooms', 'copy.part.settings', 'copy.part.partners', 'copy.done',
+            'publicPage', 'open', 'nav.overview', 'nav.people', 'nav.money', 'nav.content', 'nav.journal', 'nav.sections', 'issue', 'filterStatus', 'allStatuses', 'loading', 'errors', 'copyOf', 'copy.partsTitle', 'copy.partsHelp', 'copy.part.fees', 'copy.part.paymentRules', 'copy.part.rooms', 'copy.part.settings', 'copy.part.partners', 'copy.done',
             'section.main', 'section.modes', 'section.dates', 'section.texts', 'section.details', 'section.program', 'program.help', 'program.open', 'field.programPublished', 'field.programText',
             'field.name', 'field.path', 'field.path.description', 'field.eventType', 'field.format', 'field.timezone',
             'tibSync', 'field.venue', 'field.description', 'field.learningOutcomes', 'field.partialQualifications', 'field.cfpText', 'field.status',

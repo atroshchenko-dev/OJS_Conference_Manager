@@ -414,6 +414,27 @@ msgstr "Cancel"
 msgid "plugins.generic.conferenceManager.editions.publicPage"
 msgstr "Public page"
 
+msgid "plugins.generic.conferenceManager.editions.open"
+msgstr "Open"
+
+msgid "plugins.generic.conferenceManager.editions.nav.overview"
+msgstr "Overview"
+
+msgid "plugins.generic.conferenceManager.editions.nav.people"
+msgstr "People"
+
+msgid "plugins.generic.conferenceManager.editions.nav.money"
+msgstr "Money"
+
+msgid "plugins.generic.conferenceManager.editions.nav.content"
+msgstr "Submissions and programme"
+
+msgid "plugins.generic.conferenceManager.editions.nav.journal"
+msgstr "For the whole journal"
+
+msgid "plugins.generic.conferenceManager.editions.nav.sections"
+msgstr "Edition sections"
+
 msgid "plugins.generic.conferenceManager.editions.issue"
 msgstr "OJS issue"
 
@@ -938,6 +959,15 @@ msgstr "possible until {$date}"
 
 msgid "plugins.generic.conferenceManager.public.registrationOpen"
 msgstr "Listener registration is open."
+
+msgid "plugins.generic.conferenceManager.public.youTakePart"
+msgstr "You already take part in this event. Your invoices, ticket and documents are in your cabinet."
+
+msgid "plugins.generic.conferenceManager.public.youWaitlisted"
+msgstr "You are on the waiting list of this event. Your place in the queue is shown in your cabinet."
+
+msgid "plugins.generic.conferenceManager.public.toCabinet"
+msgstr "My cabinet"
 
 msgid "plugins.generic.conferenceManager.public.registerListener"
 msgstr "Register as a listener"
@@ -1466,6 +1496,9 @@ msgstr "The template has unknown variables. Use only the variables from the list
 
 msgid "plugins.generic.conferenceManager.my.invoices"
 msgstr "My invoices"
+
+msgid "plugins.generic.conferenceManager.my.oldInvoices"
+msgstr "Earlier invoices, replaced or cancelled ({$number})"
 
 msgid "plugins.generic.conferenceManager.account.swift"
 msgstr "SWIFT (BIC)"

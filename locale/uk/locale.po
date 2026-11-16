@@ -414,6 +414,27 @@ msgstr "Скасувати"
 msgid "plugins.generic.conferenceManager.editions.publicPage"
 msgstr "Сторінка"
 
+msgid "plugins.generic.conferenceManager.editions.open"
+msgstr "Відкрити"
+
+msgid "plugins.generic.conferenceManager.editions.nav.overview"
+msgstr "Загальне"
+
+msgid "plugins.generic.conferenceManager.editions.nav.people"
+msgstr "Учасники"
+
+msgid "plugins.generic.conferenceManager.editions.nav.money"
+msgstr "Гроші"
+
+msgid "plugins.generic.conferenceManager.editions.nav.content"
+msgstr "Подання й програма"
+
+msgid "plugins.generic.conferenceManager.editions.nav.journal"
+msgstr "Для всього журналу"
+
+msgid "plugins.generic.conferenceManager.editions.nav.sections"
+msgstr "Розділи видання"
+
 msgid "plugins.generic.conferenceManager.editions.issue"
 msgstr "Випуск OJS"
 
@@ -938,6 +959,15 @@ msgstr "можна до {$date}"
 
 msgid "plugins.generic.conferenceManager.public.registrationOpen"
 msgstr "Відкрито реєстрацію слухачів."
+
+msgid "plugins.generic.conferenceManager.public.youTakePart"
+msgstr "Ви вже берете участь у цьому заході. Рахунки, квиток і документи є у вашому кабінеті."
+
+msgid "plugins.generic.conferenceManager.public.youWaitlisted"
+msgstr "Ви в листі очікування цього заходу. Місце в черзі видно у вашому кабінеті."
+
+msgid "plugins.generic.conferenceManager.public.toCabinet"
+msgstr "Мій кабінет"
 
 msgid "plugins.generic.conferenceManager.public.registerListener"
 msgstr "Зареєструватися як слухач"
@@ -1466,6 +1496,9 @@ msgstr "У шаблоні є невідомі змінні. Використов
 
 msgid "plugins.generic.conferenceManager.my.invoices"
 msgstr "Мої рахунки"
+
+msgid "plugins.generic.conferenceManager.my.oldInvoices"
+msgstr "Попередні рахунки, замінені або скасовані ({$number})"
 
 msgid "plugins.generic.conferenceManager.account.swift"
 msgstr "SWIFT (BIC)"

@@ -9,9 +9,18 @@ The site administrator has to install and enable the plugin first, see the [site
 - **Institution profile:** **Settings → Website → Plugins**, the **Organizing institution profile** button next to "Conference Manager".
 - **The "Conferences" page:** the **Conferences** item in the journal's side menu (address `/{journal}/manageConference`).
 
-At the top of the "Conferences" page there are buttons for the whole journal: **Reminders**, **Certificate templates**, **Audit log**, **Personal data**, **Setup wizard** and **New edition**. Above the list of editions there is a **Status** filter.
+At the top right of the "Conferences" page there are the **Setup wizard** and **New edition** buttons. Below them is the **For the whole journal** row: **Reminders**, **Certificate templates**, **Audit log**, **Personal data** and **Old OCS addresses**. Above the list of editions there is a **Status** filter.
 
-Each edition in the list has the buttons **Summary**, **Edit**, **Fees**, **Participants**, **Payment**, **Invoices**, **Receipts**, **Mailings**, **Certificates**, **Decisions** (only if the edition accepts submissions), **Copy**, **Public page** and **Delete**. **← Back to events** returns to the list.
+Each edition's row has the buttons **Open**, **Public page**, **Copy** and **Delete**. The edition's name and **Open** lead to the edition's summary. Above the summary and every section of the edition there is the **Edition sections** panel, grouped like this:
+
+- **Overview:** **Summary**, **Edit**;
+- **People:** **Participants**, **Mailings**, **Certificates**;
+- **Money:** **Fees**, **Payment**, **Invoices**, **Receipts**, **Seats and promo codes**;
+- **Submissions and programme:** **Decisions**, **Review**, **Reviewer bids**, **Program**, **Book of abstracts**, **Partners**. The submission sections only show if the edition accepts submissions.
+
+You can move between sections straight from this panel. **← Back to events** returns to the list.
+
+Below, "click **X** in the edition's sections" means: click **Open** next to the edition and choose **X** in the sections panel.
 
 ## Suggested order of work
 
@@ -158,7 +167,7 @@ The plugin works without [TIB Conference](https://github.com/withanage/conferenc
 
 ### Co-organisers and partners
 
-**Partners** in the edition's row opens the organisations that hold the event together with the journal or support it (up to 30 per event).
+**Partners** in the edition's sections opens the organisations that hold the event together with the journal or support it (up to 30 per event).
 
 - **Add a partner**: choose the **Role** (co-organiser, partner, sponsor, media partner), enter the **Name** in the journal's languages (the primary one is required) and, if needed, the **Website**.
 - **Add logo**: PNG, JPEG or WebP up to 1 MB. SVG is refused because it can carry scripts. The file goes to the OJS public files folder, so the page shows it without extra requests.
@@ -169,7 +178,7 @@ The public page of the event shows an **Organisers and partners** block with log
 
 ## How to set up participant categories and tariffs
 
-Click **Fees** next to the edition.
+Click **Fees** in the edition's sections.
 
 ### Participant categories
 
@@ -195,7 +204,7 @@ To check your setup, use **Check the calculation** and click **Calculate**.
 
 ## How to limit seats and give out promo codes
 
-Click **Seats and promo codes** next to the edition. Registration managers see the same page.
+Click **Seats and promo codes** in the edition's sections. Registration managers see the same page.
 
 ### In-person listener seats
 
@@ -223,7 +232,7 @@ A code that was used cannot be deleted, and its name and discount cannot change,
 
 ## How to set up payment rules
 
-Click **Payment** next to the edition. In **How participant categories pay**, click **Add a rule**.
+Click **Payment** in the edition's sections. In **How participant categories pay**, click **Add a rule**.
 
 1. Choose a category or "All other categories". A category rule wins over the general one. There can be only one general rule.
 2. Choose the **Payment mode**: "Free", "Bank transfer by invoice", "Treasury transfer", "Paid by a co-organizer", "Payment on an external page" or "Online card payment". "Online card payment" can be saved only after a payment service is set up (see below).
@@ -275,7 +284,7 @@ With the "Ukraine" profile there is the option **Require the personal tax number
 - Payer and recipient details are fixed at the moment of issue.
 - The payer gets a letter and sees the invoice, the PDF and the instructions in the cabinet.
 
-Click **Invoices** next to the edition to see all invoices. Search by number, payment reference or email. For an invoice you can:
+Click **Invoices** in the edition's sections to see all invoices. Search by number, payment reference or email. For an invoice you can:
 
 - **Mark paid**: enter the amount received. A smaller amount is recorded as a part payment and the invoice stays open with the balance.
 - **Waive**: enter the reason. A zero invoice with the reason is created and the old one becomes "superseded".
@@ -341,7 +350,7 @@ The submission card has an **Event participation** panel: the event, the present
 
 ### Bulk decisions
 
-1. Click **Decisions** next to the edition. The page **Decisions on abstracts** lists submissions waiting for the first decision.
+1. Click **Decisions** in the edition's sections. The page **Decisions on abstracts** lists submissions waiting for the first decision.
 2. Find the ones you need: **Search by title, author or number**, the filters **Requested presentation type** and **Section**, then **Find**.
 3. Tick submissions or click **Select all**.
 4. In **Decision**, choose one of the four "Accept" decisions or "Decline".
@@ -355,7 +364,7 @@ All plugin letters are journal email templates: a decision for each presentation
 
 ## How to send a mailing
 
-1. Click **Mailings** next to the edition.
+1. Click **Mailings** in the edition's sections.
 2. In **Recipients**, choose the conditions: role, category, payment, **Section**, **Only authors of accepted materials**, **Full text** (uploaded or not).
 3. Click **Preview recipients**.
 4. Fill in **Subject** and **Text of the letter**. Variables (recipient's name, event name, cabinet link, journal name) are inserted by clicking them under **Variables (click to insert)**.
@@ -380,7 +389,7 @@ For each, tick **Send**, set **Days before** (1 to 60) and save. Reminders are o
 
 ### Schedule in the builder
 
-1. In **Conferences**, click **Program** next to the edition.
+1. Click **Program** in the edition's sections.
 2. Open **Rooms** and add rooms: a name and, if you like, capacity and a link to an online room (Zoom, Teams, Meet). The link of an online room becomes the stream link of all its sessions.
 3. Click **Add session** (or **Add session on this day**) and fill in the type, title, start and end, room, chairs and the default length of one paper. A seminar can have hours, ECTS credits and learning outcomes. A session can have its own stream link and the time from which participants see it.
 4. Drag accepted papers from **Unassigned papers** into a session, or pick a session in **Move to**. The arrows change the order; the "min" field sets the length of one paper.
@@ -394,7 +403,7 @@ Breaks cannot hold papers. A paper declined or withdrawn after it was placed is 
 
 ### Publishing
 
-1. Click **Edit** next to the edition and go to **Program of the event**.
+1. Click **Edit** in the edition's sections and go to **Program of the event**.
 2. If needed, fill in **Introduction to the program (schedule, rules, links)**.
 3. Click **View the program** to see the draft. Visitors cannot see it yet.
 4. Tick **Publish the program on the event page** and save.
@@ -448,7 +457,7 @@ The **Choices by submission** table shows who chose what and who is assigned alr
 
 The book of abstracts is one PDF with the abstracts of the accepted papers of the event: submissions that passed review and were not declined. The text of each abstract, its keywords and the authors with their affiliations come from the submission. To change a text, edit the abstract of the submission and download the book again.
 
-1. Click **Book of abstracts** next to the edition on the **Conferences** page.
+1. Click **Book of abstracts** in the edition's sections.
 2. Check **What goes into the book**: how many papers and in which groups. **Papers without an abstract** lists those that have no text yet.
 3. Choose the page size (A5 or A4) and the order of papers:
    - **by the program**: groups are the sessions of the schedule, papers in the order they are presented, papers outside the schedule at the end under "Other papers";
@@ -461,7 +470,7 @@ The PDF has a title page, an imprint page, contents with page numbers, the abstr
 
 ## How to mark attendance
 
-Click **Participants** next to the edition.
+Click **Participants** in the edition's sections.
 
 - **By hand:** tick the **Attendance** column, or click **Mark everyone on the page** or **Unmark everyone on the page**.
 - **From an online meeting report:** click **Import meeting report**, choose a **Report file** (CSV from Microsoft Teams, Zoom or Google Meet, up to 5 MB), set **Threshold, minutes** (30 by default) and click **Preview**. Check who was found, who counts as present and who is not among the participants, then click **Apply**.
@@ -498,7 +507,7 @@ The signature on a document comes from the institution profile signer assigned t
 
 ### Issuing
 
-Click **Certificates** next to the edition. For each participant you can see which document they are entitled to, or why none.
+Click **Certificates** in the edition's sections. For each participant you can see which document they are entitled to, or why none.
 
 - A listener gets a certificate when attendance is marked (or, in the "Ukraine" profile, a professional development certificate when the event has hours).
 - If the programme has "Seminar" sessions with hours, the professional development certificate goes to those present at one or more of them. Its workload is the sum of the hours of the seminars attended (the hours of the event are then not used); ECTS credits come from each seminar or are hours / 30. The certificate has a **Programme components** line listing the seminars; learning outcomes come from the event or, when it has none, from the seminars. A listener who attended only sections gets a listener certificate.
@@ -558,7 +567,7 @@ Click **Audit log** at the top of the "Conferences" page (journal managers only)
 
 ## Event summary
 
-Click **Summary** next to the edition. It shows submissions by state (waiting for a decision, in review, accepted, declined, published, full text uploaded), accepted papers by presentation type, participants (active, cancelled), payments by currency (paid, unpaid, partly paid, waived, replaced or cancelled), receipts waiting for review and reminders sent. Click **Refresh** for fresh numbers.
+Click **Summary** in the edition's sections. It shows submissions by state (waiting for a decision, in review, accepted, declined, published, full text uploaded), accepted papers by presentation type, participants (active, cancelled), payments by currency (paid, unpaid, partly paid, waived, replaced or cancelled), receipts waiting for review and reminders sent. Click **Refresh** for fresh numbers.
 
 ## Export for accounting
 

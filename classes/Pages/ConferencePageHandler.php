@@ -103,6 +103,9 @@ class ConferencePageHandler extends Handler
             'edition' => $vm,
             'partnerGroups' => $partners,
             'pageTitleTranslated' => $vm['name'],
+            // A registered person sees the way to the cabinet instead of the registration button.
+            'myStatus' => $this->myStatusIn($info, (string) $edition->path, $request, $locale),
+            'myUrl' => $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $request->getContext()?->getPath(), self::PAGE, 'my'),
         ]);
         return $templateMgr->display($this->plugin->getTemplateResource('frontend/edition.tpl'));
     }
@@ -296,6 +299,7 @@ class ConferencePageHandler extends Handler
             'edition' => $vm,
             'registerOpen' => EditionWindows::registrationOpenAt($edition, $now),
             'registerUrl' => $registerUrl,
+            'myStatus' => $this->myStatusIn($info, (string) $edition->path, $request, $locale),
             'myUrl' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my'),
             'registerErrors' => $errors,
             'registerValues' => $values,
@@ -479,7 +483,12 @@ class ConferencePageHandler extends Handler
         $templateMgr->addHeader('conferenceMyNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
         $templateMgr->assign([
             'myItems' => $items,
-            'myInvoices' => $invoices,
+            // Replaced and cancelled invoices go last, folded away: they are history, not something to pay.
+            'myInvoices' => array_merge(
+                array_values(array_filter($invoices, static fn (array $i): bool => !in_array($i['status'], ['superseded', 'cancelled'], true))),
+                array_map(static fn (array $i): array => $i + ['isOld' => true], array_values(array_filter($invoices, static fn (array $i): bool => in_array($i['status'], ['superseded', 'cancelled'], true)))),
+            ),
+            'oldInvoiceCount' => count(array_filter($invoices, static fn (array $i): bool => in_array($i['status'], ['superseded', 'cancelled'], true))),
             'payerFields' => $payerFields,
             'myDataUrl' => $dispatcher->url($request, Application::ROUTE_API, $context->getPath(), 'conference/me/personal-data'),
             'myCertificates' => $certificates,
@@ -1446,6 +1455,28 @@ class ConferencePageHandler extends Handler
     private function isoInZone(?DateTimeImmutable $date, string $timezone): ?string
     {
         return $date?->setTimezone(new DateTimeZone($timezone))->format(DATE_ATOM);
+    }
+
+    /**
+     * 'active' or 'waitlisted' when the signed-in person already takes part
+     * in the edition, null otherwise.
+     *
+     * @param \APP\core\Request $request
+     */
+    private function myStatusIn(\APP\plugins\generic\conferenceManager\classes\Application\ContextInfo $info, string $editionPath, $request, string $locale): ?string
+    {
+        $user = $request->getUser();
+        if ($user === null) {
+            return null;
+        }
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $found = null;
+        foreach (ServiceFactory::participants()->myParticipations($info, (int) $user->getId(), (string) $user->getEmail(), $locale, $now) as $p) {
+            if ((string) $p['editionPath'] === $editionPath && in_array($p['status'], ['active', 'waitlisted'], true)) {
+                $found = $found === 'active' ? 'active' : (string) $p['status'];
+            }
+        }
+        return $found;
     }
 
     private function formatDate(?DateTimeImmutable $date, string $timezone, string $locale): ?string

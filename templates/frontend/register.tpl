@@ -7,7 +7,12 @@
 	<h1 class="page_title">{translate key="plugins.generic.conferenceManager.listener.title"}</h1>
 	<p class="cmEdition__meta"><a href="{$edition.url|escape}">{$edition.name|escape}</a></p>
 
-	{if !$registerOpen}
+	{if $myStatus}
+		<div class="cmEdition__call cmEdition__call--open">
+			<p>{if $myStatus == 'waitlisted'}{translate key="plugins.generic.conferenceManager.public.youWaitlisted"}{else}{translate key="plugins.generic.conferenceManager.public.youTakePart"}{/if}</p>
+			<a class="cmEdition__button" href="{$myUrl|escape}">{translate key="plugins.generic.conferenceManager.public.toCabinet"}</a>
+		</div>
+	{elseif !$registerOpen}
 		<p class="cmConfirm__result" role="alert">{translate key="plugins.generic.conferenceManager.listener.error.closed"}</p>
 	{else}
 		{if $registerErrors.form || $registerErrors.editionId}

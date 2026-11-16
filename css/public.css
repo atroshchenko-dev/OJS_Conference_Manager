@@ -204,3 +204,7 @@
 .cmBids__abstract summary { cursor: pointer; }
 .cmBids__choices { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin-top: .5rem; }
 .cmBids__choice { display: inline-flex; align-items: center; gap: .35rem; }
+
+/* Earlier invoices in the cabinet, folded away. */
+.cmMy__old { margin: 1rem 0; }
+.cmMy__old > summary { cursor: pointer; font-weight: 600; padding: .5rem 0; }

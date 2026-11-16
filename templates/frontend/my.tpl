@@ -65,7 +65,15 @@
 	{if $myInvoices}
 		<h2 class="cmMy__section">{translate key="plugins.generic.conferenceManager.my.invoices"}</h2>
 		<ul class="cmMy">
+			{assign var=oldOpened value=false}
 			{foreach from=$myInvoices item=i}
+				{if $i.isOld && !$oldOpened}
+					</ul>
+					<details class="cmMy__old">
+						<summary>{translate key="plugins.generic.conferenceManager.my.oldInvoices" number=$oldInvoiceCount}</summary>
+						<ul class="cmMy">
+					{assign var=oldOpened value=true}
+				{/if}
 				<li class="cmMy__item cmInvoice {if !$i.isOpen}cmMy__item--cancelled{/if}">
 					<h3 class="cmMy__title">
 						{if $i.number}{translate key="plugins.generic.conferenceManager.invoice.numberShort" number=$i.number|escape}{/if}
@@ -146,6 +154,7 @@
 				</li>
 			{/foreach}
 		</ul>
+		{if $oldOpened}</details>{/if}
 	{/if}
 
 	{if $myBidding}
