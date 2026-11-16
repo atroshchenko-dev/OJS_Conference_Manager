@@ -158,11 +158,12 @@ The plugin is built for installations where several institutions share one OJS s
 - **Quick setup of a new institution.** A manager can download the institution profile as JSON in one journal and import it in another. For typical event setups there are presets, see the [presets guide](presets.md). Put your own presets in `{files_dir}/conferenceManager/presets/` on the server, without changing the package.
 - **Shared queue.** Letters of all journals go through one OJS queue, but the hourly limit is shared equally between journals.
 - **"Upcoming events"** shows events of all journals with the **Journal / institution** filter.
+- **The conference-site mode** is turned on per journal (the "Public part" button on the "Conferences" page, see the [manager's guide](manager.md)). It changes OJS texts ("About the Conference", "Current Proceedings", "Proceedings Archive") only in the journals where it is on. Other journals and site-level pages keep the usual OJS texts.
 
 ## Other things to know
 
 - **Merging users.** When you merge two OJS accounts, the plugin's records (participants, receipts, journals, mailings) move to the account that remains.
-- **Themes.** The plugin's public pages are checked with the Default, Manuscript and Health Sciences themes. Colours are CSS variables (`--cm-accent`, `--cm-border` and others) that you can change in your theme's own CSS.
+- **Themes.** The plugin's public pages are checked with the Default, Manuscript and Health Sciences themes. The Health Sciences theme does not show the "Upcoming events" block on the journal home page in the conference-site mode, because its home page template lacks the hook. The events page and the "Conferences" menu item work there too. Colours are CSS variables (`--cm-accent`, `--cm-border` and others) that you can change in your theme's own CSS.
 - **Receipt and certificate files** are stored in the OJS files directory (`files_dir`), outside the web root. Include this directory in your backups.
 - **Deleting a journal** is blocked by invoices and certificates issued in it.
 - **The OJS 3.5 submission card** scrolls sideways on a phone screen. This is how OJS itself behaves, not the plugin.

@@ -27,6 +27,8 @@ Button and menu names in your journal may be in English or Ukrainian depending o
 
 Some fields are filled in for you: with one open event it is already selected, you are the presenter, and the form of participation matches the event format.
 
+Your answers are saved as soon as you change a field. You can go to another step, close the page and come back to the submission later without losing them.
+
 ### When the submission cannot be sent
 
 - No event is chosen, or the call for the chosen event has already closed.

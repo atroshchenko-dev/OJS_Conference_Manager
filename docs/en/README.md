@@ -33,7 +33,7 @@ The plugin's public pages (event page, program, registration, participant cabine
 
 ## Current limits
 
-- There is no online card payment. The plugin issues invoices and shows instructions; a manager records the payment.
-- The plugin does not make refunds: a manager handles overpayments by hand.
+- Online card payment works only through LiqPay with the institution's own merchant account. Without it, the plugin issues invoices and shows instructions, and a manager records the payment.
+- The plugin only records refunds: the accounting office returns the money, and a card payment is refunded in the institution's LiqPay account.
 - XLSX export needs the PHP `zip` extension. Without it, CSV is available.
 - Reminders, mailings, bulk decisions and batch certificates need the OJS scheduler and job queue.
