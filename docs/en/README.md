@@ -10,6 +10,7 @@ These guides are for everyone who works with the Conference Manager plugin in Op
 |---|---|
 | [Site administrator](site-admin.md) | Whoever installs and upgrades the plugin, sets up cron and the OJS job queue, and watches all journals of the site. |
 | [Journal manager and organizing committee](manager.md) | Whoever sets up the institution profile and creates event editions, fees, payment, decisions, mailings and certificates. |
+| [Step-by-step guide with screenshots](../uk/walkthrough.md) (Ukrainian) | Whoever runs an event for the first time: the whole cycle from the institution profile to certificates for the manager, the participant and the reviewer, with a screenshot and the fields to fill in at every step. |
 | [Registration manager](registration-manager.md) | Whoever keeps the register of participants, reviews receipts, records payments and marks attendance. |
 | [Participant: author, co-author, listener](participant.md) | Whoever submits an abstract, confirms co-authorship, registers as a listener, pays and receives a certificate. |
 | [Reviewer](reviewer.md) | Whoever reviews the submissions of an event and marks which ones they would like to review. |
