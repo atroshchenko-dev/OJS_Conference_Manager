@@ -1,4 +1,5 @@
 <?php
+
 // Adjusts metadata.json from ocs-to-ojs export before the import.
 // Usage: php fix-metadata.php <metadata.json> [start|end]
 //

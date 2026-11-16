@@ -1,4 +1,5 @@
 <?php
+
 // Compares the OCS copy with the OJS 3.5 result after the migration, edition
 // by edition: published papers, galleys, and galleys whose file has content
 // (without the OCS files folder ocs-to-ojs writes a 5-byte placeholder).
@@ -29,7 +30,7 @@ foreach ($metadata->journals as $journal) {
                JOIN `{$ocsDb}`.published_papers pp ON pp.paper_id = p.paper_id
                LEFT JOIN `{$ocsDb}`.paper_galleys g ON g.paper_id = p.paper_id
               WHERE p.status = 3 AND p.sched_conf_id = ?",
-            [(string) $issue->id]
+            [(string) $issue->id],
         )[0];
         $ojs = $one(
             "SELECT pub.publication_id, f.path
@@ -41,7 +42,7 @@ foreach ($metadata->journals as $journal) {
                LEFT JOIN `{$ojsDb}`.submission_files sf ON sf.submission_file_id = g.submission_file_id
                LEFT JOIN `{$ojsDb}`.files f ON f.file_id = sf.file_id
               WHERE j.path = ? AND i.volume = ? AND i.number = ?",
-            [(string) $journal->urlPath, (string) $issue->volume, (string) $issue->number]
+            [(string) $journal->urlPath, (string) $issue->volume, (string) $issue->number],
         );
         $papers = count(array_unique(array_column($ojs, 'publication_id')));
         $paths = array_filter(array_column($ojs, 'path'));
