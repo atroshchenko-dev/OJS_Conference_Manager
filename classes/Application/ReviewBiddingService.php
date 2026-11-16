@@ -292,7 +292,7 @@ final class ReviewBiddingService
                     'recipientName' => $r['name'],
                     'conferenceName' => (string) $edition->text('name')->resolve($context->primaryLocale),
                     'bidUrl' => $url,
-                    'biddingUntil' => (string) $settings->biddingUntil,
+                    'biddingUntil' => (string) (new \IntlDateFormatter($context->primaryLocale, \IntlDateFormatter::LONG, \IntlDateFormatter::NONE, 'UTC'))->format(new DateTimeImmutable((string) $settings->biddingUntil, new DateTimeZone('UTC'))),
                 ], $context->primaryLocale);
                 $sent++;
             } catch (\Throwable $e) {

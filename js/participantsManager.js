@@ -18,6 +18,24 @@
 (function () {
 	'use strict';
 
+	/**
+	 * A date or local date-time of a form field ("2027-01-15" or
+	 * "2027-01-15T09:30") in the language of the page; the time only when
+	 * it is not midnight.
+	 */
+	function localDate(value) {
+		var m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(String(value || ''));
+		if (!m) {
+			return value ? String(value) : '';
+		}
+		var withTime = m[4] !== undefined && (m[4] !== '00' || m[5] !== '00');
+		var d = new Date(+m[1], +m[2] - 1, +m[3], withTime ? +m[4] : 0, withTime ? +m[5] : 0);
+		var options = withTime
+			? { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }
+			: { day: 'numeric', month: 'long', year: 'numeric' };
+		return d.toLocaleString(document.documentElement.lang || undefined, options);
+	}
+
 	function request(csrfToken, method, url, body) {
 		var init = {
 			method: method,
@@ -227,7 +245,7 @@
 				if (!from && !to) {
 					return this.t('fee.always');
 				}
-				return (from || '…') + ' — ' + (to || '…');
+				return (localDate(from) || '…') + ' — ' + (localDate(to) || '…');
 			},
 			quote: function () {
 				var self = this;

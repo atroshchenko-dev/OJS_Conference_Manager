@@ -494,9 +494,10 @@ class ConferencePageHandler extends Handler
             'myCertificates' => $certificates,
             'mySessions' => $chaired,
             'myProgram' => $myProgram,
-            'myBidding' => array_map(static fn (array $b): array => $b + [
+            'myBidding' => array_map(static fn (array $b): array => [
+                'until' => $b['until'] === '' ? '' : (string) (new \IntlDateFormatter($locale, \IntlDateFormatter::LONG, \IntlDateFormatter::NONE, 'UTC'))->format(new DateTimeImmutable($b['until'], new DateTimeZone('UTC'))),
                 'url' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, $b['path'], ['bids']),
-            ], ServiceFactory::reviewBidding()->openFor($info, (int) $user->getId(), $locale, $now)),
+            ] + $b, ServiceFactory::reviewBidding()->openFor($info, (int) $user->getId(), $locale, $now)),
             'myMessage' => $message,
             'myUrl' => $myUrl,
             'pageTitle' => 'plugins.generic.conferenceManager.my.title',
@@ -868,20 +869,24 @@ class ConferencePageHandler extends Handler
                 $shown = array_flip(array_map('intval', (array) $request->getUserVar('shown')));
                 $checked = array_flip(array_map('intval', (array) $request->getUserVar('present')));
                 $add = $remove = [];
+                $changedPeople = 0;
                 foreach ($sheet['people'] as $p) {
                     $id = $p['participationId'];
                     if (!isset($shown[$id])) {
                         continue;
                     }
+                    // A row is one person; the mark goes to all their participations.
                     if (isset($checked[$id]) && !$p['present']) {
-                        $add[] = $id;
+                        array_push($add, ...$p['participationIds']);
+                        $changedPeople++;
                     } elseif (!isset($checked[$id]) && $p['present']) {
-                        $remove[] = $id;
+                        array_push($remove, ...$p['participationIds']);
+                        $changedPeople++;
                     }
                 }
                 $changed = (int) $service->markSession($info, $editionId, $sessionId, $add, true, $actor, $now)
                     + (int) $service->markSession($info, $editionId, $sessionId, $remove, false, $actor, $now);
-                $request->redirectUrl($pageUrl . (str_contains($pageUrl, '?') ? '&' : '?') . 'saved=' . $changed);
+                $request->redirectUrl($pageUrl . (str_contains($pageUrl, '?') ? '&' : '?') . 'saved=' . ($changed > 0 ? $changedPeople : 0));
             }
         } elseif ($request->getUserVar('saved') !== null) {
             $message = ['type' => 'status', 'text' => __($k . 'saved', ['n' => (int) $request->getUserVar('saved')])];

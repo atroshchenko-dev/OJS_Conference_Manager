@@ -387,6 +387,37 @@ final class AttendanceCertificateFlowTest extends TestCase
         self::assertSame(3, $cand['a@example.org']['hours']);
     }
 
+    /** ATT-01: one row per person on the session sheet; reviewers are not listed. */
+    public function testSessionSheetListsEachPersonOnce(): void
+    {
+        $program = new DbProgramRepository($this->db);
+        $s1 = (int) $program->saveSession(new ProgramSession(null, $this->edition, SessionType::Section, new DateTimeImmutable('2027-05-22T09:00:00Z'), new DateTimeImmutable('2027-05-22T11:00:00Z')))->id;
+        [$a, $c, $d] = [$this->pids['a@example.org'], $this->pids['c@example.org'], $this->pids['d@example.org']];
+        $row = (array) $this->db->table('conf_participations')->where('id', $a)->first();
+        unset($row['id']);
+        // a has a second participation (two papers), c also reviews, d only reviews.
+        $a2 = (int) $this->db->table('conf_participations')->insertGetId(['role' => 'presenter'] + $row);
+        $cRow = (array) $this->db->table('conf_participations')->where('id', $c)->first();
+        unset($cRow['id']);
+        $this->db->table('conf_participations')->insert(['role' => 'reviewer'] + $cRow);
+        $this->db->table('conf_participations')->where('id', $d)->update(['role' => 'reviewer']);
+
+        $sheet = $this->attendance->sessionSheet($this->ctx, $this->edition, $s1, 'uk') ?? [];
+        $emails = array_column($sheet['people'], 'email');
+        sort($emails);
+        self::assertSame(['a@example.org', 'b@example.org', 'c@example.org'], $emails);
+        $people = array_column($sheet['people'], null, 'email');
+        self::assertSame([$a, $a2], $people['a@example.org']['participationIds']);
+        self::assertSame([$c], $people['c@example.org']['participationIds'], 'the review is not a participation in the session');
+
+        $this->attendance->markSession($this->ctx, $this->edition, $s1, [$a2], true, 1, $this->now);
+        $people = array_column(($this->attendance->sessionSheet($this->ctx, $this->edition, $s1, 'uk') ?? [])['people'], null, 'email');
+        self::assertTrue($people['a@example.org']['present'], 'a mark on any participation marks the person');
+
+        [$preview] = $this->attendance->importSession($this->ctx, $this->edition, $s1, "Email,Duration\nd@example.org,120\n", 60, false, 'uk', 1, $this->now) ?? [null];
+        self::assertSame('d@example.org', $preview['unmatched'][0]['email'] ?? null, 'a reviewer is not matched from a report');
+    }
+
     /** ATT-04: an entry ticket; PRG-09: the person's own program. */
     public function testEntryTicketAndPersonalProgram(): void
     {

@@ -10,6 +10,7 @@ use APP\plugins\generic\conferenceManager\classes\Domain\Edition\EditionReposito
 use APP\plugins\generic\conferenceManager\classes\Domain\Program\ProgramRepository;
 use APP\plugins\generic\conferenceManager\classes\Domain\Program\ProgramSession;
 use APP\plugins\generic\conferenceManager\classes\Domain\Program\SessionType;
+use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipantRole;
 use APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Shared\ValidationErrors;
 use APP\plugins\generic\conferenceManager\classes\Infrastructure\AuditLogger;
@@ -83,7 +84,7 @@ final class AttendanceService
 
         $byEmail = [];
         foreach ($this->attendance->ofEdition($context->id, $editionId, $locale) as $p) {
-            if ($p['status'] === ParticipationStatus::Active->value) {
+            if ($p['status'] === ParticipationStatus::Active->value && $p['role'] !== ParticipantRole::Reviewer->value) {
                 $byEmail[mb_strtolower($p['email'])][] = $p;
             }
         }
@@ -212,26 +213,53 @@ final class AttendanceService
             }
         }
         $chairs = array_flip($session->chairs);
+        // One row per person: an author of two papers has two participations,
+        // and a mark on the row goes to all of them, as a report does. A
+        // reviewer is not a participant of the event (only of its review).
+        /** @var array<int, array{participationId: int, participationIds: list<int>, participantId: int, name: string, email: string, affiliation: string, role: string, form: string, ofSession: bool, present: bool, minutes: ?int, source: ?string}> $people */
         $people = [];
         foreach ($this->attendance->ofEdition($context->id, $editionId, $locale) as $p) {
-            if ($p['status'] !== ParticipationStatus::Active->value) {
+            if ($p['status'] !== ParticipationStatus::Active->value || $p['role'] === ParticipantRole::Reviewer->value) {
                 continue;
             }
             $mark = $marks[$p['participationId']] ?? null;
-            $people[] = [
-                'participationId' => $p['participationId'],
-                'participantId' => $p['participantId'],
-                'name' => $p['name'] !== '' ? $p['name'] : $p['email'],
-                'email' => $p['email'],
-                'affiliation' => $p['affiliation'],
-                'role' => $p['role'],
-                'form' => $p['form'],
-                'ofSession' => isset($presenters[$p['participantId']]) || isset($chairs[$p['participantId']]),
-                'present' => $mark !== null,
-                'minutes' => $mark['minutes'] ?? null,
-                'source' => $mark['source'] ?? null,
-            ];
+            $key = $p['participantId'];
+            if (!isset($people[$key])) {
+                $people[$key] = [
+                    'participationId' => $p['participationId'],
+                    'participationIds' => [],
+                    'participantId' => $p['participantId'],
+                    'name' => $p['name'] !== '' ? $p['name'] : $p['email'],
+                    'email' => $p['email'],
+                    'affiliation' => $p['affiliation'],
+                    'role' => $p['role'],
+                    'form' => $p['form'],
+                    'ofSession' => isset($presenters[$p['participantId']]) || isset($chairs[$p['participantId']]),
+                    'present' => false,
+                    'minutes' => null,
+                    'source' => null,
+                ];
+            }
+            $row = $people[$key];
+            $row['participationIds'][] = $p['participationId'];
+            if ($p['submissionId'] !== null && in_array($p['submissionId'], $papers, true)) {
+                // The paper of this session decides the role shown.
+                $row['participationId'] = $p['participationId'];
+                $row['role'] = $p['role'];
+                $row['form'] = $p['form'];
+            }
+            if ($mark !== null) {
+                $row['present'] = true;
+                if ($mark['minutes'] !== null) {
+                    $row['minutes'] = max((int) $row['minutes'], $mark['minutes']);
+                }
+                if ($row['source'] !== self::SOURCE_MANUAL) {
+                    $row['source'] = $mark['source'];
+                }
+            }
+            $people[$key] = $row;
         }
+        $people = array_values($people);
         $collator = class_exists(\Collator::class) ? new \Collator($locale) : null;
         usort($people, static fn (array $a, array $b): int => [$b['ofSession'], 0] <=> [$a['ofSession'], 0]
             ?: ($collator === null ? strcmp($a['name'], $b['name']) : (int) $collator->compare($a['name'], $b['name'])));
@@ -289,7 +317,7 @@ final class AttendanceService
         $marks = $this->attendance->ofSession($sessionId);
         $byEmail = [];
         foreach ($this->attendance->ofEdition($context->id, $editionId, $locale) as $p) {
-            if ($p['status'] === ParticipationStatus::Active->value) {
+            if ($p['status'] === ParticipationStatus::Active->value && $p['role'] !== ParticipantRole::Reviewer->value) {
                 $byEmail[mb_strtolower($p['email'])][] = $p;
             }
         }
