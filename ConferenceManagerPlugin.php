@@ -455,6 +455,7 @@ class ConferenceManagerPlugin extends GenericPlugin implements HasTaskScheduler
             'inline' => true, 'contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST,
         ]);
         $templateMgr->addJavaScript('conferenceWorkflow', $base . '/js/workflow.js', ['contexts' => 'backend', 'priority' => TemplateManager::STYLE_SEQUENCE_LAST]);
+        $templateMgr->addStyleSheet('conferenceTokens', $base . '/css/backend-tokens.css', ['contexts' => 'backend']);
         $templateMgr->addStyleSheet('conferenceWorkflow', $base . '/css/editionsManager.css', ['contexts' => 'backend']);
         return Hook::CONTINUE;
     }

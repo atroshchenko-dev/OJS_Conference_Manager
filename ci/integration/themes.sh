@@ -46,6 +46,9 @@ for theme in default defaultManuscript healthSciences; do
     grep -q 'conferenceManager/css/public.css' <<<"$html" || fail "$theme: $p without the plugin styles"
     if [ "$theme" = healthSciences ]; then
       grep -q 'themes/healthSciences' <<<"$html" || fail "$theme: the theme is not active on $p"
+    else
+      # The Default theme and its children give their baseColour to the plugin's accent.
+      grep -q -e '--cm-accent:#1e6292' <<<"$html" || fail "$theme: $p without the theme colour as the accent"
     fi
     n=$((n + 1))
   done

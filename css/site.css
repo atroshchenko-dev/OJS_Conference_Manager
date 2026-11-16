@@ -1,11 +1,11 @@
 /* DST-04: the site administrator's overview page. */
 #confManagerSiteForm .cmSite__table { width: 100%; border-collapse: collapse; margin: 1rem 0 0.25rem; }
-#confManagerSiteForm .cmSite__table th, #confManagerSiteForm .cmSite__table td { border-bottom: 1px solid #ddd; padding: 0.4rem 0.5rem; text-align: left; vertical-align: top; }
+#confManagerSiteForm .cmSite__table th, #confManagerSiteForm .cmSite__table td { border-bottom: 1px solid var(--cm-border); padding: 0.4rem 0.5rem; text-align: left; vertical-align: top; }
 #confManagerSiteForm .cmSite__table td:nth-child(n+2), #confManagerSiteForm .cmSite__table th:nth-child(n+2) { text-align: right; }
-#confManagerSiteForm .cmSite__off { color: #595959; }
-#confManagerSiteForm .cmSite__hint { color: #555; font-size: 0.875rem; }
+#confManagerSiteForm .cmSite__off { color: var(--cm-text-secondary); }
+#confManagerSiteForm .cmSite__hint { color: var(--cm-text-secondary); font-size: 0.875rem; }
 #confManagerSiteForm .cmSite__hint a { text-decoration: underline; }
-#confManagerSiteForm .cmSite__advice { border-left: 4px solid #d00a6c; padding: 0.5rem 1rem 0.5rem 2rem; background: #fff5f9; }
+#confManagerSiteForm .cmSite__advice { border-left: 4px solid var(--cm-negative); padding: 0.5rem 1rem 0.5rem 2rem; background: var(--cm-negative-surface); }
 #confManagerSiteForm .cmSite__tasks { margin: 0.5rem 0 1rem; }
-.cmSite__saved { border-left: 4px solid #00b28d; padding: 0.5rem 1rem; background: #f0fbf8; }
+.cmSite__saved { border-left: 4px solid var(--cm-success); padding: 0.5rem 1rem; background: var(--cm-success-surface); }
 @media (max-width: 700px) { #confManagerSiteForm .cmSite__table { display: block; overflow-x: auto; } }

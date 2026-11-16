@@ -1,0 +1,47 @@
+/*
+ * Design tokens of the plugin's back-office pages (see DESIGN.md).
+ * Values follow the OJS 3.5 UI library (lib/ui-library tailwind.config.js)
+ * so the plugin's pages look like the rest of the editorial back office.
+ * Pages use these names, never raw colours.
+ */
+:root {
+  /* OJS brand and text */
+  --cm-primary: #006798;          /* buttons, links, active tabs, focus outline (OJS primary) */
+  --cm-primary-surface: #eef6fb;  /* selected rows, running batch, drop target */
+  --cm-on-primary: #fff;          /* text on --cm-primary */
+  --cm-heading: #01354f;          /* small labels on tinted chips (OJS heading) */
+  --cm-text: #222;                /* body text (OJS default) */
+  --cm-text-secondary: #505050;   /* hints, meta, empty states (OJS secondary) */
+
+  /* Surfaces and borders */
+  --cm-bg: #fff;                  /* panels, tables, forms */
+  --cm-bg-muted: #f7f7f7;         /* table heads, sub-panels, chips */
+  --cm-border: #ddd;              /* panel and table borders */
+  --cm-border-subtle: #eee;       /* row dividers inside a panel */
+  --cm-border-strong: #bbb;       /* chips, dashed drop areas (OJS border-light) */
+  --cm-border-field: #767676;     /* inputs not styled by OJS (3:1 on white) */
+
+  /* States */
+  --cm-error: #d00a0a;            /* form errors, failed actions (OJS attention) */
+  --cm-error-surface: #fdf2f2;
+  --cm-negative: #d00a6c;         /* conflicts and alerts that block work (OJS negative) */
+  --cm-negative-text: #a40045;
+  --cm-negative-surface: #fff5f9;
+  --cm-success: #00b24e;          /* borders and markers only: 2.8:1, not for text (OJS success) */
+  --cm-success-text: #006c35;
+  --cm-success-surface: #e9f6ee;
+  --cm-warning: #b45309;          /* borders of warnings */
+  --cm-warning-text: #5c4400;
+  --cm-warning-surface: #fff4ce;
+
+  /* Programme session types (also used on public pages) */
+  --cm-session-plenary: #6a3d9a;
+  --cm-session-poster: #00796b;
+  --cm-session-seminar: #b45309;
+  --cm-session-break: #9e9e9e;
+
+  /* Shape */
+  --cm-radius: 4px;               /* OJS default radius */
+  --cm-radius-pill: 9999px;
+  --cm-ring: 0 0 0 1px var(--cm-border);
+}
