@@ -77,6 +77,22 @@ final class LiqPayGatewayTest extends TestCase
         self::assertSame(GatewayStatus::Pending, $status('wait_accept'));
     }
 
+    public function testAmountForms(): void
+    {
+        $g = new LiqPayGateway();
+        $amount = fn (mixed $v): ?int => $g->callback($this->config(), self::post(['public_key' => self::PUBLIC, 'order_id' => 'o', 'status' => 'success', 'currency' => 'UAH', 'amount' => $v]), '')?->amountMinor;
+        self::assertSame(10055, $amount(100.55));
+        self::assertSame(10050, $amount(100.5));
+        self::assertSame(10000, $amount(100));
+        self::assertSame(10055, $amount('100.55'));
+        self::assertSame(0, $amount(100.555), 'more places than the currency has: not taken as paid');
+        self::assertSame(0, $amount(-5));
+        self::assertSame(0, $amount('1e3'));
+        // A description that looks like an amount does not fool the reader.
+        $r = $g->callback($this->config(), self::post(['public_key' => self::PUBLIC, 'description' => '"amount":999', 'order_id' => 'o', 'status' => 'success', 'currency' => 'UAH', 'amount' => 1]), '');
+        self::assertSame(100, $r?->amountMinor);
+    }
+
     public function testStatusRequest(): void
     {
         $http = new class () implements GatewayHttp {

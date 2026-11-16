@@ -383,9 +383,9 @@ class ConferencePageHandler extends Handler
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.payer.saved')];
         } elseif ($request->getUserVar('promo')) {
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.promo.applied')];
-        } elseif (in_array($request->getUserVar('card'), ['paid', 'pending', 'error'], true)) {
+        } elseif (in_array($request->getUserVar('card'), ['paid', 'pending', 'error', 'limit'], true)) {
             // PAY-09: back from the payment page of the gateway.
-            $message = ['type' => $request->getUserVar('card') === 'error' ? 'alert' : 'status', 'text' => __('plugins.generic.conferenceManager.gateway.my.' . $request->getUserVar('card'))];
+            $message = ['type' => in_array($request->getUserVar('card'), ['error', 'limit'], true) ? 'alert' : 'status', 'text' => __('plugins.generic.conferenceManager.gateway.my.' . $request->getUserVar('card'))];
         } elseif ($request->getUserVar('cancelled')) {
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.participation.cancelled')];
         } elseif ($request->getUserVar('proof')) {
@@ -667,7 +667,7 @@ class ConferencePageHandler extends Handler
             $now,
         );
         if ($form === null) {
-            $request->redirectUrl($my('error'));
+            $request->redirectUrl($my(str_ends_with((string) $error, 'tooManyAttempts') ? 'limit' : 'error'));
         }
         $this->setupTemplate($request);
         $templateMgr = TemplateManager::getManager($request);

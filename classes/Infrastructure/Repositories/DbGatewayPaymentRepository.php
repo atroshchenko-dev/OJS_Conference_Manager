@@ -48,14 +48,19 @@ final class DbGatewayPaymentRepository implements GatewayPaymentRepository
         return array_values(array_map($this->hydrate(...), $this->db->table(self::T)->where('invoice_id', $invoiceId)->orderByDesc('id')->get()->all()));
     }
 
-    public function update(int $id, GatewayStatus $status, ?string $transactionId, array $details, DateTimeImmutable $now): void
+    public function update(int $id, GatewayStatus $from, GatewayStatus $status, ?string $transactionId, array $details, DateTimeImmutable $now): bool
     {
-        $this->db->table(self::T)->where('id', $id)->update([
+        return $this->db->table(self::T)->where('id', $id)->where('status', $from->value)->update([
             'status' => $status->value,
             'transaction_id' => $transactionId === null ? null : mb_substr($transactionId, 0, 64),
             'details' => json_encode($details, JSON_UNESCAPED_UNICODE),
             'updated_at' => DateInput::toStorage($now),
-        ]);
+        ]) === 1;
+    }
+
+    public function touch(int $id, DateTimeImmutable $now): void
+    {
+        $this->db->table(self::T)->where('id', $id)->update(['updated_at' => DateInput::toStorage($now)]);
     }
 
     public function open(DateTimeImmutable $from, DateTimeImmutable $to, int $limit): array
@@ -64,7 +69,7 @@ final class DbGatewayPaymentRepository implements GatewayPaymentRepository
             ->whereIn('status', [GatewayStatus::Created->value, GatewayStatus::Pending->value])
             ->where('created_at', '>=', DateInput::toStorage($from))
             ->where('created_at', '<=', DateInput::toStorage($to))
-            ->orderBy('id')->limit($limit)->get()->all()));
+            ->orderBy('updated_at')->orderBy('id')->limit($limit)->get()->all()));
     }
 
     private function hydrate(object $row): GatewayPayment

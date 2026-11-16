@@ -5120,6 +5120,9 @@ msgstr "Рахунок не знайдено."
 msgid "plugins.generic.conferenceManager.gateway.error.notPayable"
 msgstr "Цей рахунок зараз не можна сплатити карткою."
 
+msgid "plugins.generic.conferenceManager.gateway.my.limit"
+msgstr "Забагато спроб оплатити цей рахунок карткою. Зверніться до організаторів."
+
 msgid "plugins.generic.conferenceManager.gateway.payCard"
 msgstr "Оплатити карткою {$amount} {$currency}"
 

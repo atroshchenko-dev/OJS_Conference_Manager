@@ -5120,6 +5120,9 @@ msgstr "The invoice is not found."
 msgid "plugins.generic.conferenceManager.gateway.error.notPayable"
 msgstr "This invoice cannot be paid by card now."
 
+msgid "plugins.generic.conferenceManager.gateway.my.limit"
+msgstr "Too many attempts to pay this invoice by card. Please contact the organisers."
+
 msgid "plugins.generic.conferenceManager.gateway.payCard"
 msgstr "Pay by card {$amount} {$currency}"
 

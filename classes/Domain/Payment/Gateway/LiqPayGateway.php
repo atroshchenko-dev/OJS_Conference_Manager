@@ -105,7 +105,7 @@ final class LiqPayGateway implements PaymentGateway
         if (!is_array($report) || ($report['public_key'] ?? null) !== $config->value('publicKey')) {
             return null;
         }
-        return $this->result($config, $report, $json);
+        return $this->result($config, $report);
     }
 
     public function status(GatewayConfig $config, string $orderId, GatewayHttp $http): ?GatewayResult
@@ -122,14 +122,13 @@ final class LiqPayGateway implements PaymentGateway
             return null;
         }
         $answer['order_id'] ??= $orderId;
-        return $this->result($config, $answer, $json);
+        return $this->result($config, $answer);
     }
 
     /**
      * @param array<string, mixed> $report
-     * @param string $json the report as received: the amount is read from it as written
      */
-    private function result(GatewayConfig $config, array $report, string $json): ?GatewayResult
+    private function result(GatewayConfig $config, array $report): ?GatewayResult
     {
         $orderId = (string) ($report['order_id'] ?? '');
         $currency = strtoupper((string) ($report['currency'] ?? ''));
@@ -141,7 +140,15 @@ final class LiqPayGateway implements PaymentGateway
         $status = $raw === 'sandbox'
             ? ($config->sandbox ? GatewayStatus::Success : GatewayStatus::Failure)
             : (self::FINAL[$raw] ?? GatewayStatus::Pending);
-        $amount = preg_match('/"amount"\s*:\s*"?(\d+(?:\.\d+)?)"?/', $json, $m) ? Money::parse($m[1], $currency) : null;
+        // A JSON number is only formatted (six places, then trailing zeros cut), never computed with.
+        $value = $report['amount'] ?? null;
+        $text = match (true) {
+            is_string($value) => $value,
+            is_int($value) => (string) $value,
+            is_numeric($value) => rtrim(rtrim(sprintf('%.6F', $value), '0'), '.'),
+            default => '',
+        };
+        $amount = preg_match('/^\d+(\.\d+)?$/', $text) ? Money::parse($text, $currency) : null;
         $details = array_intersect_key($report, array_flip(self::KEPT));
         return new GatewayResult(
             $orderId,

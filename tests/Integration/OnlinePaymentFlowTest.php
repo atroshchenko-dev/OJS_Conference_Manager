@@ -14,6 +14,7 @@ use APP\plugins\generic\conferenceManager\classes\Application\OnlinePaymentServi
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
 use APP\plugins\generic\conferenceManager\classes\Domain\Institution\InstitutionType;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Gateway\GatewayHttp;
+use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Gateway\GatewayStatus;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Gateway\LiqPayGateway;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Invoice;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\InvoiceStatus;
@@ -245,6 +246,57 @@ final class OnlinePaymentFlowTest extends TestCase
         $request = json_decode((string) base64_decode($this->http->forms[0]['data'], true), true);
         self::assertSame(['action' => 'status', 'version' => 3, 'public_key' => self::PUBLIC, 'order_id' => $orderId], $request);
         self::assertSame(LiqPayGateway::API_URL, $this->http->urls[0]);
+    }
+
+    public function testConcurrentReportsPayOnce(): void
+    {
+        $invoice = $this->invoice();
+        [$orderId] = $this->start($invoice);
+        $repo = new DbGatewayPaymentRepository($this->db);
+        $attempt = $repo->findByOrder(1, 'liqpay', $orderId);
+        self::assertNotNull($attempt);
+        // Another report changed the attempt after this one read it: the second change loses.
+        self::assertTrue($repo->update((int) $attempt->id, GatewayStatus::Created, GatewayStatus::Pending, null, [], $this->now));
+        self::assertFalse($repo->update((int) $attempt->id, GatewayStatus::Created, GatewayStatus::Success, null, [], $this->now));
+        self::assertSame(GatewayStatus::Pending, $repo->findByOrder(1, 'liqpay', $orderId)?->status);
+    }
+
+    public function testAttemptLimitAndFreshRefresh(): void
+    {
+        $invoice = $this->invoice();
+        for ($i = 0; $i < OnlinePaymentService::MAX_ATTEMPTS; $i++) {
+            $this->start($invoice);
+        }
+        [$form, $error] = $this->service->start($this->ctx, (int) $invoice->id, 1, 'olena@example.org', 'x', static fn (string $o): string => '', '', 'uk', $this->now);
+        self::assertNull($form);
+        self::assertSame('plugins.generic.conferenceManager.gateway.error.tooManyAttempts', $error);
+
+        // The return page asks the gateway only about a fresh attempt.
+        $this->http->answer = (string) json_encode(['result' => 'ok', 'status' => 'success', 'order_id' => '1-' . $invoice->number . '-20', 'amount' => 150, 'currency' => 'UAH']);
+        $this->service->refreshInvoice($this->ctx, (int) $invoice->id, $this->now->modify('+2 days'));
+        self::assertSame([], $this->http->urls);
+        $this->service->refreshInvoice($this->ctx, (int) $invoice->id, $this->now->modify('+1 hour'));
+        self::assertCount(1, $this->http->urls);
+        self::assertSame(InvoiceStatus::Paid, $this->invoices->find($this->ctx, (int) $invoice->id)?->status);
+    }
+
+    public function testOpenAttemptsTakeTurns(): void
+    {
+        $invoice = $this->invoice();
+        [$first] = $this->start($invoice);
+        [$second] = $this->start($invoice);
+        $this->http->answer = (string) json_encode(['result' => 'error', 'err_code' => 'payment_not_found']);
+        $contextOf = fn (int $id): ?ContextInfo => $this->ctx;
+        $asked = function (): string {
+            $last = $this->http->forms[count($this->http->forms) - 1];
+            return (string) json_decode((string) base64_decode($last['data'], true), true)['order_id'];
+        };
+        self::assertSame(0, $this->service->refreshOpen($contextOf, $this->now->modify('+1 hour'), 1));
+        self::assertSame($first, $asked());
+        self::assertSame(0, $this->service->refreshOpen($contextOf, $this->now->modify('+2 hours'), 1));
+        self::assertSame($second, $asked(), 'an abandoned attempt does not block the next one');
+        $this->service->refreshOpen($contextOf, $this->now->modify('+3 hours'), 1);
+        self::assertSame($first, $asked());
     }
 
     public function testSandboxPaymentCountsOnlyInSandbox(): void

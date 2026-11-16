@@ -30,6 +30,8 @@ final class OnlinePaymentService
 {
     public const SETTING = 'paymentGateway';
     private const K = 'plugins.generic.conferenceManager.gateway.error.';
+    /** Attempts one invoice may have: enough for typos and declined cards, not for flooding. */
+    public const MAX_ATTEMPTS = 20;
 
     public function __construct(
         private readonly SettingsStore $settings,
@@ -162,6 +164,9 @@ final class OnlinePaymentService
         }
         [$gateway, $config] = $active;
         $attempt = count($this->payments->ofInvoice($invoice->id)) + 1;
+        if ($attempt > self::MAX_ATTEMPTS) {
+            return [null, self::K . 'tooManyAttempts'];
+        }
         $orderId = $context->id . '-' . ($invoice->number ?? 'I' . $invoice->id) . '-' . $attempt;
         $payment = $this->payments->add(new GatewayPayment(null, $context->id, $invoice->id, $gateway->id(), $orderId, $invoice->due(), GatewayStatus::Created, null, $now), $now);
         $order = new CheckoutOrder($orderId, $payment->amount, $description, $returnUrl($orderId), $callbackUrl, $language);
@@ -195,7 +200,9 @@ final class OnlinePaymentService
             return;
         }
         foreach ($this->payments->ofInvoice($invoiceId) as $payment) {
-            if ($payment->contextId === $context->id && $payment->gateway === $active[0]->id() && $payment->status->isOpen()) {
+            if ($payment->contextId === $context->id && $payment->gateway === $active[0]->id() && $payment->status->isOpen()
+                && $payment->createdAt > $now->sub(new DateInterval('P1D'))) {
+                // The return page needs no login: only a fresh attempt makes it ask the gateway.
                 $result = $active[0]->status($active[1], $payment->orderId, $this->http);
                 if ($result !== null) {
                     $this->apply($context, $payment->gateway, $result, $now);
@@ -222,11 +229,17 @@ final class OnlinePaymentService
             $context = $contextOf($payment->contextId);
             $active = $context === null ? null : $this->active($context);
             if ($context === null || $active === null || $active[0]->id() !== $payment->gateway) {
+                if ($payment->id !== null) {
+                    $this->payments->touch($payment->id, $now);
+                }
                 continue;
             }
             $result = $active[0]->status($active[1], $payment->orderId, $this->http);
             if ($result !== null && $result->status !== $payment->status && $this->apply($context, $payment->gateway, $result, $now)) {
                 $changed++;
+            } elseif ($payment->id !== null) {
+                // Abandoned attempts wait their turn behind the others, not in front of them.
+                $this->payments->touch($payment->id, $now);
             }
         }
         return $changed;
@@ -268,7 +281,10 @@ final class OnlinePaymentService
         if (!$payment->status->canBecome($result->status)) {
             return true;
         }
-        $this->payments->update($payment->id, $result->status, $result->transactionId ?? $payment->transactionId, $result->details, $now);
+        if (!$this->payments->update($payment->id, $payment->status, $result->status, $result->transactionId ?? $payment->transactionId, $result->details, $now)) {
+            // Another report for this attempt was handled meanwhile.
+            return true;
+        }
         $entry = ['gateway' => $gatewayId, 'orderId' => $result->orderId, 'transactionId' => $result->transactionId, 'amount' => $result->amountMinor, 'currency' => $result->currency];
         if ($result->status === GatewayStatus::Success) {
             $invoice = $this->invoices->find($context, $payment->invoiceId);

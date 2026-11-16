@@ -253,6 +253,7 @@ How it works:
 - In the participant's cabinet an open invoice gets a **Pay by card** button with the amount due. It appears only while the invoice is open, the amount is above zero and the service supports the currency (LiqPay: UAH, USD, EUR).
 - An invoice becomes paid only from a report signed with your LiqPay private key. Repeated reports do not count twice; forged reports are refused.
 - If a report is lost, the plugin asks LiqPay itself: right after the participant comes back from LiqPay, and hourly for attempts from 10 minutes to 7 days old. The OJS scheduler must be running for this.
+- An invoice can have up to 20 card payment attempts. After that the participant is told to contact the organisers.
 - Each attempt has its own order number, `{journal}-{invoice number}-{attempt}`, which you can find in the LiqPay account. The attempts of an invoice are available through the API: `GET …/invoices/{id}/gateway-payments`.
 - If a participant pays an invoice that is already closed (for instance twice in two tabs) or in another currency, the invoice does not change. The audit log gets a `gateway_paid_unmatched` entry and you refund in the LiqPay account. A refund made in LiqPay is logged as `gateway_reversed` but does not change the invoice: change it by hand if needed.
 - To turn card payment off, choose the service "Off". Rules with this mode stay, but the button disappears.

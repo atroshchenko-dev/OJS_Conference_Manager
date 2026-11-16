@@ -17,12 +17,19 @@ interface GatewayPaymentRepository
     public function ofInvoice(int $invoiceId): array;
 
     /**
+     * Changes the state only if it is still $from, so that of two reports
+     * handled at the same time only one goes on. False when it was not.
+     *
      * @param array<string, mixed> $details
      */
-    public function update(int $id, GatewayStatus $status, ?string $transactionId, array $details, DateTimeImmutable $now): void;
+    public function update(int $id, GatewayStatus $from, GatewayStatus $status, ?string $transactionId, array $details, DateTimeImmutable $now): bool;
+
+    /** Marks an attempt as just asked about, so that the next check starts with others. */
+    public function touch(int $id, DateTimeImmutable $now): void;
 
     /**
-     * Attempts of all journals still waiting for a result, created in the window.
+     * Attempts of all journals still waiting for a result, created in the
+     * window, the longest unasked first.
      *
      * @return list<GatewayPayment>
      */
