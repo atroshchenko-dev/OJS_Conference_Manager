@@ -1,0 +1,76 @@
+# OJS texts for a journal in the "conference site" mode: "journal" becomes
+# "conference", "issue" becomes "proceedings". The plugin adds this file
+# to the translations only for journals where the mode is on.
+msgid ""
+msgstr ""
+"Project-Id-Version: conferenceManager\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "about.aboutContext"
+msgstr "About the Conference"
+
+msgid "about.aboutOJSJournal"
+msgstr "This site uses Open Journal Systems {$ojsVersion}, which is open source management and publishing software developed, supported, and freely distributed by the Public Knowledge Project under the GNU General Public License. Visit PKP's website to <a href=\"https://pkp.sfu.ca/\">learn more about the software</a>. Please <a href=\"{$contactUrl}\">contact the organizers</a> directly with questions about the conference and submissions."
+
+msgid "author.submit.notAccepting"
+msgstr "This conference is not accepting submissions at this time."
+
+msgid "current.noCurrentIssue"
+msgstr "No Current Proceedings"
+
+msgid "current.noCurrentIssueDesc"
+msgstr "This conference has not published any proceedings."
+
+msgid "current.current"
+msgstr "Current Proceedings"
+
+msgid "navigation.current"
+msgstr "Current Proceedings"
+
+msgid "journal.currentIssue"
+msgstr "Current Proceedings"
+
+msgid "navigation.archives"
+msgstr "Proceedings Archive"
+
+msgid "archive.archives"
+msgstr "Proceedings Archive"
+
+msgid "archive.archivesPageNumber"
+msgstr "Proceedings Archive - Page {$pageNumber}"
+
+msgid "archive.issueUnavailable"
+msgstr "Proceedings Unavailable"
+
+msgid "issue.issue"
+msgstr "Proceedings"
+
+msgid "issue.fullIssue"
+msgstr "Full Proceedings"
+
+msgid "journal.viewAllIssues"
+msgstr "View All Proceedings"
+
+msgid "navigation.skip.about"
+msgstr "Skip to about the conference"
+
+msgid "navigation.skip.issue"
+msgstr "Skip to the current proceedings"
+
+msgid "search.journal"
+msgstr "On this site"
+
+msgid "about.editorialMasthead"
+msgstr "Organizing Committee"
+
+msgid "user.register.form.privacyConsentThisContext"
+msgstr "Yes, I agree to have my data collected and stored according to this conference's <a href=\"{$privacyUrl}\" target=\"_blank\">privacy statement</a>."
+
+msgid "user.register.noContextReviewerInterests"
+msgstr "If you would like to review for the conference, please enter your subject interests."
+
+msgid "user.reviewerPrompt"
+msgstr "Would you be willing to review submissions to this conference?"

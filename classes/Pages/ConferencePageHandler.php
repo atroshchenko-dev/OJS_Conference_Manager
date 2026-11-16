@@ -111,6 +111,80 @@ class ConferencePageHandler extends Handler
     }
 
     /**
+     * PUB-05: the events of the journal, at /{journal}/conference: the
+     * coming and current ones first, then the past ones. Drafts are not
+     * listed.
+     *
+     * @param array $args
+     * @param \APP\core\Request $request
+     */
+    public function index($args, $request)
+    {
+        $context = $request->getContext();
+        if ($context === null) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        [$coming, $past] = $this->journalEditions(ContextGateway::fromContext($context), $request);
+        $this->setupTemplate($request);
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $templateMgr->assign([
+            'pageTitle' => 'plugins.generic.conferenceManager.editionsPage.title',
+            'comingEditions' => $coming,
+            'pastEditions' => $past,
+        ]);
+        return $templateMgr->display($this->plugin->getTemplateResource('frontend/editions.tpl'));
+    }
+
+    /**
+     * PUB-05: the coming events on the home page of a journal in the
+     * conference site mode; empty when there are none.
+     */
+    public function homeBlock(PKPRequest $request): string
+    {
+        $context = $request->getContext();
+        if ($context === null) {
+            return '';
+        }
+        [$coming] = $this->journalEditions(ContextGateway::fromContext($context), $request);
+        if ($coming === []) {
+            return '';
+        }
+        $templateMgr = TemplateManager::getManager($request);
+        $templateMgr->addStyleSheet('conferenceEditionPage', $request->getBaseUrl() . '/' . $this->plugin->getPluginPath() . '/css/public.css', ['contexts' => 'frontend']);
+        $templateMgr->assign([
+            'homeEditions' => array_slice($coming, 0, 5),
+            'homeEditionsUrl' => $request->getDispatcher()->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE),
+        ]);
+        return (string) $templateMgr->fetch($this->plugin->getTemplateResource('frontend/homeEditions.tpl'));
+    }
+
+    /**
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>} coming (by start), past (latest first)
+     */
+    private function journalEditions(ContextInfo $info, PKPRequest $request): array
+    {
+        $statuses = array_values(array_filter(EditionStatus::cases(), static fn (EditionStatus $s): bool => $s !== EditionStatus::Draft));
+        $locale = Locale::getLocale();
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $coming = $past = [];
+        foreach (ServiceFactory::editions()->list($info, $statuses, 100)['items'] as $edition) {
+            $end = $edition->date('endsAt') ?? $edition->date('startsAt');
+            $isPast = $edition->status === EditionStatus::Archived || ($end !== null && $end < $now);
+            $vm = $this->viewModel($edition, $locale, $info->primaryLocale, $request);
+            $vm['sortKey'] = $edition->date('startsAt')?->getTimestamp() ?? 0;
+            if ($isPast) {
+                $past[] = $vm;
+            } else {
+                $coming[] = $vm;
+            }
+        }
+        usort($coming, static fn (array $a, array $b): int => $a['sortKey'] <=> $b['sortKey']);
+        usort($past, static fn (array $a, array $b): int => $b['sortKey'] <=> $a['sortKey']);
+        return [$coming, $past];
+    }
+
+    /**
      * @param array $args
      * @param \APP\core\Request $request
      */

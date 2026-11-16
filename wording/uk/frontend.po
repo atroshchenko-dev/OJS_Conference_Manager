@@ -1,0 +1,79 @@
+# Тексти OJS для журналу в режимі «сайт конференцій»: «журнал» стає
+# «конференцією», «випуск» стає «збірником матеріалів». Плагін додає цей
+# файл до перекладів лише для журналів, де режим увімкнено.
+msgid ""
+msgstr ""
+"Project-Id-Version: conferenceManager\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "about.aboutContext"
+msgstr "Про конференцію"
+
+msgid "about.aboutOJSJournal"
+msgstr "Цей сайт використовує Open Journal Systems {$ojsVersion} – програмний пакет із відкритим вихідним кодом, який розробляється, підтримується та вільно розповсюджується Public Knowledge Project на умовах ліцензії GNU General Public License. Відвідайте вебсайт PKP <a href=\"https://pkp.sfu.ca/\">, щоб дізнатися більше про програмне забезпечення</a>. Будь ласка, <a href=\"{$contactUrl}\">звертайтеся до оргкомітету</a> безпосередньо з питань про конференцію й подання матеріалів."
+
+msgid "about.onlineSubmissions.registrationRequired"
+msgstr "Щоб подавати матеріали на конференцію та стежити за їхнім станом, увійдіть на сайт як зареєстрований користувач."
+
+msgid "author.submit.notAccepting"
+msgstr "Конференція зараз не приймає подань."
+
+msgid "current.noCurrentIssue"
+msgstr "Немає поточного збірника"
+
+msgid "current.noCurrentIssueDesc"
+msgstr "Конференція ще не опублікувала жодного збірника матеріалів."
+
+msgid "current.current"
+msgstr "Поточний збірник"
+
+msgid "navigation.current"
+msgstr "Поточний збірник"
+
+msgid "journal.currentIssue"
+msgstr "Поточний збірник"
+
+msgid "navigation.archives"
+msgstr "Архів матеріалів"
+
+msgid "archive.archives"
+msgstr "Архів матеріалів"
+
+msgid "archive.archivesPageNumber"
+msgstr "Архів матеріалів - Сторінка {$pageNumber}"
+
+msgid "archive.issueUnavailable"
+msgstr "Збірник недоступний"
+
+msgid "issue.issue"
+msgstr "Збірник"
+
+msgid "issue.fullIssue"
+msgstr "Весь збірник"
+
+msgid "journal.viewAllIssues"
+msgstr "Переглянути всі збірники"
+
+msgid "navigation.skip.about"
+msgstr "Перейти до інформації про конференцію"
+
+msgid "navigation.skip.issue"
+msgstr "Перейти до поточного збірника"
+
+msgid "search.journal"
+msgstr "На цьому сайті"
+
+msgid "about.editorialMasthead"
+msgstr "Оргкомітет"
+
+msgid "user.register.form.privacyConsentThisContext"
+msgstr "Так, я даю згоду на збір та збереження моїх даних в межах <a href=\"{$privacyUrl}\" target=\"_blank\">політики конфіденційності</a> цієї конференції."
+
+msgid "user.register.noContextReviewerInterests"
+msgstr "Якщо Ви хочете бути рецензентом конференції, будь ласка, зазначте свої наукові інтереси."
+
+msgid "user.reviewerPrompt"
+msgstr "Хотіли б Ви рецензувати подання на цю конференцію?"

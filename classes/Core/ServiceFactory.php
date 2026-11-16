@@ -206,6 +206,16 @@ final class ServiceFactory
         );
     }
 
+    /** PUB-05: the public part of a journal as a conference site. */
+    public static function siteMode(): \APP\plugins\generic\conferenceManager\classes\Application\SiteModeService
+    {
+        return new \APP\plugins\generic\conferenceManager\classes\Application\SiteModeService(
+            self::settings(),
+            new NavigationMenuGateway(),
+            new AuditLogger(DB::connection()),
+        );
+    }
+
     public static function personalData(): PersonalDataService
     {
         $db = DB::connection();

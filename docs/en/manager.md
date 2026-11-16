@@ -9,7 +9,7 @@ The site administrator has to install and enable the plugin first, see the [site
 - **Institution profile:** **Settings → Website → Plugins**, the **Organizing institution profile** button next to "Conference Manager".
 - **The "Conferences" page:** the **Conferences** item in the journal's side menu (address `/{journal}/manageConference`).
 
-At the top right of the "Conferences" page there are the **Setup wizard** and **New edition** buttons. Below them is the **For the whole journal** row: **Reminders**, **Certificate templates**, **Audit log**, **Personal data** and **Old OCS addresses**. Above the list of editions there is a **Status** filter.
+At the top right of the "Conferences" page there are the **Setup wizard** and **New edition** buttons. Below them is the **For the whole journal** row: **Reminders**, **Certificate templates**, **Audit log**, **Personal data**, **Old OCS addresses** and **Public part**. Above the list of editions there is a **Status** filter.
 
 Each edition's row has the buttons **Open**, **Public page**, **Copy** and **Delete**. The edition's name and **Open** lead to the edition's summary. Above the summary and every section of the edition there is the **Edition sections** panel, grouped like this:
 
@@ -100,6 +100,20 @@ The wizard creates the edition with the preset's event type and modes, the parti
 - To create another edition from a preset, click **Setup wizard** on the "Conferences" page.
 
 How presets work and how to add your own is in the [presets guide](presets.md).
+
+## How to present the public part as a conference site
+
+If the OJS journal serves as a conference site, turn on **Public part** on the **Conferences** page (the "For the whole journal" row). The first setup wizard turns it on unless you untick **Present the public part of the journal as a conference site**.
+
+In this mode:
+
+- the texts of OJS on the public pages speak of a conference instead of a journal and of proceedings instead of an issue: "About the Conference", "Current Proceedings", "Proceedings Archive", "Organizing Committee", "This conference has not published any proceedings";
+- the home page of the journal shows a **Coming events** block (in the Default and Manuscript themes; the Health Sciences theme has no place for it);
+- the page `/{journal}/conference` lists all events of the journal: coming and current ones first, then past ones. Drafts are not listed.
+
+The **Add the "Conferences" item to the primary menu** button puts the item first in the primary menu. You can also add or move it by hand in **Settings → Website → Navigation Menus**: "Conferences" is one of the item types.
+
+The mode applies to this journal only. Turn it off if the journal also publishes ordinary issues: the standard OJS texts come back.
 
 ## How to create and set up an edition
 

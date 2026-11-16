@@ -120,4 +120,27 @@ docker exec "$ojs" rm -f "$files/conferenceManager/presets/broken-example.json"
 page="$(curl -s -b "$jar" "$B/s1/en/manageConference")"
 grep -q 'js/setupWizard.js' <<<"$page" || fail "INS-08 the wizard script on the editions page"
 
+# PUB-05: the wizard makes the journal a conference site: OJS texts, menu item, events page.
+csrf="$(curl -s -L -c "$jar" -b "$jar" "$B/s1/en/management/settings/context" | { grep -o '"csrfToken":"[^"]*"' || true; } | head -1 | cut -d'"' -f4)"
+mode() { curl -s -b "$jar" -X PUT -H "X-Csrf-Token: $csrf" -H 'Content-Type: application/json' "$B/s1/api/v1/conference/siteMode" -d "$1"; }
+[ "$(curl -s -b "$jar" "$B/s1/api/v1/conference/siteMode")" = '{"conferenceSite":true,"menuItem":true}' ] || fail "PUB-05 the wizard turns the mode and the menu item on"
+pub="$(mktemp)"
+page() { curl -s -L -c "$pub" -b "$pub" "$B/$1"; }
+grep -q 'Немає поточного збірника' <<<"$(page s1/uk/issue/current)" || fail "PUB-05 OJS texts speak of proceedings"
+home="$(page s1/uk/index)"
+grep -q 'href="[^"]*/s1/uk/conference"' <<<"$home" || fail "PUB-05 the menu item leads to the events page"
+if [ "${DEMO:-}" = 1 ]; then
+  grep -q 'Найближчі заходи' <<<"$home" || fail "PUB-05 coming events on the home page"
+  grep -q 'Найближчі заходи' <<<"$(page s1/uk/conference)" || fail "PUB-05 the events page of the journal"
+else
+  # Editions made by the wizard are drafts: not listed.
+  grep -q 'Заходів поки немає' <<<"$(page s1/uk/conference)" || fail "PUB-05 the events page lists no drafts"
+fi
+mode '{"conferenceSite":false}' >/dev/null
+grep -q 'Немає поточного випуску' <<<"$(page s1/uk/issue/current)" || fail "PUB-05 off: the texts of OJS come back"
+if grep -q 'Найближчі заходи' <<<"$(page s1/uk/index)"; then fail "PUB-05 off: no events block on the home page"; fi
+[ "$(mode '{"conferenceSite":true,"menuItem":true}')" = '{"conferenceSite":true,"menuItem":true}' ] || fail "PUB-05 on again, the menu item once"
+rm -f "$pub"
+echo "OK PUB-05 conference site mode: OJS texts, menu item, events page, home block"
+
 echo "OK 17.5 configuration matrix: $checked typical institutions set up by the first setup wizard (INS-08) from presets (DST-07); broken site preset reported"

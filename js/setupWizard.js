@@ -38,6 +38,7 @@
 				form: {
 					name: name, path: '', timezone: this.defaultTimezone, startsAt: '', endsAt: '', cfpOpensAt: '',
 					abstractDeadline: '', paperDeadline: '', registrationClosesAt: '', externalProceedingsUrl: '',
+					conferenceSite: true,
 				},
 				errors: {},
 				result: null,
@@ -157,7 +158,7 @@
 			},
 			create: function () {
 				var self = this;
-				var body = { preset: self.presetCode, name: self.form.name, path: self.form.path.trim(), timezone: self.form.timezone };
+				var body = { preset: self.presetCode, name: self.form.name, path: self.form.path.trim(), timezone: self.form.timezone, conferenceSite: self.form.conferenceSite };
 				self.dateFields.forEach(function (f) { body[f] = self.form[f]; });
 				if (self.needsUrl) {
 					body.externalProceedingsUrl = self.form.externalProceedingsUrl.trim();
@@ -262,6 +263,8 @@
 					<input class="pkpFormField__input" type="url" v-model="form.externalProceedingsUrl" maxlength="2048">\
 					<em v-if="errors.externalProceedingsUrl">{{ fieldError(\'externalProceedingsUrl\') }}</em>\
 				</label>\
+				<label class="cmSetup__check"><input type="checkbox" v-model="form.conferenceSite"> {{ t(\'siteMode.conferenceSite\') }}</label>\
+				<small>{{ t(\'siteMode.wizardNote\') }}</small>\
 				<p class="cmSetup__note">{{ t(\'setup.draftNote\') }}</p>\
 				<div class="cmSetup__buttons">\
 					<pkp-button @click="step = 2">{{ t(\'setup.previous\') }}</pkp-button>\

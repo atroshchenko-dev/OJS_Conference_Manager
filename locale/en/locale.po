@@ -5226,3 +5226,54 @@ msgstr "Online Conference"
 
 msgid "plugins.generic.conference.metadata.conferenceOnline.checkBox"
 msgstr "This is an online conference"
+
+msgid "plugins.generic.conferenceManager.audit.entity.site_mode"
+msgstr "Public part"
+
+msgid "plugins.generic.conferenceManager.siteMode.title"
+msgstr "Public part"
+
+msgid "plugins.generic.conferenceManager.siteMode.conferenceSite"
+msgstr "Present the public part of the journal as a conference site"
+
+msgid "plugins.generic.conferenceManager.siteMode.description"
+msgstr "The texts of OJS will say \"conference\" instead of \"journal\" and \"proceedings\" instead of \"issue\". The home page will list the coming events. Turn it off if the journal also publishes ordinary issues."
+
+msgid "plugins.generic.conferenceManager.siteMode.wizardNote"
+msgstr "The texts of OJS will speak of a conference, not a journal, and the primary menu will get the \"Conferences\" item. You can change this later under \"Public part\"."
+
+msgid "plugins.generic.conferenceManager.siteMode.menuItemPresent"
+msgstr "The primary menu already has the \"Conferences\" item."
+
+msgid "plugins.generic.conferenceManager.siteMode.addMenuItem"
+msgstr "Add the \"Conferences\" item to the primary menu"
+
+msgid "plugins.generic.conferenceManager.siteMode.openPage"
+msgstr "Open the events page of the journal"
+
+msgid "plugins.generic.conferenceManager.siteMode.saved"
+msgstr "Saved."
+
+msgid "plugins.generic.conferenceManager.menu.editions"
+msgstr "Conferences"
+
+msgid "plugins.generic.conferenceManager.menu.editions.description"
+msgstr "A page with the events of the journal: coming and current ones first, then past ones."
+
+msgid "plugins.generic.conferenceManager.editionsPage.title"
+msgstr "Conferences"
+
+msgid "plugins.generic.conferenceManager.editionsPage.empty"
+msgstr "No events yet."
+
+msgid "plugins.generic.conferenceManager.editionsPage.coming"
+msgstr "Coming events"
+
+msgid "plugins.generic.conferenceManager.editionsPage.past"
+msgstr "Past events"
+
+msgid "plugins.generic.conferenceManager.editionsPage.proceedings"
+msgstr "Proceedings"
+
+msgid "plugins.generic.conferenceManager.editionsPage.all"
+msgstr "All events"

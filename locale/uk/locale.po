@@ -5226,3 +5226,54 @@ msgstr "Онлайн-конференція"
 
 msgid "plugins.generic.conference.metadata.conferenceOnline.checkBox"
 msgstr "Це онлайн-конференція"
+
+msgid "plugins.generic.conferenceManager.audit.entity.site_mode"
+msgstr "Публічна частина"
+
+msgid "plugins.generic.conferenceManager.siteMode.title"
+msgstr "Публічна частина"
+
+msgid "plugins.generic.conferenceManager.siteMode.conferenceSite"
+msgstr "Оформити публічну частину журналу як сайт конференцій"
+
+msgid "plugins.generic.conferenceManager.siteMode.description"
+msgstr "У текстах OJS «журнал» стане «конференцією», а «випуск» стане «збірником матеріалів». На головній сторінці з’являться найближчі заходи. Вимкніть, якщо журнал публікує й звичайні випуски."
+
+msgid "plugins.generic.conferenceManager.siteMode.wizardNote"
+msgstr "Тексти OJS говоритимуть про конференцію, а не журнал, і в головному меню з’явиться пункт «Конференції». Це можна змінити пізніше в розділі «Публічна частина»."
+
+msgid "plugins.generic.conferenceManager.siteMode.menuItemPresent"
+msgstr "Пункт «Конференції» вже є в головному меню."
+
+msgid "plugins.generic.conferenceManager.siteMode.addMenuItem"
+msgstr "Додати пункт «Конференції» в головне меню"
+
+msgid "plugins.generic.conferenceManager.siteMode.openPage"
+msgstr "Відкрити сторінку заходів журналу"
+
+msgid "plugins.generic.conferenceManager.siteMode.saved"
+msgstr "Збережено."
+
+msgid "plugins.generic.conferenceManager.menu.editions"
+msgstr "Конференції"
+
+msgid "plugins.generic.conferenceManager.menu.editions.description"
+msgstr "Сторінка з переліком заходів журналу: найближчі й поточні, потім минулі."
+
+msgid "plugins.generic.conferenceManager.editionsPage.title"
+msgstr "Конференції"
+
+msgid "plugins.generic.conferenceManager.editionsPage.empty"
+msgstr "Заходів поки немає."
+
+msgid "plugins.generic.conferenceManager.editionsPage.coming"
+msgstr "Найближчі заходи"
+
+msgid "plugins.generic.conferenceManager.editionsPage.past"
+msgstr "Минулі заходи"
+
+msgid "plugins.generic.conferenceManager.editionsPage.proceedings"
+msgstr "Матеріали"
+
+msgid "plugins.generic.conferenceManager.editionsPage.all"
+msgstr "Усі заходи"
