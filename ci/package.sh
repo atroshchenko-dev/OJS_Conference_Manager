@@ -9,7 +9,7 @@ release="$(sed -n 's:.*<release>\(.*\)</release>.*:\1:p' "$root/version.xml")"
 stage="$(mktemp -d)"
 mkdir -p "$stage/conferenceManager" "$out"
 tar -C "$root" \
-  --exclude=./vendor --exclude=./tests --exclude=./ci --exclude=./.git --exclude=./.github \
+  --exclude=./vendor --exclude=./tests --exclude=./ci --exclude=./tools --exclude=./.git --exclude=./.github \
   --exclude=./dist --exclude=./node_modules --exclude=./composer.lock --exclude=./composer.json --exclude=./phpunit.xml.dist \
   --exclude=./phpstan.neon.dist --exclude=./.php-cs-fixer.dist.php --exclude=./.phpunit.cache \
   -cf - . | tar -C "$stage/conferenceManager" -xf -

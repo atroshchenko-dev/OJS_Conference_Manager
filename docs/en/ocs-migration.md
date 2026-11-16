@@ -10,16 +10,37 @@ A guide for institutions moving from Open Conference Systems (OCS 2.x) to OJS 3.
 
 ## Steps
 
-Work on a **copy** of the OCS database and files, never on the live server.
+Work with a **copy** of the OCS database and files, not with the live server.
 
-1. **Restore an OCS copy.** Load the MySQL dump and the OCS files folder on a separate machine or container with PHP 5.6 and MySQL. Check that the number of papers per edition matches the public site.
-2. **Export the papers.** Use [ocs-to-ojs](https://github.com/pkp/ocs-to-ojs) to get Native XML: the conference becomes a journal, an OCS edition becomes an issue, a track becomes a section.
-3. **Import into a test OJS 3.4.** Use the Native XML command line tool and check that the number of articles and files matches step 1.
-4. **Upgrade the test OJS to 3.5.** Run the standard OJS upgrade.
-5. **Export from 3.5 and import into the live journal.** Do it one issue at a time in quiet hours, on a test installation with the plugin first.
-6. **Match the old addresses.** See "Old addresses" below.
-7. **Set up redirects on the old domain.** See "Redirect map".
-8. **Switch OCS off.** Then watch the server's log for 404 errors for a month.
+1. **Move the papers with the script.** See "Migration script" below. It restores the OCS copy, exports the papers, imports them into OJS 3.4, upgrades to OJS 3.5 and compares the result edition by edition.
+2. **Review the result.** Open the test OJS 3.5 from the script and check a few papers of every edition: titles, authors, abstracts, PDFs.
+3. **Move them into the live journal.** Export the issues from the test OJS 3.5 as Native XML and import them into the live journal one issue at a time, at quiet hours. Do it first on a test copy of the live site with the plugin.
+4. **Match the old addresses.** See "Old addresses" below. The script puts ready lists of papers into `legacy/`.
+5. **Set up redirects on the old domain's server.** See "Redirect map".
+6. **Turn OCS off.** Then watch the server log for 404 errors for a month.
+
+## Migration script
+
+The script `tools/ocs-migration/migrate.sh` is in the plugin's repository (it is not part of the OJS package). Run it on a separate machine with Docker, not on the live server.
+
+```
+tools/ocs-migration/migrate.sh ocs-dump.sql.gz /path/to/ocs-files
+```
+
+- First argument: the OCS database dump (`.sql` or `.sql.gz`).
+- Second argument: the OCS files folder (`files_dir` in OCS `config.inc.php`). Without it the papers move without PDFs: empty placeholders take the files' place, and the comparison shows it.
+- The internet is only needed in the first step, to download OCS 2.3.6 and the [ocs-to-ojs](https://github.com/jonasraoni/ocs-to-ojs) tool at tested versions. Every container with data runs on an internal Docker network without internet access, so the personal data in the dump stays on the machine.
+
+What the script does:
+1. Restores the dump into MariaDB.
+2. Exports the published papers with ocs-to-ojs on PHP 5.6. A conference becomes a journal, an OCS edition becomes an issue, a track becomes a section.
+3. Fixes the issue year: it is taken from the edition's **start** date. ocs-to-ojs itself takes the end date, which OCS sites often set years ahead so that the edition's site stays open. Set `YEAR_FROM=end` to use the end date.
+4. Imports the papers into OJS 3.4. The script fixes a known ocs-to-ojs bug: in the official OJS images Cyrillic text read from the OJS database became an empty string, and no paper was imported.
+5. Upgrades OJS to 3.5.
+6. Compares every edition with OCS: papers, files, and how many files have content. The table is saved in `verify.txt`. On any difference the script ends with an error.
+7. Writes, for every conference, the list of papers for the old addresses (`legacy/{conference}.tsv`).
+
+Result: the container `ocsmig-ojs35` with the test OJS 3.5 (sign in as admin / admin12345) and the database `ojs` in the container `ocsmig-db`. The work folder is `./ocs-migration-work` by default; set `WORK` to change it. After the migration remove the containers and the work folder: they hold personal data.
 
 ## Old addresses
 
@@ -40,6 +61,7 @@ SELECT p.paper_id AS ocs_paper_id,
   JOIN papers p       ON p.paper_id = pp.paper_id
   JOIN sched_confs sc ON sc.sched_conf_id = p.sched_conf_id
   JOIN conferences c  ON c.conference_id = sc.conference_id
+ WHERE p.status = 3  -- published only: published_papers also keeps papers declined later
  ORDER BY p.paper_id;
 ```
 
