@@ -184,10 +184,11 @@ final class BulkDecisionService
     /**
      * @return array<string, mixed>|null
      */
-    public function status(ContextInfo $context, int $batchId, string $locale): ?array
+    public function status(ContextInfo $context, int $batchId, string $locale, ?int $onlyEditorId = null): ?array
     {
         $batch = $this->batches->find($context->id, $batchId);
-        if ($batch === null) {
+        // A section editor sees only the batches they started (security audit 0.33).
+        if ($batch === null || ($onlyEditorId !== null && $batch['editorId'] !== $onlyEditorId)) {
             return null;
         }
         $ids = array_column($batch['items'], 'submissionId');

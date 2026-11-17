@@ -118,7 +118,11 @@ final class DecisionRoutes implements RouteModule
 
     public function getBulkDecision(Request $r): JsonResponse
     {
-        $status = ServiceFactory::bulkDecisions()->status($this->api->contextInfo(), (int) $r->route('batchId'), \PKP\facades\Locale::getLocale());
+        $actor = $this->api->actorId();
+        if ($actor === null) {
+            return ConferenceApiController::forbidden();
+        }
+        $status = ServiceFactory::bulkDecisions()->status($this->api->contextInfo(), (int) $r->route('batchId'), \PKP\facades\Locale::getLocale(), $this->isManager() ? null : $actor);
         return $status === null ? ConferenceApiController::notFound() : response()->json($status, Response::HTTP_OK);
     }
 

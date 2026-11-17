@@ -1,0 +1,12 @@
+# Weekly update proposals for the pinned GitHub Actions and the development
+# tools in composer.json (security audit 0.33). The plugin itself has no
+# runtime dependencies besides OJS.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: composer
+    directory: /
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5

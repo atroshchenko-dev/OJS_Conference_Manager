@@ -1022,6 +1022,7 @@ final class DecisionFlowTest extends TestCase
         self::assertSame('wrong stage', $status['items'][2]['error']);
         self::assertSame('Тези 3', $status['items'][2]['title']);
         self::assertNull($bulk->status(new ContextInfo(2, 'uk', ['uk']), $batch, 'uk'), 'another journal');
+        self::assertNull($bulk->status($this->ctx, $batch, 'uk', 999), 'a section editor sees only own batches');
         self::assertSame([$batch], array_column($bulk->runs($this->ctx, $edition, 'uk') ?? [], 'id'));
     }
 

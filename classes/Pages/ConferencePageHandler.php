@@ -1347,6 +1347,7 @@ class ConferencePageHandler extends Handler
             header('Content-Disposition: inline; filename="program-' . $edition->path . '.pdf"');
             header('Content-Length: ' . strlen($content));
             header('Cache-Control: ' . ($public ? 'public, max-age=300' : 'private, no-store'));
+            header('X-Content-Type-Options: nosniff');
             echo $content;
             exit;
         }
@@ -1385,6 +1386,7 @@ class ConferencePageHandler extends Handler
         header('Content-Disposition: attachment; filename="' . $edition->path . ($sessionId !== null ? '-session-' . $sessionId : '') . ($mine ? '-mine' : '') . '.ics"');
         header('Content-Length: ' . strlen($ics));
         header('Cache-Control: ' . ($public ? 'public, max-age=300' : 'private, no-store'));
+        header('X-Content-Type-Options: nosniff');
         echo $ics;
         exit;
     }
