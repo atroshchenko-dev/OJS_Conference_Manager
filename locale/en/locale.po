@@ -5126,6 +5126,12 @@ msgstr "key saved"
 msgid "plugins.generic.conferenceManager.gateway.sandbox"
 msgstr "Test mode (sandbox): no money is taken, test payments count"
 
+msgid "plugins.generic.conferenceManager.gateway.sandboxWarning"
+msgstr "Test mode is on: anyone can "pay" an invoice with a test card and no money, and the invoice will be marked paid. Turn it off before registration opens."
+
+msgid "plugins.generic.conferenceManager.gateway.sandboxNotice"
+msgstr "Test payment mode: no money is taken."
+
 msgid "plugins.generic.conferenceManager.gateway.currencies"
 msgstr "Currencies of the service:"
 

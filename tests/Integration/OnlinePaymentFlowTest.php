@@ -12,6 +12,7 @@ use APP\plugins\generic\conferenceManager\classes\Application\InstitutionProfile
 use APP\plugins\generic\conferenceManager\classes\Application\InvoiceService;
 use APP\plugins\generic\conferenceManager\classes\Application\OnlinePaymentService;
 use APP\plugins\generic\conferenceManager\classes\Application\ParticipantService;
+use APP\plugins\generic\conferenceManager\classes\Core\SodiumSecretCipher;
 use APP\plugins\generic\conferenceManager\classes\Domain\Institution\InstitutionType;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Gateway\GatewayHttp;
 use APP\plugins\generic\conferenceManager\classes\Domain\Payment\Gateway\GatewayStatus;
@@ -94,6 +95,7 @@ final class OnlinePaymentFlowTest extends TestCase
             $this->invoices,
             $this->http,
             $audit,
+            new SodiumSecretCipher('test-app-key'),
         );
         $this->now = new DateTimeImmutable('2027-02-01T10:00:00Z');
     }
@@ -174,11 +176,29 @@ final class OnlinePaymentFlowTest extends TestCase
         // An empty secret keeps the stored one.
         $e = $this->service->saveSettings($this->ctx, ['gateway' => 'liqpay', 'sandbox' => false, 'values' => ['publicKey' => 'other', 'privateKey' => '']], 1);
         self::assertSame([], $e->toArray());
-        self::assertSame(self::PRIVATE, $this->settings->get(1, OnlinePaymentService::SETTING)['values']['privateKey']);
+        $stored = $this->settings->get(1, OnlinePaymentService::SETTING)['values']['privateKey'];
+        self::assertStringStartsWith('cmenc1:', $stored, 'the private key is stored sealed');
+        self::assertStringNotContainsString(self::PRIVATE, (string) json_encode($this->settings->get(1, OnlinePaymentService::SETTING)));
+        self::assertSame(self::PRIVATE, (new SodiumSecretCipher('test-app-key'))->open($stored));
         self::assertFalse($this->service->isOn(new ContextInfo(2, 'uk', ['uk'])), 'per journal');
 
         $this->service->saveSettings($this->ctx, ['gateway' => ''], 1);
         self::assertFalse($this->service->isOn($this->ctx));
+    }
+
+    public function testPlainKeyFromOlderVersionIsSealedAndForeignKeyIsNotSet(): void
+    {
+        $this->settings->set(1, OnlinePaymentService::SETTING, ['gateway' => 'liqpay', 'sandbox' => true, 'values' => ['publicKey' => self::PUBLIC, 'privateKey' => self::PRIVATE]]);
+        self::assertTrue($this->service->isOn($this->ctx));
+        $stored = $this->settings->get(1, OnlinePaymentService::SETTING)['values'];
+        self::assertSame(self::PUBLIC, $stored['publicKey']);
+        self::assertStringStartsWith('cmenc1:', $stored['privateKey']);
+
+        // Sealed under another installation's app_key: counts as not set.
+        $other = (new SodiumSecretCipher('other-app-key'))->seal(self::PRIVATE);
+        $this->settings->set(1, OnlinePaymentService::SETTING, ['gateway' => 'liqpay', 'sandbox' => true, 'values' => ['publicKey' => self::PUBLIC, 'privateKey' => $other]]);
+        self::assertSame(['privateKey' => false], $this->service->settings($this->ctx)['secretsSet']);
+        self::assertNull((new SodiumSecretCipher('test-app-key'))->open('cmenc1:' . base64_encode(str_repeat('x', 40))));
     }
 
     public function testSignedReportPaysOnce(): void

@@ -492,6 +492,7 @@ class ConferencePageHandler extends Handler
         $proofs = ServiceFactory::proofs();
         $online = ServiceFactory::onlinePayments();
         $cardOn = $online->isOn($info);
+        $cardSandbox = $cardOn && $online->isSandbox($info);
         foreach ($proofs->withProofs($info, ServiceFactory::invoices()->mine($info, (int) $user->getId(), $email, $locale), $locale) as $i) {
             $i['proofs'] = array_map(fn (array $p): array => $p + [
                 'url' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'receipt', [(string) $p['id']]),
@@ -505,6 +506,7 @@ class ConferencePageHandler extends Handler
                 'canEditPayer' => $i['isOpen'] && $i['hasDocument'] && (int) ($i['paid']['minor'] ?? 0) === 0,
                 'cardPayUrl' => $cardOn && $i['mode'] === 'acquiring' && $i['isOpen'] && $online->canPayInvoice($info, (int) $i['id'])
                     ? $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'payment', [(string) $i['id']]) : null,
+                'cardSandbox' => $cardSandbox,
             ];
         }
         $payerFields = ServiceFactory::invoices()->payerFields($info);

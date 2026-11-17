@@ -5126,6 +5126,12 @@ msgstr "ключ збережено"
 msgid "plugins.generic.conferenceManager.gateway.sandbox"
 msgstr "Тестовий режим (пісочниця): гроші не списуються, тестові платежі зараховуються"
 
+msgid "plugins.generic.conferenceManager.gateway.sandboxWarning"
+msgstr "Увімкнено тестовий режим: будь-хто може «оплатити» рахунок тестовою карткою без грошей, і рахунок буде позначено сплаченим. Вимкніть його перед відкриттям реєстрації."
+
+msgid "plugins.generic.conferenceManager.gateway.sandboxNotice"
+msgstr "Тестовий режим оплати: гроші не списуються."
+
 msgid "plugins.generic.conferenceManager.gateway.currencies"
 msgstr "Валюти сервісу:"
 

@@ -177,6 +177,7 @@ final class ServiceFactory
             self::invoices(),
             new OjsGatewayHttp(),
             new AuditLogger($db),
+            new SodiumSecretCipher(),
         );
     }
 

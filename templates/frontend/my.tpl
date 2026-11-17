@@ -99,6 +99,7 @@
 							<form method="post" action="{$i.cardPayUrl|escape}" class="cmInvoice__card">
 								{csrf}
 								<button type="submit" class="cmEdition__button">{translate key="plugins.generic.conferenceManager.gateway.payCard" amount=$i.due.decimal|escape currency=$i.due.currency|escape}</button>
+								{if $i.cardSandbox}<p class="cmInvoice__sandbox">{translate key="plugins.generic.conferenceManager.gateway.sandboxNotice"}</p>{/if}
 							</form>
 						{/if}
 					{/if}
