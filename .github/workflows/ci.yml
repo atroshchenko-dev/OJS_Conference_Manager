@@ -17,7 +17,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with: { php-version: '8.2', tools: composer }
       - run: composer install --no-interaction --no-progress
@@ -34,7 +34,7 @@ jobs:
     # Keys, passwords and tokens must never reach the repository (security audit 0.33).
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0 }
       - name: gitleaks
         run: |
@@ -50,7 +50,7 @@ jobs:
     strategy:
       matrix: { php: ['8.2', '8.3', '8.4'] }
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with: { php-version: '${{ matrix.php }}', extensions: pdo_sqlite, tools: composer }
       - run: composer install --no-interaction --no-progress
@@ -59,7 +59,7 @@ jobs:
   stan-ojs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with: { php-version: '8.3', extensions: bcmath, tools: composer }
       - run: composer install --no-interaction --no-progress
@@ -73,7 +73,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: ci/package.sh dist
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with: { name: package, path: dist/ }
@@ -90,7 +90,7 @@ jobs:
         include:
           - { db: mariadb, ojs: '3_5_0-5' }
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: ci/integration/start-ojs.sh ${{ matrix.db }} ${{ matrix.ojs }}
       - run: ci/integration/run.sh
       - run: ci/integration/api-smoke.sh
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: { contents: write }
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: ci/package.sh dist
       - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
