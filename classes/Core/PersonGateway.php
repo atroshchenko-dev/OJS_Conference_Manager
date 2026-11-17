@@ -14,7 +14,10 @@ use APP\facades\Repo;
 final class PersonGateway
 {
     /**
-     * @return array{userId: int, email: string, givenName: array<string, string>, familyName: array<string, string>,
+     * matchEmail: the address by which existing records may be matched to
+     * the account ('' until it is confirmed, see ServiceFactory::matchEmail).
+     *
+     * @return array{userId: int, email: string, matchEmail: string, givenName: array<string, string>, familyName: array<string, string>,
      *   affiliation: ?string, country: ?string, orcid: ?string, position: ?string}|null
      */
     public function of(int $userId, string $locale, ?string $position = null, ?string $affiliation = null): ?array
@@ -34,6 +37,7 @@ final class PersonGateway
         return [
             'userId' => $userId,
             'email' => (string) $user->getEmail(),
+            'matchEmail' => ServiceFactory::matchEmail($user),
             'givenName' => $strings($user->getData('givenName')),
             'familyName' => $strings($user->getData('familyName')),
             'affiliation' => $affiliation,

@@ -336,6 +336,30 @@ final class ServiceFactory
         );
     }
 
+    public static function emailClaims(): \APP\plugins\generic\conferenceManager\classes\Application\EmailClaimService
+    {
+        return new \APP\plugins\generic\conferenceManager\classes\Application\EmailClaimService(
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEmailClaimRepository(DB::connection()),
+        );
+    }
+
+    /**
+     * The address by which records of the plugin are matched to this
+     * account: its email once OJS has validated it or the person has
+     * confirmed it through the plugin, '' before that (security audit 0.33).
+     */
+    public static function matchEmail(\PKP\user\User $user): string
+    {
+        return self::emailClaims()->matchEmail((int) $user->getId(), (string) $user->getEmail(), self::emailValidatedByOjs($user));
+    }
+
+    /** OJS has confirmed the account's address (config require_validation). */
+    public static function emailValidatedByOjs(\PKP\user\User $user): bool
+    {
+        // getDateValidated() is documented as string, but is null until validation.
+        return $user->getData('dateValidated') !== null;
+    }
+
     public static function participantRepository(): DbParticipantRepository
     {
         return new DbParticipantRepository(DB::connection());

@@ -113,7 +113,7 @@ final class PrivacyRoutes implements RouteModule
     {
         $userId = (int) $this->api->actorId();
         $person = (new PersonGateway())->of($userId, \PKP\facades\Locale::getLocale());
-        return self::file(ServiceFactory::personalData()->export($this->api->contextInfo(), $userId, (string) ($person['email'] ?? ''), $userId, self::now()));
+        return self::file(ServiceFactory::personalData()->export($this->api->contextInfo(), $userId, (string) ($person['matchEmail'] ?? ''), $userId, self::now()));
     }
 
     /** @param array<string, mixed> $data */

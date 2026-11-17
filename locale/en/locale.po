@@ -5283,3 +5283,29 @@ msgstr "Proceedings"
 
 msgid "plugins.generic.conferenceManager.editionsPage.all"
 msgstr "All events"
+
+msgid "plugins.generic.conferenceManager.claim.notice"
+msgstr "This journal has event participation records for {$email} that your cabinet does not show yet. To see them, confirm that this address is yours: we will send a letter with a link to it."
+
+msgid "plugins.generic.conferenceManager.claim.button"
+msgstr "Send a confirmation letter"
+
+msgid "plugins.generic.conferenceManager.claim.sent"
+msgstr "A letter with a link has been sent to {$email}. Open the link while signed in to this same account."
+
+msgid "plugins.generic.conferenceManager.claim.wait"
+msgstr "A letter to {$email} was sent a short while ago. Check your mail (and the spam folder) or try again in a few minutes."
+
+msgid "plugins.generic.conferenceManager.claim.done"
+msgstr "The address is confirmed: participation records, invoices and documents for it are now shown in your cabinet."
+
+msgid "plugins.generic.conferenceManager.claim.failed"
+msgstr "The link did not work: it has expired, has been used already or was opened in another account. Send a new letter."
+
+msgid "plugins.generic.conferenceManager.claim.mail.subject"
+msgstr "Confirm your address in the participant cabinet — {$contextName}"
+
+msgid "plugins.generic.conferenceManager.claim.mail.body"
+msgstr "You asked to see in your participant cabinet the event participation records of \"{$contextName}\" made for this address.\n\nTo confirm that the address is yours, open the link while signed in to the same account:\n{$url}\n\nThe link works for {$days} days. If you did not ask for this, just ignore this letter."
+
+

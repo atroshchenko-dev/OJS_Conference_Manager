@@ -68,8 +68,11 @@ final class DbParticipantRepository implements ParticipantRepository
                     return null;
                 }
                 // The person registers themselves: this is their confirmation and consent.
+                // A record made for this address earlier goes to the account only
+                // once the account's address is confirmed (security audit 0.33).
+                $mayLink = !array_key_exists('matchEmail', $person) || $person['matchEmail'] !== '';
                 $this->db->table('conf_participants')->where('id', $participantId)->update(array_filter([
-                    'user_id' => $row->user_id ?? $person['userId'],
+                    'user_id' => $row->user_id ?? ($mayLink ? $person['userId'] : null),
                     'affiliation' => self::cut($person['affiliation']) ?? $row->affiliation,
                     'position' => self::cut($person['position']) ?? $row->position,
                     'category_id' => $categoryId ?? $row->category_id,

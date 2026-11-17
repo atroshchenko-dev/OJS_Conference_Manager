@@ -96,7 +96,7 @@ final class MyParticipationRoutes implements RouteModule
         $items = ServiceFactory::participants()->myParticipations(
             $this->api->contextInfo(),
             $userId,
-            $person['email'] ?? '',
+            $person['matchEmail'] ?? '',
             \PKP\facades\Locale::getLocale(),
             new DateTimeImmutable('now', new DateTimeZone('UTC')),
         );
@@ -111,7 +111,7 @@ final class MyParticipationRoutes implements RouteModule
             $this->api->contextInfo(),
             (int) $r->route('participationId'),
             $userId,
-            $person['email'] ?? '',
+            $person['matchEmail'] ?? '',
             false,
             new DateTimeImmutable('now', new DateTimeZone('UTC')),
             $this->api->remoteAddr(),
@@ -125,7 +125,7 @@ final class MyParticipationRoutes implements RouteModule
         $locale = \PKP\facades\Locale::getLocale();
         $person = (new PersonGateway())->of($userId, $locale);
         $context = $this->api->contextInfo();
-        $items = ServiceFactory::proofs()->withProofs($context, ServiceFactory::invoices()->mine($context, $userId, $person['email'] ?? '', $locale), $locale);
+        $items = ServiceFactory::proofs()->withProofs($context, ServiceFactory::invoices()->mine($context, $userId, $person['matchEmail'] ?? '', $locale), $locale);
         return response()->json(['items' => $items, 'itemsMax' => count($items)], Response::HTTP_OK);
     }
 
@@ -133,7 +133,7 @@ final class MyParticipationRoutes implements RouteModule
     {
         $userId = (int) $this->api->actorId();
         $person = (new PersonGateway())->of($userId, \PKP\facades\Locale::getLocale());
-        return InvoiceRoutes::pdfResponse((int) $r->route('invoiceId'), $this->api, [$userId, $person['email'] ?? '']);
+        return InvoiceRoutes::pdfResponse((int) $r->route('invoiceId'), $this->api, [$userId, $person['matchEmail'] ?? '']);
     }
 
     public function addMyProof(Request $r): JsonResponse
@@ -153,7 +153,7 @@ final class MyParticipationRoutes implements RouteModule
             $this->api->contextInfo(),
             (int) $r->route('invoiceId'),
             $userId,
-            $person['email'] ?? '',
+            $person['matchEmail'] ?? '',
             (string) $file->getRealPath(),
             (string) $file->getClientOriginalName(),
             new DateTimeImmutable('now', new DateTimeZone('UTC')),
@@ -173,7 +173,7 @@ final class MyParticipationRoutes implements RouteModule
     {
         $userId = (int) $this->api->actorId();
         $person = (new PersonGateway())->of($userId, \PKP\facades\Locale::getLocale());
-        return InvoiceRoutes::proofFileResponse($this->api, (int) $r->route('proofId'), [$userId, $person['email'] ?? '']);
+        return InvoiceRoutes::proofFileResponse($this->api, (int) $r->route('proofId'), [$userId, $person['matchEmail'] ?? '']);
     }
 
     private static function text(mixed $value): ?string
