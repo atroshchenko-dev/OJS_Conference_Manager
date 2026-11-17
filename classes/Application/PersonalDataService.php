@@ -102,17 +102,19 @@ final class PersonalDataService
     /**
      * DAT-03: everything the plugin keeps about the person in this journal.
      * The person asks for their own data; a manager by an email address.
+     * $accountEmail: the address shown in the export when records are
+     * matched by the account id only (its address is not confirmed yet).
      *
      * @return array<string, mixed>
      */
-    public function export(ContextInfo $context, ?int $userId, string $email, ?int $actorId, DateTimeImmutable $now): array
+    public function export(ContextInfo $context, ?int $userId, string $email, ?int $actorId, DateTimeImmutable $now, ?string $accountEmail = null): array
     {
         $ids = $this->data->participantsOf($context->id, $userId, $email);
         $this->audit?->log($context->id, $actorId, 'personal_data', null, 'export', null, ['participants' => $ids]);
         return [
             'exportedAt' => $now->format(DATE_ATOM),
             'context' => $context->id,
-            'person' => ['userId' => $userId, 'email' => mb_strtolower(trim($email))],
+            'person' => ['userId' => $userId, 'email' => mb_strtolower(trim($accountEmail ?? $email))],
             'participantIds' => $ids,
             'data' => $this->data->export($ids),
         ];

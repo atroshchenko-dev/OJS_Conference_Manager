@@ -22,15 +22,15 @@ $roleNames = [
 ];
 $submissionActions = [];
 foreach (glob("$root/classes/Api/*Routes.php") ?: [] as $file) {
-    if (preg_match("/SUBMISSION_ACTIONS = \\[([^\\]]*)\\]/", (string) file_get_contents($file), $m)) {
+    if (preg_match('/SUBMISSION_ACTIONS = \\[([^\\]]*)\\]/', (string) file_get_contents($file), $m)) {
         preg_match_all("/'(\\w+)'/", $m[1], $a);
         $submissionActions = [...$submissionActions, ...$a[1]];
     }
 }
 
-$out = ["# Маршрути REST API плагіна", "",
-    "Створено скриптом `ci/routes-table.php` — не редагуйте вручну. Усі маршрути мають префікс `/{журнал}/api/v1/conference/` і вимагають входу (`has.user`) та журналу (`has.context`). «Ролі» — ролі OJS у журналі, які пропускає проміжний шар; «Перевірка в дії» — що дія перевіряє сама.", "",
-    "| Модуль | Метод | Шлях | Ролі | Перевірка в дії |", "|---|---|---|---|---|"];
+$out = ['# Маршрути REST API плагіна', '',
+    'Створено скриптом `ci/routes-table.php` — не редагуйте вручну. Усі маршрути мають префікс `/{журнал}/api/v1/conference/` і вимагають входу (`has.user`) та журналу (`has.context`). «Ролі» — ролі OJS у журналі, які пропускає проміжний шар; «Перевірка в дії» — що дія перевіряє сама.', '',
+    '| Модуль | Метод | Шлях | Ролі | Перевірка в дії |', '|---|---|---|---|---|'];
 $count = 0;
 foreach (glob("$root/classes/Api/*Routes.php") ?: [] as $file) {
     $src = (string) file_get_contents($file);
@@ -46,9 +46,9 @@ foreach (glob("$root/classes/Api/*Routes.php") ?: [] as $file) {
     foreach ($vars as $v) {
         $prefix[$v[1]] = $v[2];
     }
-    preg_match_all("/Route::(get|post|put|delete)\\((.+?),\\s*\\\$this->(\\w+)\\(\\.\\.\\.\\)\\)/", $src, $routes, PREG_SET_ORDER);
+    preg_match_all('/Route::(get|post|put|delete)\\((.+?),\\s*\\$this->(\\w+)\\(\\.\\.\\.\\)\\)/', $src, $routes, PREG_SET_ORDER);
     foreach ($routes as [$all, $verb, $path, $method]) {
-        $path = (string) preg_replace_callback("/\\$(\\w+)/", static fn (array $x): string => $prefix[$x[1]] ?? $x[0], $path);
+        $path = (string) preg_replace_callback('/\$(\\w+)/', static fn (array $x): string => $prefix[$x[1]] ?? $x[0], $path);
         $path = str_replace(["'", ' . '], '', trim($path));
         $body = preg_match('/function ' . $method . '\b.*?\n    \}\n/s', $src, $b) ? $b[0] : '';
         $checks = [];

@@ -756,6 +756,26 @@ wait
 rm -f /tmp/cm-num-*.txt
 ok "100 invoice numbers from 10 parallel processes: 1…100"
 
+# Security audit 0.33: a record made for an address before the account existed
+# is shown to a new account with that address only after the address is confirmed.
+lc add-listener confa "$lid" claimer1@example.org '' >/dev/null
+lc new-user confa claimer1 claimer1@example.org >/dev/null
+cj="$(mktemp)"; login "$cj" claimer1
+[ "$(curl -s -b "$cj" "$api/me/participations" | j 'd["itemsMax"]')" = 0 ] || fail "an unconfirmed address must not show someone's records"
+[ "$(curl -s -b "$cj" "$api/me/personal-data" | j 'd["participantIds"], d["person"]["email"]')" = "([], 'claimer1@example.org')" ] || fail "nor export them"
+cmy="$(curl -s -L -c "$cj" -b "$cj" "$B/confa/uk/conference/my")"
+grep -q 'name="claimEmail"' <<<"$cmy" || fail "the cabinet offers to confirm the address"
+ctok="$(sed -n 's/.*name="csrfToken" value="\([^"]*\)".*/\1/p' <<<"$cmy" | head -1)"
+grep -q 'claimer1@example.org' <<<"$(curl -s -L -c "$cj" -b "$cj" "$B/confa/uk/conference/my" --data "csrfToken=$ctok&claimEmail=1")" || fail "the letter is sent"
+[ "$(docker exec ojsdb sh -c 'command -v mariadb >/dev/null && mariadb -uojs -pojs -N -e "select count(*) from conf_email_claims where token_hash is not null" ojs || psql -U ojs -d ojs -tAc "select count(*) from conf_email_claims where token_hash is not null"' | tr -d ' ')" = 1 ] || fail "one pending confirmation"
+[[ "$(curl -s -L -c "$cj" -b "$cj" -o /dev/null -w '%{url_effective}' "$B/confa/uk/conference/my?claim=wrong")" == *claimed=0* ]] || fail "a wrong link"
+ctoken="$(lc claim-token claimer1 | tail -1)"
+[[ "$(curl -s -L -c "$cj" -b "$cj" -o /dev/null -w '%{url_effective}' "$B/confa/uk/conference/my?claim=$ctoken")" == *claimed=1* ]] || fail "the link from the letter"
+[ "$(curl -s -b "$cj" "$api/me/participations" | j 'd["itemsMax"]')" = 1 ] || fail "the record is shown after confirmation"
+grep -q 'name="claimEmail"' <<<"$(curl -s -L -b "$cj" "$B/confa/uk/conference/my")" && fail "nothing left to confirm"
+rm -f "$cj"
+ok "security: records for an address only after the address is confirmed"
+
 modal="$B/confa/\$\$\$call\$\$\$/grid/settings/plugins/settings-plugin-grid/manage?verb=institution&plugin=conferencemanagerplugin&category=generic"
 curl -s -b "$jar" "$modal" | j 'd["status"] and "paymentAccounts[0][iban]" in d["content"]' | grep -q True || fail "settings modal"
 ok "settings modal"

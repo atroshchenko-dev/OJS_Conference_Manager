@@ -79,6 +79,8 @@ If in-person seats are limited and have run out, the registration page warns you
 
 ## The participant cabinet
 
+If a record of your participation was made before you had an account (a manager invited you by email, imported an attendance list or you were named as a co-author), the cabinet shows it only after you confirm that the address is yours: press **Send a confirmation letter** and open the link from the letter while signed in to the same account. The link works for 7 days. Without this step anyone could create an account with your address and see your invoices and documents. When the site itself requires email validation at registration, no extra letter is needed.
+
 Open `/{journal}/conference/my`. It shows all your participations in events of this journal, as a listener, presenter or co-author, with the role, category, form of participation, confirmation state and submission.
 
 ### Entry ticket
