@@ -6,12 +6,16 @@ namespace APP\plugins\generic\conferenceManager\classes\Core;
 
 use APP\plugins\generic\conferenceManager\classes\Application\BookPdfRenderer;
 use APP\plugins\generic\conferenceManager\classes\Application\PdfRenderer;
+use Mpdf\Container\SimpleContainer;
+use Mpdf\File\LocalContentLoaderInterface;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
 
 /**
  * PDF through mPDF, which OJS ships, with its DejaVu fonts for Cyrillic.
- * Remote resources are not fetched: the document is built from text only.
+ * Neither remote nor local files are read: the document is built from text
+ * and data: URIs (the QR code) only, so a template edited by a manager
+ * cannot pull a file of the server or of another journal into a PDF.
  */
 final class MpdfRenderer implements PdfRenderer, BookPdfRenderer
 {
@@ -52,7 +56,12 @@ final class MpdfRenderer implements PdfRenderer, BookPdfRenderer
             'tempDir' => $tmp,
             'curlAllowUnsafeSslRequests' => false,
             'whitelistStreamWrappers' => [],
-        ]);
+        ], new SimpleContainer(['localContentLoader' => new class () implements LocalContentLoaderInterface {
+            public function load($path)
+            {
+                return null;
+            }
+        }]));
         $mpdf->SetTitle($title);
         $mpdf->SetCreator('OJS Conference Manager');
         $mpdf->WriteHTML($html);

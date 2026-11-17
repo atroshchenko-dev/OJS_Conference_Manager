@@ -11,8 +11,8 @@
 <version>
 	<application>conferenceManager</application>
 	<type>plugins.generic</type>
-	<release>0.32.1.1</release>
-	<date>2026-11-16</date>
+	<release>0.33.0.0</release>
+	<date>2026-11-17</date>
 	<lazy-load>1</lazy-load>
 	<class>ConferenceManagerPlugin</class>
 </version>

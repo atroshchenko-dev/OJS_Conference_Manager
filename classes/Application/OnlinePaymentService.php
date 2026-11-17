@@ -40,6 +40,7 @@ final class OnlinePaymentService
         private readonly InvoiceService $invoices,
         private readonly ?GatewayHttp $http = null,
         private readonly ?AuditLogger $audit = null,
+        private readonly ?SecretCipher $cipher = null,
     ) {
     }
 
@@ -115,7 +116,7 @@ final class OnlinePaymentService
             return $errors;
         }
         $sandbox = filter_var($input['sandbox'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $this->settings->set($context->id, self::SETTING, ['gateway' => $id, 'sandbox' => $sandbox, 'values' => $values]);
+        $this->settings->set($context->id, self::SETTING, ['gateway' => $id, 'sandbox' => $sandbox, 'values' => $this->sealSecrets($gateway, $values)]);
         $public = array_intersect_key($values, array_flip(array_map(static fn (array $f): string => $f['name'], array_filter($gateway->fields(), static fn (array $f): bool => !$f['secret']))));
         $this->audit?->log($context->id, $actorId, 'payment_gateway', null, 'update', null, ['gateway' => $id, 'sandbox' => $sandbox] + $public);
         return $errors;
@@ -125,6 +126,12 @@ final class OnlinePaymentService
     public function isOn(ContextInfo $context): bool
     {
         return $this->active($context) !== null;
+    }
+
+    /** Card payment is set up in test mode: test payments mark invoices paid. */
+    public function isSandbox(ContextInfo $context): bool
+    {
+        return ($this->active($context)[1] ?? null)?->sandbox === true;
     }
 
     /** The participant can pay this invoice by card now. */
@@ -334,15 +341,52 @@ final class OnlinePaymentService
         $raw = $this->settings->get($context->id, self::SETTING);
         $raw = is_array($raw) ? $raw : [];
         $values = [];
+        $plainSecret = false;
         foreach ((array) ($raw['values'] ?? []) as $k => $v) {
             if (is_string($k) && is_scalar($v)) {
-                $values[$k] = (string) $v;
+                $v = (string) $v;
+                if ($this->cipher !== null && str_starts_with($v, SecretCipher::PREFIX)) {
+                    // A key sealed under another app_key cannot be opened:
+                    // it counts as not set and the manager enters it again.
+                    $v = $this->cipher->open($v) ?? '';
+                } elseif ($v !== '') {
+                    $plainSecret = true;
+                }
+                $values[$k] = $v;
+            }
+        }
+        $gateway = is_string($raw['gateway'] ?? null) && $raw['gateway'] !== '' ? $raw['gateway'] : null;
+        $sandbox = filter_var($raw['sandbox'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        // Secrets saved before 0.33 were stored as plain text: seal them now.
+        $known = $gateway === null ? null : $this->gateways->get($gateway);
+        if ($plainSecret && $this->cipher !== null && $known !== null) {
+            $sealed = $this->sealSecrets($known, $values);
+            if ($sealed !== $values) {
+                $this->settings->set($context->id, self::SETTING, ['gateway' => $gateway, 'sandbox' => $sandbox, 'values' => $sealed]);
             }
         }
         return [
-            'gateway' => is_string($raw['gateway'] ?? null) && $raw['gateway'] !== '' ? $raw['gateway'] : null,
-            'sandbox' => filter_var($raw['sandbox'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'gateway' => $gateway,
+            'sandbox' => $sandbox,
             'values' => $values,
         ];
+    }
+
+    /**
+     * @param array<string, string> $values plain values
+     * @return array<string, string> the same with secret fields sealed
+     */
+    private function sealSecrets(PaymentGateway $gateway, array $values): array
+    {
+        if ($this->cipher === null) {
+            return $values;
+        }
+        foreach ($gateway->fields() as $f) {
+            $v = $values[$f['name']] ?? '';
+            if ($f['secret'] && $v !== '' && !str_starts_with($v, SecretCipher::PREFIX)) {
+                $values[$f['name']] = $this->cipher->seal($v);
+            }
+        }
+        return $values;
     }
 }

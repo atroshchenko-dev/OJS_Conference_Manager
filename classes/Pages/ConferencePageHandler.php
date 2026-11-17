@@ -415,7 +415,16 @@ class ConferencePageHandler extends Handler
         $locale = Locale::getLocale();
         $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
         $service = ServiceFactory::participants();
-        $email = (string) $user->getEmail();
+        // Security audit 0.33: records made for the account's address before
+        // it existed are shown after the address is confirmed by a link.
+        $claims = ServiceFactory::emailClaims();
+        $ownEmail = (string) $user->getEmail();
+        $claimToken = $request->getUserVar('claim');
+        if (is_string($claimToken) && $claimToken !== '' && !$request->isPost()) {
+            $claimed = $claims->confirm((int) $user->getId(), $ownEmail, $claimToken, $now);
+            $request->redirectUrl($dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my', null, ['claimed' => $claimed ? 1 : 0]));
+        }
+        $email = ServiceFactory::matchEmail($user);
 
         $message = null;
         if ($request->getUserVar('registered')) {
@@ -425,6 +434,20 @@ class ConferencePageHandler extends Handler
         if ($request->isPost()) {
             if (!$request->checkCSRF()) {
                 $message = ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.confirm.retry')];
+            } elseif ($request->getUserVar('claimEmail')) {
+                $token = $claims->request((int) $user->getId(), $ownEmail, $now);
+                if ($token !== null) {
+                    $link = $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'my', null, ['claim' => $token]);
+                    (new \APP\plugins\generic\conferenceManager\classes\Core\MailGateway())->sendText(
+                        $info,
+                        __('plugins.generic.conferenceManager.claim.mail.subject', ['contextName' => (string) $context->getLocalizedName()]),
+                        __('plugins.generic.conferenceManager.claim.mail.body', ['url' => $link, 'contextName' => (string) $context->getLocalizedName(), 'days' => (string) \APP\plugins\generic\conferenceManager\classes\Application\EmailClaimService::TOKEN_DAYS]),
+                        $ownEmail,
+                        $user->getFullName(),
+                        [],
+                    );
+                }
+                $message = ['type' => 'status', 'text' => __($token === null ? 'plugins.generic.conferenceManager.claim.wait' : 'plugins.generic.conferenceManager.claim.sent', ['email' => $ownEmail])];
             } elseif ($request->getUserVar('payerInvoiceId')) {
                 // JUR-05: who pays the invoice.
                 $errors = ServiceFactory::invoices()->savePayerDetails($info, (int) $request->getUserVar('payerInvoiceId'), (int) $user->getId(), $email, [
@@ -457,6 +480,10 @@ class ConferencePageHandler extends Handler
                 }
                 $message = ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.participation.error.' . $out['result'])];
             }
+        } elseif ($request->getUserVar('claimed') !== null) {
+            $message = $request->getUserVar('claimed') === '1'
+                ? ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.claim.done')]
+                : ['type' => 'alert', 'text' => __('plugins.generic.conferenceManager.claim.failed')];
         } elseif ($request->getUserVar('payer')) {
             $message = ['type' => 'status', 'text' => __('plugins.generic.conferenceManager.payer.saved')];
         } elseif ($request->getUserVar('promo')) {
@@ -492,6 +519,7 @@ class ConferencePageHandler extends Handler
         $proofs = ServiceFactory::proofs();
         $online = ServiceFactory::onlinePayments();
         $cardOn = $online->isOn($info);
+        $cardSandbox = $cardOn && $online->isSandbox($info);
         foreach ($proofs->withProofs($info, ServiceFactory::invoices()->mine($info, (int) $user->getId(), $email, $locale), $locale) as $i) {
             $i['proofs'] = array_map(fn (array $p): array => $p + [
                 'url' => $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'receipt', [(string) $p['id']]),
@@ -505,6 +533,7 @@ class ConferencePageHandler extends Handler
                 'canEditPayer' => $i['isOpen'] && $i['hasDocument'] && (int) ($i['paid']['minor'] ?? 0) === 0,
                 'cardPayUrl' => $cardOn && $i['mode'] === 'acquiring' && $i['isOpen'] && $online->canPayInvoice($info, (int) $i['id'])
                     ? $dispatcher->url($request, Application::ROUTE_PAGE, $context->getPath(), self::PAGE, 'payment', [(string) $i['id']]) : null,
+                'cardSandbox' => $cardSandbox,
             ];
         }
         $payerFields = ServiceFactory::invoices()->payerFields($info);
@@ -557,6 +586,7 @@ class ConferencePageHandler extends Handler
         $templateMgr->addHeader('conferenceMyNoIndex', '<meta name="robots" content="noindex">', ['contexts' => 'frontend']);
         $templateMgr->assign([
             'myItems' => $items,
+            'myClaimEmail' => $claims->hasUnclaimed($info, (int) $user->getId(), $ownEmail, ServiceFactory::emailValidatedByOjs($user)) ? $ownEmail : '',
             // Replaced and cancelled invoices go last, folded away: they are history, not something to pay.
             'myInvoices' => array_merge(
                 array_values(array_filter($invoices, static fn (array $i): bool => !in_array($i['status'], ['superseded', 'cancelled'], true))),
@@ -675,7 +705,7 @@ class ConferencePageHandler extends Handler
         }
         $info = ContextGateway::fromContext($context);
         $manager = (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId());
-        $file = ServiceFactory::proofs()->file($info, (int) ($args[0] ?? 0), $manager ? null : [(int) $user->getId(), (string) $user->getEmail()]);
+        $file = ServiceFactory::proofs()->file($info, (int) ($args[0] ?? 0), $manager ? null : [(int) $user->getId(), ServiceFactory::matchEmail($user)]);
         if ($file === null) {
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
@@ -743,7 +773,7 @@ class ConferencePageHandler extends Handler
             $info,
             $invoiceId,
             (int) $user->getId(),
-            (string) $user->getEmail(),
+            ServiceFactory::matchEmail($user),
             $description,
             static fn (string $orderId): string => $page,
             str_replace('__gateway__', rawurlencode($gatewayId), $callback),
@@ -788,7 +818,7 @@ class ConferencePageHandler extends Handler
         $service = ServiceFactory::invoices();
         $invoice = $service->find($info, (int) ($args[0] ?? 0));
         $allowed = $invoice !== null && (
-            $service->isPayer($invoice, (int) $user->getId(), (string) $user->getEmail())
+            $service->isPayer($invoice, (int) $user->getId(), ServiceFactory::matchEmail($user))
             || (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId())
         );
         $pdf = $allowed ? ServiceFactory::invoiceDocuments()->pdf($info, $invoice) : null;
@@ -822,7 +852,7 @@ class ConferencePageHandler extends Handler
         }
         $info = ContextGateway::fromContext($context);
         $manager = (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId());
-        $owner = $manager ? null : $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail());
+        $owner = $manager ? null : $this->ownParticipantIds($info, (int) $user->getId(), ServiceFactory::matchEmail($user));
         $lang = $request->getUserVar('lang');
         $pdf = ServiceFactory::certificates()->pdf($info, (int) ($args[0] ?? 0), $owner, is_string($lang) && preg_match('/^[a-z]{2}$/', $lang) === 1 ? $lang : null);
         if ($pdf === null) {
@@ -856,7 +886,7 @@ class ConferencePageHandler extends Handler
         }
         $info = ContextGateway::fromContext($context);
         $manager = (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId());
-        $owner = $manager ? null : $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail());
+        $owner = $manager ? null : $this->ownParticipantIds($info, (int) $user->getId(), ServiceFactory::matchEmail($user));
         $lang = $request->getUserVar('lang');
         $pdf = ServiceFactory::invitationLetters()->pdf($info, (int) ($args[0] ?? 0), $owner, is_string($lang) ? $lang : substr(Locale::getLocale(), 0, 2), new DateTimeImmutable('now', new DateTimeZone('UTC')));
         if ($pdf === null) {
@@ -897,7 +927,7 @@ class ConferencePageHandler extends Handler
         $locale = Locale::getLocale();
         $service = ServiceFactory::attendance();
         $manager = (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId());
-        if (!$manager && !$service->chairs($sessionId, $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail()))) {
+        if (!$manager && !$service->chairs($sessionId, $this->ownParticipantIds($info, (int) $user->getId(), ServiceFactory::matchEmail($user)))) {
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
         $sheet = $service->sessionSheet($info, $editionId, $sessionId, $locale);
@@ -1043,7 +1073,7 @@ class ConferencePageHandler extends Handler
             throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
         $manager = (new \APP\plugins\generic\conferenceManager\classes\Core\UserGroupGateway($this->plugin))->canManageRegistrations($info->id, (int) $user->getId());
-        $mine = $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail());
+        $mine = $this->ownParticipantIds($info, (int) $user->getId(), ServiceFactory::matchEmail($user));
         $chaired = array_values(array_filter($card['sessions'], static fn (array $s): bool => array_intersect($s['chairs'], $mine) !== []));
         $owner = in_array($card['participantId'], $mine, true);
         if (!$manager && $chaired === [] && !$owner) {
@@ -1232,7 +1262,7 @@ class ConferencePageHandler extends Handler
                 $personal->pick($info, (int) $edition->id, $sid, (int) $user->getId(), $request->getUserVar('pick') === '1', $now);
                 $request->redirectUrl($programUrl . ($request->getUserVar('mine') ? '?mine=1' : '') . '#cm-session-' . $sid);
             }
-            $mine = $personal->mine($edition, (int) $user->getId(), $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail()));
+            $mine = $personal->mine($edition, (int) $user->getId(), $this->ownParticipantIds($info, (int) $user->getId(), ServiceFactory::matchEmail($user)));
         }
         $onlyMine = $user !== null && $public && (bool) $request->getUserVar('mine');
 
@@ -1317,6 +1347,7 @@ class ConferencePageHandler extends Handler
             header('Content-Disposition: inline; filename="program-' . $edition->path . '.pdf"');
             header('Content-Length: ' . strlen($content));
             header('Cache-Control: ' . ($public ? 'public, max-age=300' : 'private, no-store'));
+            header('X-Content-Type-Options: nosniff');
             echo $content;
             exit;
         }
@@ -1342,7 +1373,7 @@ class ConferencePageHandler extends Handler
         if ($mine) {
             // PRG-09: the person's own program; private, so never cached.
             $user = $request->getUser() ?? throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
-            $only = array_keys(ServiceFactory::personalProgram()->mine($edition, (int) $user->getId(), $this->ownParticipantIds($info, (int) $user->getId(), (string) $user->getEmail())));
+            $only = array_keys(ServiceFactory::personalProgram()->mine($edition, (int) $user->getId(), $this->ownParticipantIds($info, (int) $user->getId(), ServiceFactory::matchEmail($user))));
             $public = false;
         }
         $contextPath = (string) $request->getContext()?->getPath();
@@ -1355,6 +1386,7 @@ class ConferencePageHandler extends Handler
         header('Content-Disposition: attachment; filename="' . $edition->path . ($sessionId !== null ? '-session-' . $sessionId : '') . ($mine ? '-mine' : '') . '.ics"');
         header('Content-Length: ' . strlen($ics));
         header('Cache-Control: ' . ($public ? 'public, max-age=300' : 'private, no-store'));
+        header('X-Content-Type-Options: nosniff');
         echo $ics;
         exit;
     }
@@ -1366,7 +1398,7 @@ class ConferencePageHandler extends Handler
         if ($user === null) {
             return false;
         }
-        foreach (ServiceFactory::participantRepository()->ofPerson($info->id, (int) $user->getId(), (string) $user->getEmail()) as $p) {
+        foreach (ServiceFactory::participantRepository()->ofPerson($info->id, (int) $user->getId(), ServiceFactory::matchEmail($user)) as $p) {
             if ($p['editionId'] === $edition->id && $p['status'] === \APP\plugins\generic\conferenceManager\classes\Domain\Registration\ParticipationStatus::Active->value) {
                 return true;
             }
@@ -1550,7 +1582,7 @@ class ConferencePageHandler extends Handler
         }
         $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
         $found = null;
-        foreach (ServiceFactory::participants()->myParticipations($info, (int) $user->getId(), (string) $user->getEmail(), $locale, $now) as $p) {
+        foreach (ServiceFactory::participants()->myParticipations($info, (int) $user->getId(), ServiceFactory::matchEmail($user), $locale, $now) as $p) {
             if ((string) $p['editionPath'] === $editionPath && in_array($p['status'], ['active', 'waitlisted'], true)) {
                 $found = $found === 'active' ? 'active' : (string) $p['status'];
             }

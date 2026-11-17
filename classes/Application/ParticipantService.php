@@ -194,7 +194,7 @@ final class ParticipantService
     /**
      * REG-05: a logged-in person registers as a listener.
      *
-     * @param array{userId: int, email: string, givenName: array<string, string>, familyName: array<string, string>,
+     * @param array{userId: int, email: string, matchEmail?: string, givenName: array<string, string>, familyName: array<string, string>,
      *   affiliation: ?string, country: ?string, orcid: ?string, position: ?string} $person
      * @param array{categoryId?: mixed, participationForm?: mixed, consent?: mixed, minor?: mixed, guardianConsent?: mixed, promoCode?: mixed} $input
      * @return array{0: array{participantId: int, participationId: int, status: string, promoLost?: bool}|null, 1: ValidationErrors}

@@ -11,6 +11,14 @@
 		<p class="cmConfirm__result" role="{$myMessage.type|escape}">{$myMessage.text|escape}</p>
 	{/if}
 
+	{if $myClaimEmail}
+		<form method="post" action="{$myUrl|escape}" class="cmClaim">
+			{csrf}
+			<p>{translate key="plugins.generic.conferenceManager.claim.notice" email=$myClaimEmail|escape}</p>
+			<button type="submit" name="claimEmail" value="1" class="cmEdition__button">{translate key="plugins.generic.conferenceManager.claim.button"}</button>
+		</form>
+	{/if}
+
 	{if !$myItems}
 		<p>{translate key="plugins.generic.conferenceManager.my.empty"}</p>
 	{else}
@@ -99,6 +107,7 @@
 							<form method="post" action="{$i.cardPayUrl|escape}" class="cmInvoice__card">
 								{csrf}
 								<button type="submit" class="cmEdition__button">{translate key="plugins.generic.conferenceManager.gateway.payCard" amount=$i.due.decimal|escape currency=$i.due.currency|escape}</button>
+								{if $i.cardSandbox}<p class="cmInvoice__sandbox">{translate key="plugins.generic.conferenceManager.gateway.sandboxNotice"}</p>{/if}
 							</form>
 						{/if}
 					{/if}

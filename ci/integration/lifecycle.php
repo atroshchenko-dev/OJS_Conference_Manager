@@ -77,6 +77,7 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
                 'plugin-enabled' => $this->pluginEnabled($this->argv[1], $this->argv[2], $this->argv[3] === '1'),
                 'issue-data' => $this->issueData((int) $this->argv[1]),
                 'gateway-payment' => $this->gatewayPayment($this->argv[1]),
+                'claim-token' => $this->claimToken($this->argv[1]),
                 default => throw new RuntimeException("Unknown command {$cmd}"),
             };
         } catch (Throwable $e) {
@@ -426,6 +427,19 @@ class ConferenceLifecycleTool extends \PKP\cliTool\CommandLineTool
         ]);
         $id = DB::table('conf_participations')->insertGetId(['participant_id' => $pid, 'role' => 'listener', 'participation_form' => $form, 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
         echo "{$pid} {$id}\n";
+    }
+
+    /**
+     * Security audit 0.33: a fresh link for the account's address, as the
+     * letter from the cabinet would carry it (the letter itself is not read).
+     */
+    private function claimToken(string $username): void
+    {
+        $user = DB::table('users')->where('username', $username)->first(['user_id', 'email']) ?? throw new RuntimeException('no user');
+        $token = bin2hex(random_bytes(16));
+        DB::table('conf_email_claims')->where('user_id', $user->user_id)->where('email', strtolower($user->email))
+            ->update(['token_hash' => hash('sha256', $token), 'requested_at' => gmdate('Y-m-d H:i:s')]);
+        echo $token, "\n";
     }
 
     /** Prints "participantId participationId" of an e-mail address in an edition (0 0 when none). */

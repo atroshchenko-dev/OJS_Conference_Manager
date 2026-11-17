@@ -5126,6 +5126,12 @@ msgstr "ключ збережено"
 msgid "plugins.generic.conferenceManager.gateway.sandbox"
 msgstr "Тестовий режим (пісочниця): гроші не списуються, тестові платежі зараховуються"
 
+msgid "plugins.generic.conferenceManager.gateway.sandboxWarning"
+msgstr "Увімкнено тестовий режим: будь-хто може «оплатити» рахунок тестовою карткою без грошей, і рахунок буде позначено сплаченим. Вимкніть його перед відкриттям реєстрації."
+
+msgid "plugins.generic.conferenceManager.gateway.sandboxNotice"
+msgstr "Тестовий режим оплати: гроші не списуються."
+
 msgid "plugins.generic.conferenceManager.gateway.currencies"
 msgstr "Валюти сервісу:"
 
@@ -5277,3 +5283,29 @@ msgstr "Матеріали"
 
 msgid "plugins.generic.conferenceManager.editionsPage.all"
 msgstr "Усі заходи"
+
+msgid "plugins.generic.conferenceManager.claim.notice"
+msgstr "У цьому журналі є записи про участь у заходах для адреси {$email}, які ще не показано в кабінеті. Щоб побачити їх, підтвердьте, що ця адреса належить вам: ми надішлемо на неї лист із посиланням."
+
+msgid "plugins.generic.conferenceManager.claim.button"
+msgstr "Надіслати лист для підтвердження"
+
+msgid "plugins.generic.conferenceManager.claim.sent"
+msgstr "Лист із посиланням надіслано на {$email}. Відкрийте посилання, увійшовши в цей самий обліковий запис."
+
+msgid "plugins.generic.conferenceManager.claim.wait"
+msgstr "Лист на {$email} уже надіслано нещодавно. Перевірте пошту (і теку «Спам») або спробуйте за кілька хвилин."
+
+msgid "plugins.generic.conferenceManager.claim.done"
+msgstr "Адресу підтверджено: записи про участь, рахунки й документи для неї тепер показано в кабінеті."
+
+msgid "plugins.generic.conferenceManager.claim.failed"
+msgstr "Посилання не спрацювало: воно застаріло, уже використане або відкрите в іншому обліковому записі. Надішліть новий лист."
+
+msgid "plugins.generic.conferenceManager.claim.mail.subject"
+msgstr "Підтвердження адреси в кабінеті учасника — {$contextName}"
+
+msgid "plugins.generic.conferenceManager.claim.mail.body"
+msgstr "Ви попросили показати у своєму кабінеті учасника записи про участь у заходах журналу «{$contextName}», зроблені для цієї адреси.\n\nЩоб підтвердити, що адреса належить вам, відкрийте посилання, увійшовши в той самий обліковий запис:\n{$url}\n\nПосилання діє {$days} днів. Якщо ви нічого не просили, просто проігноруйте цей лист."
+
+

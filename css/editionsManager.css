@@ -38,6 +38,7 @@
 .cmEditions__field > span { font-weight: 600; font-size: .875rem; }
 .cmEditions__field small, .cmEditions__note { color: var(--cm-text-secondary); font-size: .8125rem; line-height: 1.5; }
 .cmEditions__note { margin: .25rem 0 .75rem; }
+.cmEditions__note--warning { padding: .5rem .75rem; border-left: 4px solid var(--cm-warning); background: var(--cm-warning-surface); color: var(--cm-warning-text); }
 .cmEditions__field em { color: var(--cm-error); font-style: normal; font-size: .8125rem; }
 .cmEditions__field--error .pkpFormField__input { border-color: var(--cm-error); }
 .cmEditions__field .pkpFormField__input { width: 100%; box-sizing: border-box; }

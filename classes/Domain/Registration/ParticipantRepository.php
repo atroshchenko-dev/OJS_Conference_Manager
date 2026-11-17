@@ -20,7 +20,7 @@ interface ParticipantRepository
      * REG-12: with $seats set, an in-person listener beyond that number of
      * active in-person listeners joins the waiting list (status "waitlisted").
      *
-     * @param array{userId: int, email: string, givenName: array<string, string>, familyName: array<string, string>,
+     * @param array{userId: int, email: string, matchEmail?: string, givenName: array<string, string>, familyName: array<string, string>,
      *   affiliation: ?string, country: ?string, orcid: ?string, position: ?string} $person
      * @return array{participantId: int, participationId: int, status: string}|null
      */

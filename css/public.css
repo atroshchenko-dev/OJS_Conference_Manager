@@ -119,6 +119,7 @@
 .cmInvoice__upload label { display: block; font-weight: 600; }
 .cmInvoice__upload input[type=file] { display: block; max-width: 100%; margin: .35rem 0 .5rem; }
 .cmInvoice__card { margin: .5rem 0 0; }
+.cmInvoice__sandbox { margin: .25rem 0 0; font-size: .875rem; font-weight: 700; }
 .cmInvoice__card button, .cmPay button { border: 0; font: inherit; font-weight: 700; cursor: pointer; }
 /* The guardian block shows once "under 18" is ticked (browsers without :has() always show it). */
 .cmRegister__field:has(input[name=minor]:not(:checked)) .cmRegister__guardian { display: none; }
@@ -232,3 +233,6 @@
 /* Earlier invoices in the cabinet, folded away. */
 .cmMy__old { margin: 1rem 0; }
 .cmMy__old > summary { cursor: pointer; font-weight: 600; padding: .5rem 0; }
+.cmClaim { margin: 0 0 1.5rem; padding: .75rem 1rem; border-left: 4px solid var(--cm-accent); background: var(--cm-accent-surface); }
+.cmClaim p { margin: 0 0 .5rem; }
+.cmClaim button { border: 0; font: inherit; font-weight: 700; cursor: pointer; }

@@ -177,6 +177,7 @@ final class ServiceFactory
             self::invoices(),
             new OjsGatewayHttp(),
             new AuditLogger($db),
+            self::secretCipher(),
         );
     }
 
@@ -333,6 +334,47 @@ final class ServiceFactory
             self::settings(),
             new AuditLogger($db),
         );
+    }
+
+    /**
+     * The cipher for payment keys, or null (keys stay as they are) on a PHP
+     * without libsodium or an installation without app_key and salt.
+     */
+    private static function secretCipher(): ?SodiumSecretCipher
+    {
+        if (!function_exists('sodium_crypto_secretbox')) {
+            return null;
+        }
+        try {
+            return new SodiumSecretCipher();
+        } catch (\RuntimeException $e) {
+            error_log('conferenceManager: payment keys are stored unencrypted: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public static function emailClaims(): \APP\plugins\generic\conferenceManager\classes\Application\EmailClaimService
+    {
+        return new \APP\plugins\generic\conferenceManager\classes\Application\EmailClaimService(
+            new \APP\plugins\generic\conferenceManager\classes\Infrastructure\Repositories\DbEmailClaimRepository(DB::connection()),
+        );
+    }
+
+    /**
+     * The address by which records of the plugin are matched to this
+     * account: its email once OJS has validated it or the person has
+     * confirmed it through the plugin, '' before that (security audit 0.33).
+     */
+    public static function matchEmail(\PKP\user\User $user): string
+    {
+        return self::emailClaims()->matchEmail((int) $user->getId(), (string) $user->getEmail(), self::emailValidatedByOjs($user));
+    }
+
+    /** OJS has confirmed the account's address (config require_validation). */
+    public static function emailValidatedByOjs(\PKP\user\User $user): bool
+    {
+        // getDateValidated() is documented as string, but is null until validation.
+        return $user->getData('dateValidated') !== null;
     }
 
     public static function participantRepository(): DbParticipantRepository

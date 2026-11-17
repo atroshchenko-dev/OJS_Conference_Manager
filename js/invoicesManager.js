@@ -291,6 +291,7 @@
 					<input class="pkpFormField__input" :type="f.secret ? \'password\' : \'text\'" v-model="gatewayForm.values[f.name]" maxlength="500" autocomplete="off" :placeholder="f.secret && gateway.gateway === gatewayForm.gateway && gateway.secretsSet[f.name] ? t(\'gateway.secretSet\') : \'\'"><em v-if="gatewayError(f.name)">{{ gatewayError(f.name) }}</em></label>\
 			</div>\
 			<label class="cmEditions__check" v-if="gatewayChosen"><input type="checkbox" v-model="gatewayForm.sandbox"> {{ t(\'gateway.sandbox\') }}</label>\
+			<p class="cmEditions__note cmEditions__note--warning" v-if="gatewayChosen && gatewayForm.sandbox" role="alert">{{ t(\'gateway.sandboxWarning\') }}</p>\
 			<p class="cmEditions__note" v-if="gatewayChosen">{{ t(\'gateway.currencies\') }} {{ gatewayChosen.currencies.join(\', \') }}. {{ t(\'gateway.ruleHint\') }}</p>\
 			<div class="cmEditions__buttons"><pkp-button :is-primary="true" @click="saveGateway">{{ t(\'save\') }}</pkp-button></div>\
 		</form>\

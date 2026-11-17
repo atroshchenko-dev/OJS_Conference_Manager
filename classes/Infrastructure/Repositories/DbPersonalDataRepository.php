@@ -118,6 +118,12 @@ final class DbPersonalDataRepository implements PersonalDataRepository
             if (!$this->db->table('conf_participants')->where('context_id', $contextId)->where('email', $email)->exists()) {
                 $this->db->table('conf_reminders_sent')->where('context_id', $contextId)->where('email', $email)->update(['email' => '']);
             }
+            // Confirmations of the address are not tied to a journal: forget them
+            // when no journal of the site keeps a record for it.
+            if ($this->db->getSchemaBuilder()->hasTable('conf_email_claims')
+                && !$this->db->table('conf_participants')->where('email', $email)->exists()) {
+                $this->db->table('conf_email_claims')->where('email', $email)->delete();
+            }
             return true;
         });
     }
